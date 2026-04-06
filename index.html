@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VIT Scan</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    color: #1a1a1a;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem 1.75rem;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #e5e5e5;
+  }
+
+  .logo {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 1.75rem;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 1.75rem;
+    line-height: 1.5;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 6px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 15px;
+    margin-bottom: 1rem;
+    background: #fafafa;
+    color: #1a1a1a;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #555;
+    background: #fff;
+  }
+
+  input[type="password"] { letter-spacing: 0.2em; }
+
+  .btn {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn:active { transform: scale(0.98); opacity: 0.85; }
+
+  .btn-primary {
+    background: #1a1a1a;
+    color: #fff;
+  }
+
+  .btn-secondary {
+    background: #f0f0f0;
+    color: #1a1a1a;
+    margin-top: 0.6rem;
+  }
+
+  .btn-success {
+    background: #1a7a3e;
+    color: #fff;
+  }
+
+  .btn-danger {
+    background: #b91c1c;
+    color: #fff;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 1.25rem;
+  }
+
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-red   { background: #fee2e2; color: #991b1b; }
+  .badge-blue  { background: #dbeafe; color: #1e40af; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 1.25rem 0;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    padding: 5px 0;
+  }
+
+  .info-row .key { color: #888; }
+  .info-row .val { font-weight: 500; }
+
+  .session-bar {
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .session-bar .name { font-weight: 600; }
+  .session-bar .room { color: #888; }
+  .session-bar button {
+    background: none;
+    border: none;
+    font-size: 12px;
+    color: #888;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  .session-bar button:hover { background: #e8e8e8; }
+
+  .big-icon {
+    font-size: 48px;
+    text-align: center;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .error-msg {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    font-size: 13px;
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .pin-dots {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 1.25rem 0;
+  }
+
+  .pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .pin-dot.filled {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+  }
+
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 0.75rem;
+  }
+
+  .numpad button {
+    padding: 1rem 0;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 500;
+    background: #fafafa;
+    cursor: pointer;
+    color: #1a1a1a;
+    transition: background 0.1s;
+  }
+
+  .numpad button:active { background: #e5e5e5; }
+  .numpad button.del { font-size: 16px; color: #888; }
+  .numpad button.empty { visibility: hidden; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">VIT · Event Intelligence</div>
+
+  <!-- ── SCREEN 1: Setup (first visit or session cleared) ── -->
+  <div class="screen active" id="screen-setup">
+    <h2>Manager setup</h2>
+    <p class="subtitle">Enter your details once. They'll be saved for this session.</p>
+
+    <div class="error-msg" id="setup-error"></div>
+
+    <label>Your name</label>
+    <select id="setup-name">
+      <option value="">Select manager…</option>
+    </select>
+
+    <label>Room / Area</label>
+    <select id="setup-room">
+      <option value="">Select room…</option>
+    </select>
+
+    <label>PIN</label>
+    <input type="password" id="setup-pin" maxlength="6" inputmode="numeric" placeholder="Enter your PIN">
+
+    <button class="btn btn-primary" onclick="submitSetup()">Save & start scanning</button>
+  </div>
+
+  <!-- ── SCREEN 2: Scan ready (session active, waiting for tag) ── -->
+  <div class="screen" id="screen-ready">
+    <div class="session-bar">
+      <div>
+        <span class="name" id="ready-name"></span>
+        <span class="room"> · <span id="ready-room"></span></span>
+      </div>
+      <button onclick="clearSession()">Switch</button>
+    </div>
+
+    <div class="big-icon">📲</div>
+    <h2 style="text-align:center;">Ready to scan</h2>
+    <p class="subtitle" style="text-align:center;">Tap a worker's NFC tag to continue. The tag will open this page automatically.</p>
+
+    <div style="background:#f5f5f5;border-radius:10px;padding:0.75rem 1rem;font-size:13px;color:#888;text-align:center;margin-top:0.5rem;">
+      Share your scan link or keep this page open
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3: PIN verify (tag was tapped, session exists) ── -->
+  <div class="screen" id="screen-pin">
+    <div class="session-bar">
+      <div>
+        <span class="name" id="pin-name"></span>
+        <span class="room"> · <span id="pin-room"></span></span>
+      </div>
+      <button onclick="clearSession()">Switch</button>
+    </div>
+
+    <div class="big-icon">🔒</div>
+    <h2 style="text-align:center;">Confirm scan</h2>
+    <p class="subtitle" style="text-align:center;">Enter your PIN to log this tag.</p>
+
+    <div class="error-msg" id="pin-error"></div>
+
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+
+    <div class="numpad" id="numpad">
+      <button onclick="pinKey('1')">1</button>
+      <button onclick="pinKey('2')">2</button>
+      <button onclick="pinKey('3')">3</button>
+      <button onclick="pinKey('4')">4</button>
+      <button onclick="pinKey('5')">5</button>
+      <button onclick="pinKey('6')">6</button>
+      <button onclick="pinKey('7')">7</button>
+      <button onclick="pinKey('8')">8</button>
+      <button onclick="pinKey('9')">9</button>
+      <button class="empty"></button>
+      <button onclick="pinKey('0')">0</button>
+      <button class="del" onclick="pinBackspace()">⌫</button>
+    </div>
+
+    <button class="btn btn-secondary" onclick="cancelScan()" style="margin-top:1.25rem;">Cancel</button>
+  </div>
+
+  <!-- ── SCREEN 4: Confirm tag details before logging ── -->
+  <div class="screen" id="screen-confirm">
+    <span class="badge badge-blue">Ready to log</span>
+    <h2>Confirm scan</h2>
+    <p class="subtitle">Review the details before logging.</p>
+
+    <hr class="divider">
+    <div class="info-row"><span class="key">Worker tag</span><span class="val" id="confirm-tagid"></span></div>
+    <div class="info-row"><span class="key">UID</span><span class="val" id="confirm-uid" style="font-family:monospace;font-size:13px;"></span></div>
+    <div class="info-row"><span class="key">Manager</span><span class="val" id="confirm-manager"></span></div>
+    <div class="info-row"><span class="key">Room</span><span class="val" id="confirm-room"></span></div>
+    <div class="info-row"><span class="key">Phase</span><span class="val" id="confirm-phase"></span></div>
+    <div class="info-row"><span class="key">Event</span><span class="val" id="confirm-event"></span></div>
+    <hr class="divider">
+
+    <button class="btn btn-success" id="log-btn" onclick="logScan()">Log this scan</button>
+    <button class="btn btn-secondary" onclick="cancelScan()">Cancel</button>
+  </div>
+
+  <!-- ── SCREEN 5: Result ── -->
+  <div class="screen" id="screen-result">
+    <div class="big-icon" id="result-icon"></div>
+    <span class="badge" id="result-badge"></span>
+    <h2 id="result-title"></h2>
+    <p class="subtitle" id="result-msg"></p>
+
+    <hr class="divider">
+    <div class="info-row" id="result-worker-row">
+      <span class="key">Worker tag</span>
+      <span class="val" id="result-tagid"></span>
+    </div>
+    <div class="info-row">
+      <span class="key">Room</span>
+      <span class="val" id="result-room"></span>
+    </div>
+    <div class="info-row">
+      <span class="key">Time</span>
+      <span class="val" id="result-time"></span>
+    </div>
+    <hr class="divider">
+
+    <button class="btn btn-primary" onclick="showReady()">Scan another tag</button>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG — update these before deploying ──────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
+// Manager list: name → PIN mapping
+// In production, replace with a fetch from your Managers sheet or Apps Script
+const MANAGERS = {
+  'Alice':   { pin: '1234', rooms: ['Ballroom', 'Lobby', 'Stage'] },
+  'Bob':     { pin: '5678', rooms: ['Kitchen', 'Patio'] },
+  'Carol':   { pin: '9012', rooms: ['Green Room', 'Loading Dock'] },
+};
+
+// Room list (union of all rooms — or fetch from Apps Script)
+const ALL_ROOMS = ['Ballroom', 'Lobby', 'Stage', 'Kitchen', 'Patio', 'Green Room', 'Loading Dock'];
+// ───────────────────────────────────────────────────────────────────────────
+
+const params   = new URLSearchParams(window.location.search);
+const TAG_UID  = params.get('uid')   || '';
+const TAG_ID   = params.get('tagId') || '';
+const TAG_PHASE = params.get('phase') || 'General';
+const TAG_EVENT = params.get('event') || 'General';
+
+let pinBuffer = '';
+const PIN_LENGTH = 4;
+
+// ── Boot ────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  populateSetupForm();
+  const session = loadSession();
+
+  if (TAG_UID && TAG_ID) {
+    // A tag was tapped
+    if (session) {
+      showPinScreen(session);
+    } else {
+      showScreen('screen-setup');
+    }
+  } else {
+    // No tag in URL — just the ready/setup screen
+    if (session) {
+      showReady();
+    } else {
+      showScreen('screen-setup');
+    }
+  }
+});
+
+function populateSetupForm() {
+  const nameSelect = document.getElementById('setup-name');
+  Object.keys(MANAGERS).forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    nameSelect.appendChild(opt);
+  });
+
+  const roomSelect = document.getElementById('setup-room');
+  ALL_ROOMS.forEach(room => {
+    const opt = document.createElement('option');
+    opt.value = room;
+    opt.textContent = room;
+    roomSelect.appendChild(opt);
+  });
+
+  nameSelect.addEventListener('change', () => {
+    const mgr = MANAGERS[nameSelect.value];
+    if (!mgr) return;
+    roomSelect.innerHTML = '<option value="">Select room…</option>';
+    mgr.rooms.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r; opt.textContent = r;
+      roomSelect.appendChild(opt);
+    });
+  });
+}
+
+// ── Session helpers ─────────────────────────────────────────────────────────
+function saveSession(name, room) {
+  localStorage.setItem('vit_session', JSON.stringify({ name, room, ts: Date.now() }));
+}
+
+function loadSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem('vit_session'));
+    if (!s) return null;
+    // Sessions expire after 12 hours
+    if (Date.now() - s.ts > 12 * 60 * 60 * 1000) { localStorage.removeItem('vit_session'); return null; }
+    return s;
+  } catch { return null; }
+}
+
+function clearSession() {
+  localStorage.removeItem('vit_session');
+  showScreen('screen-setup');
+}
+
+// ── Screen navigation ────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showReady() {
+  const s = loadSession();
+  if (!s) { showScreen('screen-setup'); return; }
+  document.getElementById('ready-name').textContent = s.name;
+  document.getElementById('ready-room').textContent = s.room;
+  showScreen('screen-ready');
+}
+
+function showPinScreen(session) {
+  document.getElementById('pin-name').textContent = session.name;
+  document.getElementById('pin-room').textContent = session.room;
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pin-error').style.display = 'none';
+  showScreen('screen-pin');
+}
+
+function cancelScan() {
+  pinBuffer = '';
+  showReady();
+}
+
+// ── Setup form submit ────────────────────────────────────────────────────────
+function submitSetup() {
+  const name = document.getElementById('setup-name').value.trim();
+  const room = document.getElementById('setup-room').value.trim();
+  const pin  = document.getElementById('setup-pin').value.trim();
+  const err  = document.getElementById('setup-error');
+
+  err.style.display = 'none';
+
+  if (!name) { showError(err, 'Please select your name.'); return; }
+  if (!room) { showError(err, 'Please select a room.'); return; }
+  if (!pin)  { showError(err, 'PIN is required.'); return; }
+
+  const mgr = MANAGERS[name];
+  if (!mgr || mgr.pin !== pin) {
+    showError(err, 'Incorrect PIN. Please try again.');
+    document.getElementById('setup-pin').value = '';
+    return;
+  }
+
+  saveSession(name, room);
+
+  if (TAG_UID && TAG_ID) {
+    showConfirmScreen(name, room);
+  } else {
+    showReady();
+  }
+}
+
+// ── PIN numpad ───────────────────────────────────────────────────────────────
+function pinKey(digit) {
+  if (pinBuffer.length >= PIN_LENGTH) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === PIN_LENGTH) verifyPin();
+}
+
+function pinBackspace() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+}
+
+function updatePinDots() {
+  for (let i = 0; i < PIN_LENGTH; i++) {
+    document.getElementById('dot-' + i).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function verifyPin() {
+  const session = loadSession();
+  if (!session) { clearSession(); return; }
+
+  const mgr = MANAGERS[session.name];
+  if (!mgr || mgr.pin !== pinBuffer) {
+    const err = document.getElementById('pin-error');
+    showError(err, 'Incorrect PIN. Try again.');
+    pinBuffer = '';
+    updatePinDots();
+    return;
+  }
+
+  // PIN correct — show confirm screen
+  showConfirmScreen(session.name, session.room);
+}
+
+// ── Confirm screen ───────────────────────────────────────────────────────────
+function showConfirmScreen(managerName, room) {
+  document.getElementById('confirm-tagid').textContent   = TAG_ID   || '—';
+  document.getElementById('confirm-uid').textContent     = TAG_UID  || '—';
+  document.getElementById('confirm-manager').textContent = managerName;
+  document.getElementById('confirm-room').textContent    = room;
+  document.getElementById('confirm-phase').textContent   = TAG_PHASE;
+  document.getElementById('confirm-event').textContent   = TAG_EVENT;
+  showScreen('screen-confirm');
+}
+
+// ── Log scan ─────────────────────────────────────────────────────────────────
+async function logScan() {
+  const session = loadSession();
+  if (!session) { clearSession(); return; }
+
+  const btn = document.getElementById('log-btn');
+  btn.innerHTML = '<span class="spinner"></span>Logging…';
+  btn.disabled = true;
+
+  const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(session.name)}&room=${encodeURIComponent(session.room)}&phase=${encodeURIComponent(TAG_PHASE)}&event=${encodeURIComponent(TAG_EVENT)}`;
+
+  try {
+    const res  = await fetch(url, { mode: 'no-cors' });
+    // no-cors means we can't read the body, so we optimistically assume success
+    // If your Apps Script returns CORS headers, switch to normal fetch and check response text
+    showResult('success', session.room);
+  } catch (e) {
+    showResult('error', session.room);
+  }
+
+  btn.innerHTML = 'Log this scan';
+  btn.disabled = false;
+}
+
+function showResult(status, room) {
+  const icons   = { success: '✅', duplicate: '⚠️', error: '❌' };
+  const badges  = { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-red' };
+  const labels  = { success: 'Logged', duplicate: 'Duplicate', error: 'Error' };
+  const titles  = { success: 'Scan logged!', duplicate: 'Already scanned', error: 'Could not log' };
+  const msgs    = {
+    success:   'This worker has been checked in successfully.',
+    duplicate: 'This tag was already scanned in the last 60 seconds.',
+    error:     'Something went wrong. Check your connection and try again.',
+  };
+
+  document.getElementById('result-icon').textContent   = icons[status];
+  const badge = document.getElementById('result-badge');
+  badge.className = 'badge ' + badges[status];
+  badge.textContent = labels[status];
+  document.getElementById('result-title').textContent  = titles[status];
+  document.getElementById('result-msg').textContent    = msgs[status];
+  document.getElementById('result-tagid').textContent  = TAG_ID || '—';
+  document.getElementById('result-room').textContent   = room;
+  document.getElementById('result-time').textContent   = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  showScreen('screen-result');
+}
+
+function showError(el, msg) {
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
