@@ -596,10 +596,11 @@ async function logScan() {
   const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(session.name)}&room=${encodeURIComponent(session.room)}&phase=${encodeURIComponent(TAG_PHASE)}&event=${encodeURIComponent(TAG_EVENT)}`;
 
   try {
-    const res  = await fetch(url, { mode: 'no-cors' });
-    // no-cors means we can't read the body, so we optimistically assume success
-    // If your Apps Script returns CORS headers, switch to normal fetch and check response text
-    showResult('success', session.room);
+    const res  = await fetch(url);
+const text = await res.text();
+if (text.includes('DUPLICATE'))     showResult('duplicate', session.room);
+else if (text.includes('ERROR'))    showResult('error', session.room);
+else                                showResult('success', session.room);
   } catch (e) {
     showResult('error', session.room);
   }
