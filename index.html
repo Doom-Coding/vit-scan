@@ -382,14 +382,18 @@
 
 <script>
 // ── CONFIG — update these before deploying ──────────────────────────────────
-const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+const SCRIPT_URL = '- https://script.google.com/macros/s/AKfycbzHPqGaO5bql1Rhph0ShvCCxT7faHdQ1AxkvQO2_019aUV1FosbyzsDxotK8eldN9lACA/exec';
 
 // Manager list: name → PIN mapping
 // In production, replace with a fetch from your Managers sheet or Apps Script
 const MANAGERS = {
-  'Alice':   { pin: '1234', rooms: ['Ballroom', 'Lobby', 'Stage'] },
-  'Bob':     { pin: '5678', rooms: ['Kitchen', 'Patio'] },
-  'Carol':   { pin: '9012', rooms: ['Green Room', 'Loading Dock'] },
+  'Jasmine':   { pin: '8608', rooms: ['Ballroom', 'Lobby', 'Stage'] },
+  'John':     { pin: '8608', rooms: ['Kitchen', 'Patio'] },
+  'Peter':   { pin: '8608', rooms: ['Green Room', 'Loading Dock'] },
+ 'Cynthia':   { pin: '8608', rooms: ['Green Room', 'Loading Dock'] },
+ 'Jorge':   { pin: '8608', rooms: ['Green Room', 'Loading Dock'] },
+ 'Geo':   { pin: '8608', rooms: ['Green Room', 'Loading Dock'] },
+ 'Chad':   { pin: '8608', rooms: ['Green Room', 'Loading Dock'] },
 };
 
 // Room list (union of all rooms — or fetch from Apps Script)
