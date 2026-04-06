@@ -489,6 +489,7 @@ function showScreen(id) {
 function showReady() {
   const s = loadSession();
   if (!s) { showScreen('screen-setup'); return; }
+  history.replaceState({}, '', window.location.pathname); // ← add this
   document.getElementById('ready-name').textContent = s.name;
   document.getElementById('ready-room').textContent = s.room;
   showScreen('screen-ready');
