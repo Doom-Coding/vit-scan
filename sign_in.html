@@ -27,15 +27,7 @@
   }
 
   .header-left { display: flex; align-items: center; gap: 1rem; }
-
-  .logo {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    opacity: 0.6;
-  }
-
+  .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.6; }
   .header-title { font-size: 15px; font-weight: 600; }
   .header-meta  { font-size: 12px; opacity: 0.5; }
 
@@ -59,8 +51,17 @@
     color: #888;
   }
 
+  .control-group label .optional {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #bbb;
+    margin-left: 4px;
+  }
+
   .control-group select,
-  .control-group input[type="date"] {
+  .control-group input[type="date"],
+  .control-group input[type="text"] {
     padding: 0.5rem 0.75rem;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -69,12 +70,14 @@
     color: #1a1a1a;
     appearance: none;
     -webkit-appearance: none;
-    min-width: 200px;
+    min-width: 180px;
     cursor: pointer;
   }
 
+  .control-group input[type="text"] { cursor: text; min-width: 160px; }
+
   .control-group select:focus,
-  .control-group input[type="date"]:focus {
+  .control-group input:focus {
     outline: none;
     border-color: #1a1a1a;
     background: #fff;
@@ -91,6 +94,7 @@
     cursor: pointer;
     transition: opacity 0.15s;
     align-self: flex-end;
+    white-space: nowrap;
   }
 
   .btn-load:hover { opacity: 0.8; }
@@ -105,10 +109,22 @@
     border-bottom: 1px solid #e5e5e5;
     background: #fff;
     flex-wrap: wrap;
+    align-items: center;
   }
 
   .stat { display: flex; gap: 6px; align-items: center; }
   .stat strong { color: #1a1a1a; font-weight: 600; }
+
+  .supervisor-stamp {
+    margin-left: auto;
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .supervisor-stamp strong { color: #1a1a1a; }
 
   .main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 
@@ -164,14 +180,14 @@
 
   .worker-table tr:last-child td { border-bottom: none; }
   .worker-table tr.assigned { background: #f0fdf4; }
-  .worker-table tr.assigned td { color: #166534; }
+  .worker-table tr.conflict-row { background: #fff7ed; }
 
   .worker-name { font-weight: 600; color: #1a1a1a; }
   .worker-position { font-size: 12px; color: #888; margin-top: 2px; }
   .worker-time { font-size: 13px; color: #555; white-space: nowrap; }
   .worker-room { font-size: 13px; color: #555; }
 
-  .tag-input-wrap { display: flex; gap: 6px; align-items: center; }
+  .tag-input-wrap { display: flex; gap: 6px; align-items: flex-start; }
 
   .tag-input {
     width: 80px;
@@ -186,7 +202,8 @@
   }
 
   .tag-input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  .tag-input.has-value { border-color: #166534; background: #f0fdf4; color: #166534; }
+  .tag-input.has-value  { border-color: #166534; background: #f0fdf4; color: #166534; }
+  .tag-input.conflict   { border-color: #c2410c; background: #fff7ed; color: #c2410c; }
 
   .save-btn {
     padding: 0.35rem 0.75rem;
@@ -199,48 +216,48 @@
     cursor: pointer;
     transition: opacity 0.15s, background 0.15s;
     white-space: nowrap;
+    margin-top: 1px;
   }
 
-  .save-btn:hover { opacity: 0.8; }
-  .save-btn.saved { background: #166534; }
-  .save-btn.saving { opacity: 0.5; cursor: default; }
+  .save-btn:hover    { opacity: 0.8; }
+  .save-btn.saved    { background: #166534; }
+  .save-btn.conflict { background: #c2410c; }
+  .save-btn.saving   { opacity: 0.5; cursor: default; }
   .save-btn:disabled { opacity: 0.3; cursor: default; }
 
+  .conflict-msg {
+    font-size: 11px;
+    color: #c2410c;
+    margin-top: 4px;
+    display: none;
+    line-height: 1.3;
+  }
+
   .status-dot {
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;
+    margin-top: 8px;
   }
 
-  .status-dot.saved   { background: #22c55e; }
-  .status-dot.unsaved { background: #e5e5e5; }
-  .status-dot.saving  { background: #f59e0b; animation: pulse 1s infinite; }
+  .status-dot.saved    { background: #22c55e; }
+  .status-dot.unsaved  { background: #e5e5e5; }
+  .status-dot.saving   { background: #f59e0b; animation: pulse 1s infinite; }
+  .status-dot.conflict { background: #f97316; }
 
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: #888;
-  }
-
+  .empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
   .empty-state .icon { font-size: 40px; margin-bottom: 1rem; }
   .empty-state h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; color: #1a1a1a; }
   .empty-state p { font-size: 14px; }
 
-  .loading {
-    text-align: center;
-    padding: 4rem;
-    color: #888;
-    font-size: 14px;
-  }
+  .loading { text-align: center; padding: 4rem; color: #888; font-size: 14px; }
 
   .spinner-inline {
     display: inline-block;
-    width: 16px;
-    height: 16px;
+    width: 16px; height: 16px;
     border: 2px solid #ddd;
     border-top-color: #1a1a1a;
     border-radius: 50%;
@@ -253,8 +270,7 @@
 
   .toast {
     position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
+    bottom: 1.5rem; right: 1.5rem;
     background: #1a1a1a;
     color: #fff;
     padding: 0.75rem 1.25rem;
@@ -266,17 +282,21 @@
     transition: opacity 0.2s, transform 0.2s;
     pointer-events: none;
     z-index: 999;
+    max-width: 320px;
   }
 
-  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.show    { opacity: 1; transform: translateY(0); }
   .toast.success { background: #166534; }
   .toast.error   { background: #991b1b; }
+  .toast.warning { background: #92400e; }
 
-  @media (max-width: 640px) {
+  @media (max-width: 700px) {
     .controls { flex-direction: column; }
-    .control-group select { min-width: 100%; }
+    .control-group select,
+    .control-group input { min-width: 100%; }
     .worker-table th:nth-child(3),
     .worker-table td:nth-child(3) { display: none; }
+    .supervisor-stamp { margin-left: 0; }
   }
 </style>
 </head>
@@ -293,14 +313,28 @@
 <div class="controls">
   <div class="control-group">
     <label>Location</label>
-    <select id="location-select">
+    <select id="location-select" onchange="loadEventOptions()">
       <option value="">Select location…</option>
     </select>
   </div>
+
   <div class="control-group">
     <label>Date</label>
-    <input type="date" id="date-select">
+    <input type="date" id="date-select" onchange="loadEventOptions()">
   </div>
+
+  <div class="control-group">
+    <label>Event <span class="optional">(optional filter)</span></label>
+    <select id="event-select">
+      <option value="">All events</option>
+    </select>
+  </div>
+
+  <div class="control-group">
+    <label>Your name</label>
+    <input type="text" id="supervisor-name" placeholder="Supervisor name" autocomplete="name">
+  </div>
+
   <button class="btn-load" id="load-btn" onclick="loadWorkers()">Load Workers</button>
 </div>
 
@@ -308,6 +342,9 @@
   <div class="stat">Total booked: <strong id="stat-total">0</strong></div>
   <div class="stat">Tags assigned: <strong id="stat-assigned">0</strong></div>
   <div class="stat">Unassigned: <strong id="stat-unassigned">0</strong></div>
+  <div class="supervisor-stamp" id="supervisor-stamp" style="display:none;">
+    Assigning as <strong id="stamp-name"></strong>
+  </div>
 </div>
 
 <div class="main" id="main-content">
@@ -332,38 +369,66 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('header-date').textContent = today.toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
   });
+  const saved = sessionStorage.getItem('vit_supervisor');
+  if (saved) document.getElementById('supervisor-name').value = saved;
   loadLocations();
 });
 
 async function loadLocations() {
   try {
-    const url  = `${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`;
-    const res  = await fetch(url);
+    const res  = await fetch(`${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`);
     const data = await res.json();
-    const select = document.getElementById('location-select');
+    const sel  = document.getElementById('location-select');
     if (data.locations && data.locations.length) {
       data.locations.forEach(loc => {
         const opt = document.createElement('option');
         opt.value = loc; opt.textContent = loc;
-        select.appendChild(opt);
+        sel.appendChild(opt);
       });
-      if (data.locations.length === 1) select.value = data.locations[0];
+      if (data.locations.length === 1) { sel.value = data.locations[0]; loadEventOptions(); }
     }
-  } catch (e) {
-    const select = document.getElementById('location-select');
+  } catch(e) {
+    const sel = document.getElementById('location-select');
     const opt = document.createElement('option');
     opt.value = 'FL - Caribe Royale Orlando - 4006';
     opt.textContent = 'FL - Caribe Royale Orlando - 4006';
-    select.appendChild(opt);
+    sel.appendChild(opt);
   }
 }
 
-async function loadWorkers() {
+async function loadEventOptions() {
   const location = document.getElementById('location-select').value;
   const date     = document.getElementById('date-select').value;
+  const sel      = document.getElementById('event-select');
+  sel.innerHTML  = '<option value="">All events</option>';
+  if (!location || !date) return;
+  try {
+    const url  = `${SCRIPT_URL}?action=getEvents&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.events && data.events.length) {
+      data.events.forEach(ev => {
+        const opt = document.createElement('option');
+        opt.value = ev; opt.textContent = ev;
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) {}
+}
 
-  if (!location) { showToast('Please select a location.', 'error'); return; }
-  if (!date)     { showToast('Please select a date.', 'error'); return; }
+async function loadWorkers() {
+  const location    = document.getElementById('location-select').value;
+  const date        = document.getElementById('date-select').value;
+  const eventFilter = document.getElementById('event-select').value;
+  const supervisor  = document.getElementById('supervisor-name').value.trim();
+
+  if (!location)   { showToast('Please select a location.', 'error'); return; }
+  if (!date)       { showToast('Please select a date.', 'error'); return; }
+  if (!supervisor) { showToast('Please enter your name.', 'error'); return; }
+
+  sessionStorage.setItem('vit_supervisor', supervisor);
+  document.getElementById('stamp-name').textContent = supervisor;
+  document.getElementById('supervisor-stamp').style.display = 'flex';
 
   const btn = document.getElementById('load-btn');
   btn.disabled = true;
@@ -371,7 +436,7 @@ async function loadWorkers() {
   document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Fetching worker list…</div>';
 
   try {
-    const url  = `${SCRIPT_URL}?action=getWorkers&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`;
+    const url  = `${SCRIPT_URL}?action=getWorkers&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}`;
     const res  = await fetch(url);
     const data = await res.json();
 
@@ -385,7 +450,7 @@ async function loadWorkers() {
     renderWorkers(allWorkers);
     updateStats();
 
-  } catch (e) {
+  } catch(e) {
     showToast('Could not connect. Check your network.', 'error');
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
   }
@@ -396,21 +461,19 @@ async function loadWorkers() {
 
 function renderWorkers(workers) {
   if (!workers.length) {
-    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings for this location and date.</p></div>';
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this location, date, and event.</p></div>';
     document.getElementById('stats-bar').style.display = 'none';
     return;
   }
 
   const groups = {};
   workers.forEach((w, idx) => {
-    const event = w.eventName || 'Unassigned';
-    if (!groups[event]) groups[event] = [];
-    groups[event].push({ ...w, idx });
+    const ev = w.eventName || 'Unassigned';
+    if (!groups[ev]) groups[ev] = [];
+    groups[ev].push({ ...w, idx });
   });
 
-  Object.values(groups).forEach(g => {
-    g.sort((a, b) => parseTime(a.bookedTime) - parseTime(b.bookedTime));
-  });
+  Object.values(groups).forEach(g => g.sort((a, b) => parseTime(a.bookedTime) - parseTime(b.bookedTime)));
 
   let html = '';
   Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)).forEach(([event, rows]) => {
@@ -426,12 +489,10 @@ function renderWorkers(workers) {
               <th>Name</th>
               <th>Call Time</th>
               <th>Room / Area</th>
-              <th style="width:160px;">Tag #</th>
+              <th style="width:210px;">Tag #</th>
             </tr>
           </thead>
-          <tbody>
-            ${rows.map(w => renderRow(w)).join('')}
-          </tbody>
+          <tbody>${rows.map(w => renderRow(w)).join('')}</tbody>
         </table>
       </div>`;
   });
@@ -448,9 +509,8 @@ function renderWorkers(workers) {
 }
 
 function renderRow(w) {
-  const hasSaved = w.tagId ? 'assigned' : '';
   return `
-    <tr id="row-${w.idx}" class="${hasSaved}">
+    <tr id="row-${w.idx}" class="${w.tagId ? 'assigned' : ''}">
       <td>
         <div class="worker-name">${escHtml(w.name)}</div>
         <div class="worker-position">${escHtml(w.position || '')}</div>
@@ -460,16 +520,19 @@ function renderRow(w) {
       <td>
         <div class="tag-input-wrap">
           <span class="status-dot unsaved" id="dot-${w.idx}"></span>
-          <input
-            type="text"
-            class="tag-input ${w.tagId ? 'has-value' : ''}"
-            id="tag-${w.idx}"
-            value="${w.tagId || ''}"
-            placeholder="001"
-            maxlength="6"
-            oninput="onTagInput(${w.idx})"
-            onkeydown="if(event.key==='Enter') saveTag(${w.idx})"
-          >
+          <div>
+            <input
+              type="text"
+              class="tag-input ${w.tagId ? 'has-value' : ''}"
+              id="tag-${w.idx}"
+              value="${w.tagId || ''}"
+              placeholder="001"
+              maxlength="6"
+              oninput="onTagInput(${w.idx})"
+              onkeydown="if(event.key==='Enter') saveTag(${w.idx})"
+            >
+            <div class="conflict-msg" id="conflict-${w.idx}"></div>
+          </div>
           <button class="save-btn ${w.tagId ? 'saved' : ''}" id="savebtn-${w.idx}" onclick="saveTag(${w.idx})">
             ${w.tagId ? 'Saved' : 'Save'}
           </button>
@@ -481,22 +544,30 @@ function renderRow(w) {
 function onTagInput(idx) {
   const input = document.getElementById(`tag-${idx}`);
   const dot   = document.getElementById(`dot-${idx}`);
+  const btn   = document.getElementById(`savebtn-${idx}`);
+  const msg   = document.getElementById(`conflict-${idx}`);
+  input.classList.remove('has-value', 'conflict');
   input.classList.toggle('has-value', input.value.length > 0);
   dot.className = 'status-dot unsaved';
-  document.getElementById(`savebtn-${idx}`).textContent = 'Save';
-  document.getElementById(`savebtn-${idx}`).classList.remove('saved');
+  btn.textContent = 'Save';
+  btn.classList.remove('saved', 'conflict');
+  btn.onclick = () => saveTag(idx);
+  msg.style.display = 'none';
 }
 
 async function saveTag(idx) {
-  const input  = document.getElementById(`tag-${idx}`);
-  const btn    = document.getElementById(`savebtn-${idx}`);
-  const dot    = document.getElementById(`dot-${idx}`);
-  const tagVal = input.value.trim();
+  const input      = document.getElementById(`tag-${idx}`);
+  const btn        = document.getElementById(`savebtn-${idx}`);
+  const dot        = document.getElementById(`dot-${idx}`);
+  const conflictEl = document.getElementById(`conflict-${idx}`);
+  const tagVal     = input.value.trim();
+  const supervisor = document.getElementById('supervisor-name').value.trim() ||
+                     sessionStorage.getItem('vit_supervisor') || 'Supervisor';
 
   if (!tagVal) { showToast('Enter a tag number first.', 'error'); return; }
 
-  const tagId  = tagVal.padStart(3, '0');
-  input.value  = tagId;
+  const tagId = tagVal.padStart(3, '0');
+  input.value = tagId;
 
   const worker = allWorkers[idx];
   if (!worker) return;
@@ -505,9 +576,63 @@ async function saveTag(idx) {
   btn.classList.add('saving');
   btn.disabled = true;
   dot.className = 'status-dot saving';
+  conflictEl.style.display = 'none';
 
   try {
-    const url  = `${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName || '')}&position=${encodeURIComponent(worker.position || '')}&phone=${encodeURIComponent(worker.phone || '')}`;
+    const url  = `${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName || '')}&position=${encodeURIComponent(worker.position || '')}&phone=${encodeURIComponent(worker.phone || '')}&supervisor=${encodeURIComponent(supervisor)}&force=false`;
+    const res  = await fetch(url);
+    const text = await res.text();
+
+    if (text.startsWith('CONFLICT:')) {
+      const existing = text.replace('CONFLICT:', '').trim();
+      input.classList.add('conflict');
+      dot.className = 'status-dot conflict';
+      btn.textContent = 'Override';
+      btn.classList.remove('saving');
+      btn.classList.add('conflict');
+      btn.disabled = false;
+      conflictEl.textContent = `Already assigned to ${existing} — click Override to reassign`;
+      conflictEl.style.display = 'block';
+      document.getElementById(`row-${idx}`).classList.add('conflict-row');
+      showToast(`Tag ${tagId} already assigned to ${existing}`, 'warning');
+      btn.onclick = () => saveTagForce(idx, tagId, worker, supervisor);
+      return;
+    }
+
+    if (text.includes('ERROR')) {
+      showToast(text, 'error');
+      btn.textContent = 'Retry';
+      btn.classList.remove('saving');
+      btn.disabled = false;
+      dot.className = 'status-dot unsaved';
+      return;
+    }
+
+    allWorkers[idx].tagId = tagId;
+    finalizeSave(idx, tagId, worker.name);
+
+  } catch(e) {
+    showToast('Save failed. Check connection.', 'error');
+    btn.textContent = 'Retry';
+    btn.classList.remove('saving');
+    btn.disabled = false;
+    dot.className = 'status-dot unsaved';
+  }
+}
+
+async function saveTagForce(idx, tagId, worker, supervisor) {
+  const btn        = document.getElementById(`savebtn-${idx}`);
+  const dot        = document.getElementById(`dot-${idx}`);
+  const conflictEl = document.getElementById(`conflict-${idx}`);
+
+  btn.textContent = 'Saving…';
+  btn.classList.remove('conflict');
+  btn.classList.add('saving');
+  btn.disabled = true;
+  dot.className = 'status-dot saving';
+
+  try {
+    const url  = `${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName || '')}&position=${encodeURIComponent(worker.position || '')}&phone=${encodeURIComponent(worker.phone || '')}&supervisor=${encodeURIComponent(supervisor)}&force=true`;
     const res  = await fetch(url);
     const text = await res.text();
 
@@ -521,13 +646,13 @@ async function saveTag(idx) {
     }
 
     allWorkers[idx].tagId = tagId;
-    markSaved(idx);
-    document.getElementById(`row-${idx}`).classList.add('assigned');
-    input.classList.add('has-value');
-    showToast(`Tag ${tagId} → ${worker.name}`, 'success');
-    updateStats();
+    conflictEl.style.display = 'none';
+    document.getElementById(`row-${idx}`).classList.remove('conflict-row');
+    document.getElementById(`tag-${idx}`).classList.remove('conflict');
+    finalizeSave(idx, tagId, worker.name);
+    showToast(`Tag ${tagId} → ${worker.name} (overridden)`, 'success');
 
-  } catch (e) {
+  } catch(e) {
     showToast('Save failed. Check connection.', 'error');
     btn.textContent = 'Retry';
     btn.classList.remove('saving');
@@ -536,10 +661,20 @@ async function saveTag(idx) {
   }
 }
 
+function finalizeSave(idx, tagId, workerName) {
+  markSaved(idx);
+  document.getElementById(`row-${idx}`).className = 'assigned';
+  document.getElementById(`tag-${idx}`).classList.remove('conflict');
+  document.getElementById(`tag-${idx}`).classList.add('has-value');
+  document.getElementById(`savebtn-${idx}`).onclick = () => saveTag(idx);
+  showToast(`Tag ${tagId} → ${workerName}`, 'success');
+  updateStats();
+}
+
 function markSaved(idx) {
   const btn = document.getElementById(`savebtn-${idx}`);
   const dot = document.getElementById(`dot-${idx}`);
-  if (btn) { btn.textContent = 'Saved'; btn.classList.add('saved'); btn.classList.remove('saving'); btn.disabled = false; }
+  if (btn) { btn.textContent = 'Saved'; btn.classList.add('saved'); btn.classList.remove('saving', 'conflict'); btn.disabled = false; }
   if (dot) { dot.className = 'status-dot saved'; }
 }
 
@@ -573,7 +708,7 @@ function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = `toast show ${type}`;
-  setTimeout(() => { t.className = 'toast'; }, 3000);
+  setTimeout(() => { t.className = 'toast'; }, 3500);
 }
 </script>
 </body>
