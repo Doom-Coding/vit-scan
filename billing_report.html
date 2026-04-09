@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIT · Billing Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f7f7f5;
+    min-height: 100vh;
+    color: #1a1a1a;
+  }
+
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.5; }
+  .header-title { font-size: 15px; font-weight: 600; }
+  .header-right { display: flex; align-items: center; gap: 0.75rem; }
+
+  .btn-export {
+    padding: 0.4rem 1rem;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: none;
+  }
+
+  .btn-export:hover { background: rgba(255,255,255,0.1); }
+  .btn-export.visible { display: block; }
+
+  .controls {
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .control-group { display: flex; flex-direction: column; gap: 4px; }
+
+  .control-group label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+  }
+
+  .control-group select,
+  .control-group input[type="date"] {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa;
+    color: #1a1a1a;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 180px;
+    cursor: pointer;
+  }
+
+  .control-group select:focus,
+  .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+
+  .btn-load {
+    padding: 0.5rem 1.25rem;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    align-self: flex-end;
+  }
+
+  .btn-load:hover { opacity: 0.8; }
+  .btn-load:disabled { opacity: 0.4; cursor: default; }
+
+  .summary-bar {
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 0.75rem 1.5rem;
+    display: none;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .summary-bar.visible { display: flex; }
+
+  .summary-stat { display: flex; flex-direction: column; gap: 2px; }
+  .summary-stat .label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
+  .summary-stat .value { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .summary-stat .value.ot { color: #c2410c; }
+
+  .summary-divider { width: 1px; height: 32px; background: #e5e5e5; }
+
+  .event-label-bar {
+    font-size: 12px;
+    color: #888;
+    margin-left: auto;
+  }
+
+  .event-label-bar strong { color: #1a1a1a; }
+
+  .main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Worker group ── */
+  .worker-group { margin-bottom: 1.75rem; }
+
+  .worker-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0;
+    background: #1a1a1a;
+    color: #fff;
+    padding: 0.6rem 1rem;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .worker-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    letter-spacing: 0.05em;
+  }
+
+  .worker-info { flex: 1; }
+  .worker-name-hdr { font-size: 14px; font-weight: 600; }
+  .worker-position-hdr { font-size: 11px; opacity: 0.55; margin-top: 1px; }
+
+  .worker-totals-hdr {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 12px;
+  }
+
+  .worker-totals-hdr .tot { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+  .worker-totals-hdr .tot .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
+  .worker-totals-hdr .tot .val { font-weight: 700; font-size: 14px; }
+  .worker-totals-hdr .tot .val.ot-val { color: #fca5a5; }
+
+  /* ── Shift table ── */
+  .shift-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+  }
+
+  .shift-table th {
+    background: #f8f8f8;
+    padding: 0.5rem 0.85rem;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #aaa;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .shift-table th.right,
+  .shift-table td.right { text-align: right; }
+
+  .shift-table td {
+    padding: 0.65rem 0.85rem;
+    font-size: 13px;
+    border-bottom: 1px solid #f5f5f5;
+    vertical-align: middle;
+  }
+
+  .shift-table tr:last-child td { border-bottom: none; }
+
+  .shift-table tr.incomplete { background: #fffbeb; }
+  .shift-table tr.overnight  { background: #fef2f2; }
+
+  .date-cell { white-space: nowrap; }
+  .date-primary { font-weight: 600; font-size: 13px; }
+  .date-day     { font-size: 11px; color: #aaa; margin-top: 1px; }
+
+  .time-cell { white-space: nowrap; }
+  .time-val  { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .time-date { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+  .hours-val {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hours-val.ot   { color: #c2410c; }
+  .hours-val.reg  { color: #166534; }
+  .hours-val.tot  { color: #1a1a1a; }
+  .hours-val.dash { color: #ccc; font-weight: 400; }
+
+  .flag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .flag-overnight { background: #fee2e2; color: #991b1b; }
+  .flag-minimum   { background: #fef3c7; color: #92400e; }
+  .flag-bumped    { background: #dbeafe; color: #1e40af; }
+  .flag-missing   { background: #f3f4f6; color: #6b7280; }
+
+  /* ── Empty / loading ── */
+  .empty-state { text-align: center; padding: 5rem 2rem; color: #888; }
+  .empty-state .icon { font-size: 44px; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; }
+  .empty-state p  { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
+
+  .loading { text-align: center; padding: 5rem; color: #888; font-size: 14px; }
+
+  .spinner-inline {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid #ddd;
+    border-top-color: #1a1a1a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Policy key ── */
+  .policy-key {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.5rem;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 11px;
+    color: #888;
+    align-items: center;
+  }
+
+  .policy-key span { display: flex; align-items: center; gap: 4px; }
+
+  @media (max-width: 700px) {
+    .controls { flex-direction: column; }
+    .control-group select,
+    .control-group input { min-width: 100%; }
+    .shift-table th:nth-child(2),
+    .shift-table td:nth-child(2) { display: none; }
+    .worker-totals-hdr { gap: 0.75rem; }
+  }
+
+  @media print {
+    header, .controls, .policy-key, .btn-export { display: none !important; }
+    .summary-bar { border: none; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="logo">VIT</span>
+    <span class="header-title">Time &amp; Attendance Report</span>
+  </div>
+  <div class="header-right">
+    <button class="btn-export" id="export-btn" onclick="exportCSV()">Export CSV</button>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="control-group">
+    <label>Event / Site</label>
+    <select id="event-select">
+      <option value="">Loading events…</option>
+    </select>
+  </div>
+
+  <div class="control-group">
+    <label>From</label>
+    <input type="date" id="date-from">
+  </div>
+
+  <div class="control-group">
+    <label>To</label>
+    <input type="date" id="date-to">
+  </div>
+
+  <button class="btn-load" id="load-btn" onclick="loadReport()">Generate Report</button>
+</div>
+
+<div class="policy-key">
+  <strong style="color:#1a1a1a;margin-right:4px;">OT Policy:</strong>
+  <span><span class="flag flag-minimum">MIN</span> ≤ 5 hrs → 5 reg · 5–6 hrs → 5 reg + 1 OT</span>
+  <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 regular</span>
+  <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 = OT</span>
+  <span style="color:#aaa;">· &gt;10 hrs excess = OT · 1.5× multiplier</span>
+</div>
+
+<div class="summary-bar" id="summary-bar">
+  <div class="summary-stat">
+    <span class="label">Workers</span>
+    <span class="value" id="sum-workers">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">Total Shifts</span>
+    <span class="value" id="sum-shifts">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">Regular Hours</span>
+    <span class="value" id="sum-reg">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">OT Hours</span>
+    <span class="value ot" id="sum-ot">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">Total Hours</span>
+    <span class="value" id="sum-total">0</span>
+  </div>
+  <div class="event-label-bar" id="event-label-bar"></div>
+</div>
+
+<div class="main" id="main-content">
+  <div class="empty-state">
+    <div class="icon">📊</div>
+    <h3>Select an event and date range</h3>
+    <p>Clock IN and Clock OUT scans will be paired and hours calculated per your OT policy.</p>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
+// ─────────────────────────────────────────────────────────────────────────────
+
+let reportData = [];
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Default date range: last 30 days
+  const today = new Date();
+  const prior = new Date(today);
+  prior.setDate(prior.getDate() - 30);
+  document.getElementById('date-to').value   = fmt(today);
+  document.getElementById('date-from').value = fmt(prior);
+  loadEvents();
+});
+
+function fmt(d) { return d.toISOString().split('T')[0]; }
+
+// ── Load events for dropdown ──────────────────────────────────────────────────
+async function loadEvents() {
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getEventList`);
+    const data = await res.json();
+    const sel  = document.getElementById('event-select');
+    sel.innerHTML = '<option value="">All events</option>';
+    if (data.events && data.events.length) {
+      data.events.forEach(ev => {
+        const opt = document.createElement('option');
+        opt.value = ev; opt.textContent = ev;
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) {
+    document.getElementById('event-select').innerHTML = '<option value="">All events</option>';
+  }
+}
+
+// ── Load report ───────────────────────────────────────────────────────────────
+async function loadReport() {
+  const event    = document.getElementById('event-select').value;
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+
+  if (!dateFrom || !dateTo) { alert('Please select a date range.'); return; }
+
+  const btn = document.getElementById('load-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-inline"></span>Calculating…';
+  document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Processing scan data…</div>';
+  document.getElementById('summary-bar').classList.remove('visible');
+  document.getElementById('export-btn').classList.remove('visible');
+
+  try {
+    const url  = `${SCRIPT_URL}?action=getBillingData&eventFilter=${encodeURIComponent(event)}&dateFrom=${encodeURIComponent(dateFrom)}&dateTo=${encodeURIComponent(dateTo)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById('main-content').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Error</h3><p>${data.error}</p></div>`;
+      return;
+    }
+
+    reportData = data.shifts || [];
+    renderReport(reportData, event, dateFrom, dateTo);
+
+  } catch(e) {
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generate Report';
+}
+
+// ── Render report ─────────────────────────────────────────────────────────────
+function renderReport(shifts, event, dateFrom, dateTo) {
+  if (!shifts.length) {
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No data found</h3><p>No Clock IN or Clock OUT scans found for this event and date range.</p></div>';
+    return;
+  }
+
+  // Group by worker
+  const workers = {};
+  shifts.forEach(s => {
+    if (!workers[s.workerName]) workers[s.workerName] = { shifts: [], position: s.position, totalReg: 0, totalOT: 0, totalHrs: 0 };
+    workers[s.workerName].shifts.push(s);
+    if (s.regularHours != null) workers[s.workerName].totalReg  += s.regularHours;
+    if (s.otHours != null)      workers[s.workerName].totalOT   += s.otHours;
+    if (s.totalHours != null)   workers[s.workerName].totalHrs  += s.totalHours;
+  });
+
+  // Summary totals
+  let sumWorkers = Object.keys(workers).length;
+  let sumShifts  = shifts.length;
+  let sumReg = 0, sumOT = 0, sumTotal = 0;
+  Object.values(workers).forEach(w => { sumReg += w.totalReg; sumOT += w.totalOT; sumTotal += w.totalHrs; });
+
+  document.getElementById('sum-workers').textContent = sumWorkers;
+  document.getElementById('sum-shifts').textContent  = sumShifts;
+  document.getElementById('sum-reg').textContent     = r2(sumReg);
+  document.getElementById('sum-ot').textContent      = r2(sumOT);
+  document.getElementById('sum-total').textContent   = r2(sumTotal);
+  document.getElementById('event-label-bar').innerHTML = event ? `Event: <strong>${escHtml(event)}</strong>` : `<strong>All events</strong>`;
+  document.getElementById('summary-bar').classList.add('visible');
+  document.getElementById('export-btn').classList.add('visible');
+
+  // Render worker groups
+  let html = '';
+  Object.entries(workers).sort(([a], [b]) => a.localeCompare(b)).forEach(([name, w]) => {
+    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    html += `
+      <div class="worker-group">
+        <div class="worker-header">
+          <div class="worker-avatar">${escHtml(initials)}</div>
+          <div class="worker-info">
+            <div class="worker-name-hdr">${escHtml(name)}</div>
+            <div class="worker-position-hdr">${escHtml(w.position || 'No position on file')}</div>
+          </div>
+          <div class="worker-totals-hdr">
+            <div class="tot"><span class="lbl">Regular</span><span class="val">${r2(w.totalReg)}</span></div>
+            <div class="tot"><span class="lbl">OT</span><span class="val ot-val">${r2(w.totalOT)}</span></div>
+            <div class="tot"><span class="lbl">Total</span><span class="val">${r2(w.totalHrs)}</span></div>
+          </div>
+        </div>
+        <table class="shift-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Room / Area</th>
+              <th>Clock IN</th>
+              <th>Clock OUT</th>
+              <th class="right">Regular</th>
+              <th class="right">OT</th>
+              <th class="right">Total</th>
+              <th>Flags</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${w.shifts.sort((a,b) => a.date.localeCompare(b.date)).map(s => renderShiftRow(s)).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  });
+
+  document.getElementById('main-content').innerHTML = html;
+}
+
+function renderShiftRow(s) {
+  const isOvernight  = s.flags && s.flags.includes('overnight');
+  const isMinimum    = s.flags && s.flags.includes('minimum');
+  const isBumped     = s.flags && s.flags.includes('bumped');
+  const isIncomplete = s.flags && s.flags.includes('incomplete');
+
+  const rowClass = isIncomplete ? 'incomplete' : (isOvernight ? 'overnight' : '');
+
+  const dateObj = new Date(s.date + 'T12:00:00');
+  const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+  const dateStr = dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
+
+  return `
+    <tr class="${rowClass}">
+      <td class="date-cell">
+        <div class="date-primary">${dateStr}</div>
+        <div class="date-day">${dayName}</div>
+      </td>
+      <td style="font-size:12px;color:#555;">${escHtml(s.room || '—')}</td>
+      <td class="time-cell">
+        <div class="time-val">${escHtml(s.clockIn || '—')}</div>
+        ${s.clockInDate && s.clockInDate !== s.date ? `<div class="time-date">${s.clockInDate}</div>` : ''}
+      </td>
+      <td class="time-cell">
+        <div class="time-val">${escHtml(s.clockOut || '—')}</div>
+        ${s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : ''}
+      </td>
+      <td class="right">
+        ${s.regularHours != null ? `<span class="hours-val reg">${r2(s.regularHours)}</span>` : '<span class="hours-val dash">—</span>'}
+      </td>
+      <td class="right">
+        ${s.otHours != null ? `<span class="hours-val ot">${r2(s.otHours)}</span>` : '<span class="hours-val dash">—</span>'}
+      </td>
+      <td class="right">
+        ${s.totalHours != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>` : '<span class="hours-val dash">—</span>'}
+      </td>
+      <td>
+        ${isMinimum   ? '<span class="flag flag-minimum">MIN</span>'     : ''}
+        ${isBumped    ? '<span class="flag flag-bumped">10HR</span>'     : ''}
+        ${isOvernight ? '<span class="flag flag-overnight">OVERNIGHT</span>' : ''}
+        ${isIncomplete ? '<span class="flag flag-missing">MISSING</span>' : ''}
+      </td>
+    </tr>`;
+}
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!reportData.length) return;
+
+  const headers = ['Worker', 'Position', 'Date', 'Day', 'Room/Area', 'Clock IN', 'Clock OUT', 'Regular Hours', 'OT Hours', 'Total Hours', 'Event', 'Flags'];
+  const rows    = reportData.map(s => {
+    const d   = new Date(s.date + 'T12:00:00');
+    const day = d.toLocaleDateString('en-US', { weekday: 'short' });
+    return [
+      s.workerName,
+      s.position || '',
+      s.date,
+      day,
+      s.room || '',
+      s.clockIn || '',
+      s.clockOut || '',
+      s.regularHours != null ? r2(s.regularHours) : '',
+      s.otHours != null      ? r2(s.otHours)      : '',
+      s.totalHours != null   ? r2(s.totalHours)   : '',
+      s.eventName || '',
+      (s.flags || []).join(', ')
+    ];
+  });
+
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+
+  const event    = document.getElementById('event-select').value || 'all-events';
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+  a.download = `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_${dateTo}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function r2(n) { return Math.round(n * 100) / 100; }
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
