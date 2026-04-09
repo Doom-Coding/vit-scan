@@ -36,11 +36,7 @@
     margin-bottom: 1.75rem;
   }
 
-  h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 0.4rem;
-  }
+  h2 { font-size: 20px; font-weight: 600; margin-bottom: 0.4rem; }
 
   .subtitle {
     font-size: 14px;
@@ -71,12 +67,7 @@
     transition: border-color 0.15s;
   }
 
-  input:focus, select:focus {
-    outline: none;
-    border-color: #555;
-    background: #fff;
-  }
-
+  input:focus, select:focus { outline: none; border-color: #555; background: #fff; }
   input[type="password"] { letter-spacing: 0.2em; }
 
   .btn {
@@ -91,27 +82,9 @@
   }
 
   .btn:active { transform: scale(0.98); opacity: 0.85; }
-
-  .btn-primary {
-    background: #1a1a1a;
-    color: #fff;
-  }
-
-  .btn-secondary {
-    background: #f0f0f0;
-    color: #1a1a1a;
-    margin-top: 0.6rem;
-  }
-
-  .btn-success {
-    background: #1a7a3e;
-    color: #fff;
-  }
-
-  .btn-danger {
-    background: #b91c1c;
-    color: #fff;
-  }
+  .btn-primary   { background: #1a1a1a; color: #fff; }
+  .btn-secondary { background: #f0f0f0; color: #1a1a1a; margin-top: 0.6rem; }
+  .btn-success   { background: #1a7a3e; color: #fff; }
 
   .badge {
     display: inline-block;
@@ -127,11 +100,7 @@
   .badge-red   { background: #fee2e2; color: #991b1b; }
   .badge-blue  { background: #dbeafe; color: #1e40af; }
 
-  .divider {
-    border: none;
-    border-top: 1px solid #f0f0f0;
-    margin: 1.25rem 0;
-  }
+  .divider { border: none; border-top: 1px solid #f0f0f0; margin: 1.25rem 0; }
 
   .info-row {
     display: flex;
@@ -157,6 +126,16 @@
 
   .session-bar .name { font-weight: 600; }
   .session-bar .room { color: #888; }
+  .session-bar .phase-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #dbeafe;
+    color: #1e40af;
+    margin-left: 6px;
+  }
   .session-bar button {
     background: none;
     border: none;
@@ -168,10 +147,14 @@
   }
   .session-bar button:hover { background: #e8e8e8; }
 
-  .big-icon {
-    font-size: 48px;
+  .big-icon { font-size: 48px; text-align: center; margin: 0.5rem 0 1rem; }
+
+  .worker-name-result {
+    font-size: 22px;
+    font-weight: 600;
     text-align: center;
-    margin: 0.5rem 0 1rem;
+    margin: 0.25rem 0 1rem;
+    color: #1a1a1a;
   }
 
   .error-msg {
@@ -201,12 +184,7 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .pin-dots {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin: 1.25rem 0;
-  }
+  .pin-dots { display: flex; gap: 10px; justify-content: center; margin: 1.25rem 0; }
 
   .pin-dot {
     width: 14px;
@@ -217,17 +195,9 @@
     transition: background 0.15s, border-color 0.15s;
   }
 
-  .pin-dot.filled {
-    background: #1a1a1a;
-    border-color: #1a1a1a;
-  }
+  .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; }
 
-  .numpad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 0.75rem;
-  }
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 0.75rem; }
 
   .numpad button {
     padding: 1rem 0;
@@ -251,7 +221,7 @@
 <div class="card">
   <div class="logo">VIT · Event Intelligence</div>
 
-  <!-- ── SCREEN 1: Setup (first visit or session cleared) ── -->
+  <!-- ── SCREEN 1: Setup ── -->
   <div class="screen active" id="screen-setup">
     <h2>Manager setup</h2>
     <p class="subtitle">Enter your details once. They'll be saved for this session.</p>
@@ -268,18 +238,29 @@
       <option value="">Select room…</option>
     </select>
 
+    <label>Phase</label>
+    <select id="setup-phase">
+      <option value="">Select phase…</option>
+      <option value="Load In">Load In</option>
+      <option value="Set Build">Set Build</option>
+      <option value="Rehearsal">Rehearsal</option>
+      <option value="Show Day">Show Day</option>
+      <option value="Strike">Strike</option>
+    </select>
+
     <label>PIN</label>
     <input type="password" id="setup-pin" maxlength="6" inputmode="numeric" placeholder="Enter your PIN">
 
     <button class="btn btn-primary" onclick="submitSetup()">Save & start scanning</button>
   </div>
 
-  <!-- ── SCREEN 2: Scan ready (session active, waiting for tag) ── -->
+  <!-- ── SCREEN 2: Ready ── -->
   <div class="screen" id="screen-ready">
     <div class="session-bar">
       <div>
         <span class="name" id="ready-name"></span>
         <span class="room"> · <span id="ready-room"></span></span>
+        <span class="phase-tag" id="ready-phase"></span>
       </div>
       <button onclick="clearSession()">Switch</button>
     </div>
@@ -293,12 +274,13 @@
     </div>
   </div>
 
-  <!-- ── SCREEN 3: PIN verify (tag was tapped, session exists) ── -->
+  <!-- ── SCREEN 3: PIN verify ── -->
   <div class="screen" id="screen-pin">
     <div class="session-bar">
       <div>
         <span class="name" id="pin-name"></span>
         <span class="room"> · <span id="pin-room"></span></span>
+        <span class="phase-tag" id="pin-phase"></span>
       </div>
       <button onclick="clearSession()">Switch</button>
     </div>
@@ -309,14 +291,14 @@
 
     <div class="error-msg" id="pin-error"></div>
 
-    <div class="pin-dots" id="pin-dots">
+    <div class="pin-dots">
       <div class="pin-dot" id="dot-0"></div>
       <div class="pin-dot" id="dot-1"></div>
       <div class="pin-dot" id="dot-2"></div>
       <div class="pin-dot" id="dot-3"></div>
     </div>
 
-    <div class="numpad" id="numpad">
+    <div class="numpad">
       <button onclick="pinKey('1')">1</button>
       <button onclick="pinKey('2')">2</button>
       <button onclick="pinKey('3')">3</button>
@@ -334,7 +316,7 @@
     <button class="btn btn-secondary" onclick="cancelScan()" style="margin-top:1.25rem;">Cancel</button>
   </div>
 
-  <!-- ── SCREEN 4: Confirm tag details before logging ── -->
+  <!-- ── SCREEN 4: Confirm ── -->
   <div class="screen" id="screen-confirm">
     <span class="badge badge-blue">Ready to log</span>
     <h2>Confirm scan</h2>
@@ -357,22 +339,15 @@
   <div class="screen" id="screen-result">
     <div class="big-icon" id="result-icon"></div>
     <span class="badge" id="result-badge"></span>
+    <div class="worker-name-result" id="result-worker-name"></div>
     <h2 id="result-title"></h2>
     <p class="subtitle" id="result-msg"></p>
 
     <hr class="divider">
-    <div class="info-row" id="result-worker-row">
-      <span class="key">Worker tag</span>
-      <span class="val" id="result-tagid"></span>
-    </div>
-    <div class="info-row">
-      <span class="key">Room</span>
-      <span class="val" id="result-room"></span>
-    </div>
-    <div class="info-row">
-      <span class="key">Time</span>
-      <span class="val" id="result-time"></span>
-    </div>
+    <div class="info-row"><span class="key">Tag</span><span class="val" id="result-tagid"></span></div>
+    <div class="info-row"><span class="key">Room</span><span class="val" id="result-room"></span></div>
+    <div class="info-row"><span class="key">Phase</span><span class="val" id="result-phase"></span></div>
+    <div class="info-row"><span class="key">Time</span><span class="val" id="result-time"></span></div>
     <hr class="divider">
 
     <button class="btn btn-primary" onclick="showReady()">Scan another tag</button>
@@ -381,29 +356,25 @@
 </div>
 
 <script>
-// ── CONFIG — update these before deploying ──────────────────────────────────
+// ── CONFIG ──────────────────────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
 
-// Manager list: name → PIN mapping
-// In production, replace with a fetch from your Managers sheet or Apps Script
 const MANAGERS = {
-  'Jasmine':   { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
-  'John':     { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
+  'Jasmine': { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
+  'John':    { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
   'Peter':   { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
- 'Cynthia':   { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
- 'Jorge':   { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
- 'Geo':   { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
- 'Chad':   { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
+  'Cynthia': { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
+  'Jorge':   { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
+  'Geo':     { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
+  'Chad':    { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
 };
 
-// Room list (union of all rooms — or fetch from Apps Script)
 const ALL_ROOMS = ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'];
 // ───────────────────────────────────────────────────────────────────────────
 
-const params   = new URLSearchParams(window.location.search);
-const TAG_UID  = params.get('uid')   || '';
-const TAG_ID   = params.get('tagId') || '';
-const TAG_PHASE = params.get('phase') || 'General';
+const params    = new URLSearchParams(window.location.search);
+const TAG_UID   = params.get('uid')   || '';
+const TAG_ID    = params.get('tagId') || '';
 const TAG_EVENT = params.get('event') || 'General';
 
 let pinBuffer = '';
@@ -413,21 +384,10 @@ const PIN_LENGTH = 4;
 window.addEventListener('DOMContentLoaded', () => {
   populateSetupForm();
   const session = loadSession();
-
   if (TAG_UID && TAG_ID) {
-    // A tag was tapped
-    if (session) {
-      showPinScreen(session);
-    } else {
-      showScreen('screen-setup');
-    }
+    if (session) { showPinScreen(session); } else { showScreen('screen-setup'); }
   } else {
-    // No tag in URL — just the ready/setup screen
-    if (session) {
-      showReady();
-    } else {
-      showScreen('screen-setup');
-    }
+    if (session) { showReady(); } else { showScreen('screen-setup'); }
   }
 });
 
@@ -435,16 +395,14 @@ function populateSetupForm() {
   const nameSelect = document.getElementById('setup-name');
   Object.keys(MANAGERS).forEach(name => {
     const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
+    opt.value = name; opt.textContent = name;
     nameSelect.appendChild(opt);
   });
 
   const roomSelect = document.getElementById('setup-room');
   ALL_ROOMS.forEach(room => {
     const opt = document.createElement('option');
-    opt.value = room;
-    opt.textContent = room;
+    opt.value = room; opt.textContent = room;
     roomSelect.appendChild(opt);
   });
 
@@ -460,16 +418,15 @@ function populateSetupForm() {
   });
 }
 
-// ── Session helpers ─────────────────────────────────────────────────────────
-function saveSession(name, room) {
-  localStorage.setItem('vit_session', JSON.stringify({ name, room, ts: Date.now() }));
+// ── Session helpers ──────────────────────────────────────────────────────────
+function saveSession(name, room, phase) {
+  localStorage.setItem('vit_session', JSON.stringify({ name, room, phase, ts: Date.now() }));
 }
 
 function loadSession() {
   try {
     const s = JSON.parse(localStorage.getItem('vit_session'));
     if (!s) return null;
-    // Sessions expire after 12 hours
     if (Date.now() - s.ts > 12 * 60 * 60 * 1000) { localStorage.removeItem('vit_session'); return null; }
     return s;
   } catch { return null; }
@@ -489,38 +446,38 @@ function showScreen(id) {
 function showReady() {
   const s = loadSession();
   if (!s) { showScreen('screen-setup'); return; }
-  history.replaceState({}, '', window.location.pathname); // ← add this
-  document.getElementById('ready-name').textContent = s.name;
-  document.getElementById('ready-room').textContent = s.room;
+  history.replaceState({}, '', window.location.pathname);
+  document.getElementById('ready-name').textContent  = s.name;
+  document.getElementById('ready-room').textContent  = s.room;
+  document.getElementById('ready-phase').textContent = s.phase || '';
   showScreen('screen-ready');
 }
 
 function showPinScreen(session) {
-  document.getElementById('pin-name').textContent = session.name;
-  document.getElementById('pin-room').textContent = session.room;
+  document.getElementById('pin-name').textContent  = session.name;
+  document.getElementById('pin-room').textContent  = session.room;
+  document.getElementById('pin-phase').textContent = session.phase || '';
   pinBuffer = '';
   updatePinDots();
   document.getElementById('pin-error').style.display = 'none';
   showScreen('screen-pin');
 }
 
-function cancelScan() {
-  pinBuffer = '';
-  showReady();
-}
+function cancelScan() { pinBuffer = ''; showReady(); }
 
 // ── Setup form submit ────────────────────────────────────────────────────────
 function submitSetup() {
-  const name = document.getElementById('setup-name').value.trim();
-  const room = document.getElementById('setup-room').value.trim();
-  const pin  = document.getElementById('setup-pin').value.trim();
-  const err  = document.getElementById('setup-error');
+  const name  = document.getElementById('setup-name').value.trim();
+  const room  = document.getElementById('setup-room').value.trim();
+  const phase = document.getElementById('setup-phase').value.trim();
+  const pin   = document.getElementById('setup-pin').value.trim();
+  const err   = document.getElementById('setup-error');
 
   err.style.display = 'none';
-
-  if (!name) { showError(err, 'Please select your name.'); return; }
-  if (!room) { showError(err, 'Please select a room.'); return; }
-  if (!pin)  { showError(err, 'PIN is required.'); return; }
+  if (!name)  { showError(err, 'Please select your name.'); return; }
+  if (!room)  { showError(err, 'Please select a room.'); return; }
+  if (!phase) { showError(err, 'Please select a phase.'); return; }
+  if (!pin)   { showError(err, 'PIN is required.'); return; }
 
   const mgr = MANAGERS[name];
   if (!mgr || mgr.pin !== pin) {
@@ -529,13 +486,8 @@ function submitSetup() {
     return;
   }
 
-  saveSession(name, room);
-
-  if (TAG_UID && TAG_ID) {
-    showConfirmScreen(name, room);
-  } else {
-    showReady();
-  }
+  saveSession(name, room, phase);
+  if (TAG_UID && TAG_ID) { showConfirmScreen(name, room, phase); } else { showReady(); }
 }
 
 // ── PIN numpad ───────────────────────────────────────────────────────────────
@@ -546,10 +498,7 @@ function pinKey(digit) {
   if (pinBuffer.length === PIN_LENGTH) verifyPin();
 }
 
-function pinBackspace() {
-  pinBuffer = pinBuffer.slice(0, -1);
-  updatePinDots();
-}
+function pinBackspace() { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
 
 function updatePinDots() {
   for (let i = 0; i < PIN_LENGTH; i++) {
@@ -560,27 +509,22 @@ function updatePinDots() {
 function verifyPin() {
   const session = loadSession();
   if (!session) { clearSession(); return; }
-
   const mgr = MANAGERS[session.name];
   if (!mgr || mgr.pin !== pinBuffer) {
     const err = document.getElementById('pin-error');
     showError(err, 'Incorrect PIN. Try again.');
-    pinBuffer = '';
-    updatePinDots();
-    return;
+    pinBuffer = ''; updatePinDots(); return;
   }
-
-  // PIN correct — show confirm screen
-  showConfirmScreen(session.name, session.room);
+  showConfirmScreen(session.name, session.room, session.phase);
 }
 
 // ── Confirm screen ───────────────────────────────────────────────────────────
-function showConfirmScreen(managerName, room) {
-  document.getElementById('confirm-tagid').textContent   = TAG_ID   || '—';
-  document.getElementById('confirm-uid').textContent     = TAG_UID  || '—';
+function showConfirmScreen(managerName, room, phase) {
+  document.getElementById('confirm-tagid').textContent   = TAG_ID  || '—';
+  document.getElementById('confirm-uid').textContent     = TAG_UID || '—';
   document.getElementById('confirm-manager').textContent = managerName;
   document.getElementById('confirm-room').textContent    = room;
-  document.getElementById('confirm-phase').textContent   = TAG_PHASE;
+  document.getElementById('confirm-phase').textContent   = phase || 'General';
   document.getElementById('confirm-event').textContent   = TAG_EVENT;
   showScreen('screen-confirm');
 }
@@ -594,50 +538,62 @@ async function logScan() {
   btn.innerHTML = '<span class="spinner"></span>Logging…';
   btn.disabled = true;
 
-  const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(session.name)}&room=${encodeURIComponent(session.room)}&phase=${encodeURIComponent(TAG_PHASE)}&event=${encodeURIComponent(TAG_EVENT)}`;
+  const phase = session.phase || 'General';
+  const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(session.name)}&room=${encodeURIComponent(session.room)}&phase=${encodeURIComponent(phase)}&event=${encodeURIComponent(TAG_EVENT)}`;
 
   try {
     const res  = await fetch(url);
-const text = await res.text();
-if (text.includes('DUPLICATE'))     showResult('duplicate', session.room);
-else if (text.includes('ERROR'))    showResult('error', session.room);
-else                                showResult('success', session.room);
+    const text = await res.text();
+    if (text.includes('DUPLICATE')) {
+      showResult('duplicate', session.room, phase, '');
+    } else if (text.includes('ERROR')) {
+      showResult('error', session.room, phase, '');
+    } else {
+      // Response format from Apps Script: "WorkerName|Scan logged successfully!"
+      const parts      = text.split('|');
+      const workerName = parts.length > 1 ? parts[0].trim() : '';
+      showResult('success', session.room, phase, workerName);
+    }
   } catch (e) {
-    showResult('error', session.room);
+    showResult('error', session.room, phase, '');
   }
 
   btn.innerHTML = 'Log this scan';
   btn.disabled = false;
 }
 
-function showResult(status, room) {
-  const icons   = { success: '✅', duplicate: '⚠️', error: '❌' };
-  const badges  = { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-red' };
-  const labels  = { success: 'Logged', duplicate: 'Duplicate', error: 'Error' };
-  const titles  = { success: 'Scan logged!', duplicate: 'Already scanned', error: 'Could not log' };
-  const msgs    = {
+// ── Result screen ────────────────────────────────────────────────────────────
+function showResult(status, room, phase, workerName) {
+  const icons  = { success: '✅', duplicate: '⚠️', error: '❌' };
+  const badges = { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-red' };
+  const labels = { success: 'Logged', duplicate: 'Duplicate', error: 'Error' };
+  const titles = { success: 'Scan logged!', duplicate: 'Already scanned', error: 'Could not log' };
+  const msgs   = {
     success:   'This worker has been checked in successfully.',
     duplicate: 'This tag was already scanned in the last 60 seconds.',
     error:     'Something went wrong. Check your connection and try again.',
   };
 
-  document.getElementById('result-icon').textContent   = icons[status];
+  document.getElementById('result-icon').textContent = icons[status];
   const badge = document.getElementById('result-badge');
   badge.className = 'badge ' + badges[status];
   badge.textContent = labels[status];
-  document.getElementById('result-title').textContent  = titles[status];
-  document.getElementById('result-msg').textContent    = msgs[status];
-  document.getElementById('result-tagid').textContent  = TAG_ID || '—';
-  document.getElementById('result-room').textContent   = room;
-  document.getElementById('result-time').textContent   = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('result-title').textContent = titles[status];
+  document.getElementById('result-msg').textContent   = msgs[status];
+
+  // Show worker name prominently — fall back to tag ID if unknown
+  const nameEl = document.getElementById('result-worker-name');
+  nameEl.textContent = (workerName && workerName !== 'Unknown') ? workerName : (TAG_ID ? 'Tag ' + TAG_ID : '');
+
+  document.getElementById('result-tagid').textContent = TAG_ID || '—';
+  document.getElementById('result-room').textContent  = room;
+  document.getElementById('result-phase').textContent = phase || '—';
+  document.getElementById('result-time').textContent  = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   showScreen('screen-result');
 }
 
-function showError(el, msg) {
-  el.textContent = msg;
-  el.style.display = 'block';
-}
+function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 </script>
 </body>
 </html>
