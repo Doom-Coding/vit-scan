@@ -6,7 +6,7 @@
 <title>VIT Scan</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #f5f5f5;
@@ -17,7 +17,7 @@
     padding: 1rem;
     color: #1a1a1a;
   }
- 
+
   .card {
     background: #fff;
     border-radius: 16px;
@@ -26,7 +26,7 @@
     max-width: 400px;
     border: 1px solid #e5e5e5;
   }
- 
+
   .logo {
     font-size: 11px;
     font-weight: 600;
@@ -35,16 +35,16 @@
     text-transform: uppercase;
     margin-bottom: 1.75rem;
   }
- 
+
   h2 { font-size: 20px; font-weight: 600; margin-bottom: 0.4rem; }
- 
+
   .subtitle {
     font-size: 14px;
     color: #888;
     margin-bottom: 1.75rem;
     line-height: 1.5;
   }
- 
+
   label {
     display: block;
     font-size: 13px;
@@ -52,7 +52,7 @@
     color: #555;
     margin-bottom: 6px;
   }
- 
+
   input, select {
     width: 100%;
     padding: 0.65rem 0.85rem;
@@ -66,10 +66,10 @@
     -webkit-appearance: none;
     transition: border-color 0.15s;
   }
- 
+
   input:focus, select:focus { outline: none; border-color: #555; background: #fff; }
   input[type="password"] { letter-spacing: 0.2em; }
- 
+
   .btn {
     width: 100%;
     padding: 0.8rem;
@@ -80,12 +80,12 @@
     border: none;
     transition: opacity 0.15s, transform 0.1s;
   }
- 
+
   .btn:active { transform: scale(0.98); opacity: 0.85; }
   .btn-primary   { background: #1a1a1a; color: #fff; }
   .btn-secondary { background: #f0f0f0; color: #1a1a1a; margin-top: 0.6rem; }
   .btn-success   { background: #1a7a3e; color: #fff; }
- 
+
   .badge {
     display: inline-block;
     font-size: 12px;
@@ -94,14 +94,14 @@
     border-radius: 20px;
     margin-bottom: 1.25rem;
   }
- 
+
   .badge-green { background: #dcfce7; color: #166534; }
   .badge-amber { background: #fef3c7; color: #92400e; }
   .badge-red   { background: #fee2e2; color: #991b1b; }
   .badge-blue  { background: #dbeafe; color: #1e40af; }
- 
+
   .divider { border: none; border-top: 1px solid #f0f0f0; margin: 1.25rem 0; }
- 
+
   .info-row {
     display: flex;
     justify-content: space-between;
@@ -109,10 +109,10 @@
     font-size: 14px;
     padding: 5px 0;
   }
- 
+
   .info-row .key { color: #888; }
   .info-row .val { font-weight: 500; }
- 
+
   .session-bar {
     background: #f5f5f5;
     border-radius: 10px;
@@ -123,7 +123,7 @@
     justify-content: space-between;
     font-size: 13px;
   }
- 
+
   .session-bar .name { font-weight: 600; }
   .session-bar .room { color: #888; }
   .session-bar .phase-tag {
@@ -146,9 +146,9 @@
     border-radius: 6px;
   }
   .session-bar button:hover { background: #e8e8e8; }
- 
+
   .big-icon { font-size: 48px; text-align: center; margin: 0.5rem 0 1rem; }
- 
+
   .worker-name-result {
     font-size: 22px;
     font-weight: 600;
@@ -156,7 +156,7 @@
     margin: 0.25rem 0 1rem;
     color: #1a1a1a;
   }
- 
+
   .error-msg {
     background: #fee2e2;
     color: #991b1b;
@@ -166,10 +166,10 @@
     margin-bottom: 1rem;
     display: none;
   }
- 
+
   .screen { display: none; }
   .screen.active { display: block; }
- 
+
   .spinner {
     display: inline-block;
     width: 18px;
@@ -181,11 +181,11 @@
     vertical-align: middle;
     margin-right: 6px;
   }
- 
+
   @keyframes spin { to { transform: rotate(360deg); } }
- 
+
   .pin-dots { display: flex; gap: 10px; justify-content: center; margin: 1.25rem 0; }
- 
+
   .pin-dot {
     width: 14px;
     height: 14px;
@@ -194,11 +194,11 @@
     background: transparent;
     transition: background 0.15s, border-color 0.15s;
   }
- 
+
   .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; }
- 
+
   .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 0.75rem; }
- 
+
   .numpad button {
     padding: 1rem 0;
     border: 1px solid #e5e5e5;
@@ -210,34 +210,34 @@
     color: #1a1a1a;
     transition: background 0.1s;
   }
- 
+
   .numpad button:active { background: #e5e5e5; }
   .numpad button.del { font-size: 16px; color: #888; }
   .numpad button.empty { visibility: hidden; }
 </style>
 </head>
 <body>
- 
+
 <div class="card">
   <div class="logo">VIT · Event Intelligence</div>
- 
+
   <!-- ── SCREEN 1: Setup ── -->
   <div class="screen active" id="screen-setup">
     <h2>Manager setup</h2>
     <p class="subtitle">Enter your details once. They'll be saved for this session.</p>
- 
+
     <div class="error-msg" id="setup-error"></div>
- 
+
     <label>Your name</label>
     <select id="setup-name">
       <option value="">Select manager…</option>
     </select>
- 
+
     <label>Room / Area</label>
     <select id="setup-room">
       <option value="">Select room…</option>
     </select>
- 
+
     <label>Phase</label>
     <select id="setup-phase">
       <option value="">Select phase…</option>
@@ -247,13 +247,13 @@
       <option value="Show Day">Show Day</option>
       <option value="Strike">Strike</option>
     </select>
- 
+
     <label>PIN</label>
     <input type="password" id="setup-pin" maxlength="6" inputmode="numeric" placeholder="Enter your PIN">
- 
+
     <button class="btn btn-primary" onclick="submitSetup()">Save & start scanning</button>
   </div>
- 
+
   <!-- ── SCREEN 2: Ready ── -->
   <div class="screen" id="screen-ready">
     <div class="session-bar">
@@ -264,16 +264,16 @@
       </div>
       <button onclick="clearSession()">Switch</button>
     </div>
- 
+
     <div class="big-icon">📲</div>
     <h2 style="text-align:center;">Ready to scan</h2>
     <p class="subtitle" style="text-align:center;">Tap a worker's NFC tag to continue. The tag will open this page automatically.</p>
- 
+
     <div style="background:#f5f5f5;border-radius:10px;padding:0.75rem 1rem;font-size:13px;color:#888;text-align:center;margin-top:0.5rem;">
       Share your scan link or keep this page open
     </div>
   </div>
- 
+
   <!-- ── SCREEN 3: PIN verify ── -->
   <div class="screen" id="screen-pin">
     <div class="session-bar">
@@ -284,20 +284,20 @@
       </div>
       <button onclick="clearSession()">Switch</button>
     </div>
- 
+
     <div class="big-icon">🔒</div>
     <h2 style="text-align:center;">Confirm scan</h2>
     <p class="subtitle" style="text-align:center;">Enter your PIN to log this tag.</p>
- 
+
     <div class="error-msg" id="pin-error"></div>
- 
+
     <div class="pin-dots">
       <div class="pin-dot" id="dot-0"></div>
       <div class="pin-dot" id="dot-1"></div>
       <div class="pin-dot" id="dot-2"></div>
       <div class="pin-dot" id="dot-3"></div>
     </div>
- 
+
     <div class="numpad">
       <button onclick="pinKey('1')">1</button>
       <button onclick="pinKey('2')">2</button>
@@ -312,16 +312,16 @@
       <button onclick="pinKey('0')">0</button>
       <button class="del" onclick="pinBackspace()">⌫</button>
     </div>
- 
+
     <button class="btn btn-secondary" onclick="cancelScan()" style="margin-top:1.25rem;">Cancel</button>
   </div>
- 
+
   <!-- ── SCREEN 4: Confirm ── -->
   <div class="screen" id="screen-confirm">
     <span class="badge badge-blue">Ready to log</span>
     <h2>Confirm scan</h2>
     <p class="subtitle">Review the details before logging.</p>
- 
+
     <hr class="divider">
     <div class="info-row"><span class="key">Worker tag</span><span class="val" id="confirm-tagid"></span></div>
     <div class="info-row"><span class="key">UID</span><span class="val" id="confirm-uid" style="font-family:monospace;font-size:13px;"></span></div>
@@ -330,11 +330,11 @@
     <div class="info-row"><span class="key">Phase</span><span class="val" id="confirm-phase"></span></div>
     <div class="info-row"><span class="key">Event</span><span class="val" id="confirm-event"></span></div>
     <hr class="divider">
- 
+
     <button class="btn btn-success" id="log-btn" onclick="logScan()">Log this scan</button>
     <button class="btn btn-secondary" onclick="cancelScan()">Cancel</button>
   </div>
- 
+
   <!-- ── SCREEN 5: Result ── -->
   <div class="screen" id="screen-result">
     <div class="big-icon" id="result-icon"></div>
@@ -342,23 +342,22 @@
     <div class="worker-name-result" id="result-worker-name"></div>
     <h2 id="result-title"></h2>
     <p class="subtitle" id="result-msg"></p>
- 
+
     <hr class="divider">
     <div class="info-row"><span class="key">Tag</span><span class="val" id="result-tagid"></span></div>
     <div class="info-row"><span class="key">Room</span><span class="val" id="result-room"></span></div>
     <div class="info-row"><span class="key">Phase</span><span class="val" id="result-phase"></span></div>
     <div class="info-row"><span class="key">Time</span><span class="val" id="result-time"></span></div>
     <hr class="divider">
- 
+
     <button class="btn btn-primary" onclick="showReady()">Scan another tag</button>
   </div>
- 
+
 </div>
- 
+
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
- 
+
 const MANAGERS = {
   'Jasmine': { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
   'John':    { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
@@ -368,19 +367,17 @@ const MANAGERS = {
   'Geo':     { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
   'Chad':    { pin: '8608', rooms: ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'] },
 };
- 
+
 const ALL_ROOMS = ['Grand Sierra BR', 'Caribbean BR', 'Palms BR', 'Expo Hall', 'Offices', 'Loading Dock/Bone Yard', 'Poolside', 'Breakouts', 'HOT Rooms', 'ESS Meetings', 'Grand Sierra F-I', 'Various Locations', 'Grand Sierra F', 'Grand Sierra C', 'Hibiscus', 'Clock IN', 'Clock Out'];
-// ───────────────────────────────────────────────────────────────────────────
- 
+
 const params    = new URLSearchParams(window.location.search);
 const TAG_UID   = params.get('uid')   || '';
 const TAG_ID    = params.get('tagId') || '';
 const TAG_EVENT = params.get('event') || 'General';
- 
+
 let pinBuffer = '';
 const PIN_LENGTH = 4;
- 
-// ── Boot ────────────────────────────────────────────────────────────────────
+
 window.addEventListener('DOMContentLoaded', () => {
   populateSetupForm();
   const session = loadSession();
@@ -390,7 +387,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (session) { showReady(); } else { showScreen('screen-setup'); }
   }
 });
- 
+
 function populateSetupForm() {
   const nameSelect = document.getElementById('setup-name');
   Object.keys(MANAGERS).forEach(name => {
@@ -398,14 +395,14 @@ function populateSetupForm() {
     opt.value = name; opt.textContent = name;
     nameSelect.appendChild(opt);
   });
- 
+
   const roomSelect = document.getElementById('setup-room');
   ALL_ROOMS.forEach(room => {
     const opt = document.createElement('option');
     opt.value = room; opt.textContent = room;
     roomSelect.appendChild(opt);
   });
- 
+
   nameSelect.addEventListener('change', () => {
     const mgr = MANAGERS[nameSelect.value];
     if (!mgr) return;
@@ -417,12 +414,11 @@ function populateSetupForm() {
     });
   });
 }
- 
-// ── Session helpers ──────────────────────────────────────────────────────────
+
 function saveSession(name, room, phase) {
   localStorage.setItem('vit_session', JSON.stringify({ name, room, phase, ts: Date.now() }));
 }
- 
+
 function loadSession() {
   try {
     const s = JSON.parse(localStorage.getItem('vit_session'));
@@ -431,18 +427,17 @@ function loadSession() {
     return s;
   } catch { return null; }
 }
- 
+
 function clearSession() {
   localStorage.removeItem('vit_session');
   showScreen('screen-setup');
 }
- 
-// ── Screen navigation ────────────────────────────────────────────────────────
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
- 
+
 function showReady() {
   const s = loadSession();
   if (!s) { showScreen('screen-setup'); return; }
@@ -452,7 +447,7 @@ function showReady() {
   document.getElementById('ready-phase').textContent = s.phase || '';
   showScreen('screen-ready');
 }
- 
+
 function showPinScreen(session) {
   document.getElementById('pin-name').textContent  = session.name;
   document.getElementById('pin-room').textContent  = session.room;
@@ -462,50 +457,48 @@ function showPinScreen(session) {
   document.getElementById('pin-error').style.display = 'none';
   showScreen('screen-pin');
 }
- 
+
 function cancelScan() { pinBuffer = ''; showReady(); }
- 
-// ── Setup form submit ────────────────────────────────────────────────────────
+
 function submitSetup() {
   const name  = document.getElementById('setup-name').value.trim();
   const room  = document.getElementById('setup-room').value.trim();
   const phase = document.getElementById('setup-phase').value.trim();
   const pin   = document.getElementById('setup-pin').value.trim();
   const err   = document.getElementById('setup-error');
- 
+
   err.style.display = 'none';
   if (!name)  { showError(err, 'Please select your name.'); return; }
   if (!room)  { showError(err, 'Please select a room.'); return; }
   if (!phase) { showError(err, 'Please select a phase.'); return; }
   if (!pin)   { showError(err, 'PIN is required.'); return; }
- 
+
   const mgr = MANAGERS[name];
   if (!mgr || mgr.pin !== pin) {
     showError(err, 'Incorrect PIN. Please try again.');
     document.getElementById('setup-pin').value = '';
     return;
   }
- 
+
   saveSession(name, room, phase);
   if (TAG_UID && TAG_ID) { showConfirmScreen(name, room, phase); } else { showReady(); }
 }
- 
-// ── PIN numpad ───────────────────────────────────────────────────────────────
+
 function pinKey(digit) {
   if (pinBuffer.length >= PIN_LENGTH) return;
   pinBuffer += digit;
   updatePinDots();
   if (pinBuffer.length === PIN_LENGTH) verifyPin();
 }
- 
+
 function pinBackspace() { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
- 
+
 function updatePinDots() {
   for (let i = 0; i < PIN_LENGTH; i++) {
     document.getElementById('dot-' + i).classList.toggle('filled', i < pinBuffer.length);
   }
 }
- 
+
 function verifyPin() {
   const session = loadSession();
   if (!session) { clearSession(); return; }
@@ -517,8 +510,7 @@ function verifyPin() {
   }
   showConfirmScreen(session.name, session.room, session.phase);
 }
- 
-// ── Confirm screen ───────────────────────────────────────────────────────────
+
 function showConfirmScreen(managerName, room, phase) {
   document.getElementById('confirm-tagid').textContent   = TAG_ID  || '—';
   document.getElementById('confirm-uid').textContent     = TAG_UID || '—';
@@ -528,19 +520,18 @@ function showConfirmScreen(managerName, room, phase) {
   document.getElementById('confirm-event').textContent   = TAG_EVENT;
   showScreen('screen-confirm');
 }
- 
-// ── Log scan ─────────────────────────────────────────────────────────────────
+
 async function logScan() {
   const session = loadSession();
   if (!session) { clearSession(); return; }
- 
+
   const btn = document.getElementById('log-btn');
   btn.innerHTML = '<span class="spinner"></span>Logging…';
   btn.disabled = true;
- 
+
   const phase = session.phase || 'General';
   const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(session.name)}&room=${encodeURIComponent(session.room)}&phase=${encodeURIComponent(phase)}&event=${encodeURIComponent(TAG_EVENT)}`;
- 
+
   try {
     const res  = await fetch(url);
     const text = await res.text();
@@ -549,7 +540,6 @@ async function logScan() {
     } else if (text.includes('ERROR')) {
       showResult('error', session.room, phase, '');
     } else {
-      // Response format from Apps Script: "WorkerName|Scan logged successfully!"
       const parts      = text.split('|');
       const workerName = parts.length > 1 ? parts[0].trim() : '';
       showResult('success', session.room, phase, workerName);
@@ -557,12 +547,11 @@ async function logScan() {
   } catch (e) {
     showResult('error', session.room, phase, '');
   }
- 
+
   btn.innerHTML = 'Log this scan';
   btn.disabled = false;
 }
- 
-// ── Result screen ────────────────────────────────────────────────────────────
+
 function showResult(status, room, phase, workerName) {
   const icons  = { success: '✅', duplicate: '⚠️', error: '❌' };
   const badges = { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-red' };
@@ -573,26 +562,25 @@ function showResult(status, room, phase, workerName) {
     duplicate: 'This tag was already scanned in the last 60 seconds.',
     error:     'Something went wrong. Check your connection and try again.',
   };
- 
+
   document.getElementById('result-icon').textContent = icons[status];
   const badge = document.getElementById('result-badge');
   badge.className = 'badge ' + badges[status];
   badge.textContent = labels[status];
   document.getElementById('result-title').textContent = titles[status];
   document.getElementById('result-msg').textContent   = msgs[status];
- 
-  // Show worker name prominently — fall back to tag ID if unknown
+
   const nameEl = document.getElementById('result-worker-name');
   nameEl.textContent = (workerName && workerName !== 'Unknown') ? workerName : (TAG_ID ? 'Tag ' + TAG_ID : '');
- 
+
   document.getElementById('result-tagid').textContent = TAG_ID || '—';
   document.getElementById('result-room').textContent  = room;
   document.getElementById('result-phase').textContent = phase || '—';
   document.getElementById('result-time').textContent  = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
- 
+
   showScreen('screen-result');
 }
- 
+
 function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 </script>
 </body>
