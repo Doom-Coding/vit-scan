@@ -41,7 +41,7 @@
     flex-wrap: wrap;
   }
 
-  .control-group { display: flex; flex-direction: column; gap: 4px; }
+  .control-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
 
   .control-group label {
     font-size: 11px;
@@ -75,13 +75,62 @@
   }
 
   .control-group input[type="text"] { cursor: text; min-width: 160px; }
-
   .control-group select:focus,
-  .control-group input:focus {
-    outline: none;
-    border-color: #1a1a1a;
-    background: #fff;
+  .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+
+  /* ── Multi-select dropdown ── */
+  .multiselect-btn {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa;
+    color: #1a1a1a;
+    min-width: 200px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: border-color 0.15s;
   }
+
+  .multiselect-btn:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+  .multiselect-btn.active { border-color: #1a1a1a; background: #fff; }
+  .multiselect-btn .arrow { font-size: 10px; opacity: 0.5; }
+
+  .multiselect-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 240px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    z-index: 200;
+    display: none;
+    overflow: hidden;
+  }
+
+  .multiselect-panel.open { display: block; }
+
+  .multiselect-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.6rem 0.85rem;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.1s;
+  }
+
+  .multiselect-option:last-child { border-bottom: none; }
+  .multiselect-option:hover { background: #f8f8f8; }
+  .multiselect-option input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: #1a1a1a; }
+  .multiselect-option.select-all { font-weight: 600; background: #f8f8f8; border-bottom: 2px solid #e5e5e5; }
 
   .btn-load {
     padding: 0.5rem 1.25rem;
@@ -172,7 +221,7 @@
   }
 
   .worker-table td {
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 1rem;
     font-size: 14px;
     border-bottom: 1px solid #f0f0f0;
     vertical-align: middle;
@@ -187,11 +236,13 @@
   .worker-time { font-size: 13px; color: #555; white-space: nowrap; }
   .worker-room { font-size: 13px; color: #555; }
 
+  .actions-wrap { display: flex; gap: 6px; align-items: flex-start; }
+
   .tag-input-wrap { display: flex; gap: 6px; align-items: flex-start; }
 
   .tag-input {
-    width: 80px;
-    padding: 0.4rem 0.6rem;
+    width: 72px;
+    padding: 0.4rem 0.5rem;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
@@ -205,10 +256,8 @@
   .tag-input.has-value  { border-color: #166534; background: #f0fdf4; color: #166534; }
   .tag-input.conflict   { border-color: #c2410c; background: #fff7ed; color: #c2410c; }
 
-  .save-btn {
-    padding: 0.35rem 0.75rem;
-    background: #1a1a1a;
-    color: #fff;
+  .btn-action {
+    padding: 0.38rem 0.7rem;
     border: none;
     border-radius: 6px;
     font-size: 12px;
@@ -216,14 +265,18 @@
     cursor: pointer;
     transition: opacity 0.15s, background 0.15s;
     white-space: nowrap;
-    margin-top: 1px;
   }
 
-  .save-btn:hover    { opacity: 0.8; }
-  .save-btn.saved    { background: #166534; }
-  .save-btn.conflict { background: #c2410c; }
-  .save-btn.saving   { opacity: 0.5; cursor: default; }
-  .save-btn:disabled { opacity: 0.3; cursor: default; }
+  .btn-save      { background: #1a1a1a; color: #fff; }
+  .btn-save:hover { opacity: 0.8; }
+  .btn-save.saved    { background: #166534; }
+  .btn-save.conflict { background: #c2410c; }
+  .btn-save.saving   { opacity: 0.5; cursor: default; }
+  .btn-save:disabled { opacity: 0.3; cursor: default; }
+
+  .btn-scan-tag  { background: #f0f0f0; color: #1a1a1a; }
+  .btn-scan-tag:hover { background: #e5e5e5; }
+  .btn-scan-tag.logged { background: #dbeafe; color: #1e40af; }
 
   .conflict-msg {
     font-size: 11px;
@@ -238,7 +291,7 @@
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;
-    margin-top: 8px;
+    margin-top: 9px;
   }
 
   .status-dot.saved    { background: #22c55e; }
@@ -248,10 +301,189 @@
 
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
+  /* ── Scan Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.75rem;
+    width: 100%;
+    max-width: 360px;
+    transform: translateY(12px);
+    transition: transform 0.2s;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.open .modal-card { transform: translateY(0); }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .modal-title { font-size: 16px; font-weight: 600; }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+    padding: 2px 6px;
+    border-radius: 6px;
+    line-height: 1;
+  }
+
+  .modal-close:hover { background: #f0f0f0; color: #1a1a1a; }
+
+  .worker-badge {
+    background: #f8f8f8;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .worker-badge .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .worker-badge .wname { font-weight: 600; font-size: 15px; }
+  .worker-badge .wtag  { font-size: 12px; color: #888; margin-top: 2px; }
+
+  .modal-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  .modal-select {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa;
+    color: #1a1a1a;
+    appearance: none;
+    -webkit-appearance: none;
+    margin-bottom: 1rem;
+  }
+
+  .modal-select:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+
+  .modal-divider { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
+
+  .pin-label {
+    font-size: 13px;
+    color: #555;
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .pin-dots { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
+
+  .pin-dot {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; }
+
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  .numpad button {
+    padding: 0.85rem 0;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 500;
+    background: #fafafa;
+    cursor: pointer;
+    color: #1a1a1a;
+    transition: background 0.1s;
+  }
+
+  .numpad button:active { background: #e5e5e5; }
+  .numpad button.del { font-size: 14px; color: #888; }
+  .numpad button.empty { visibility: hidden; }
+
+  .modal-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+    margin-bottom: 0.75rem;
+    display: none;
+  }
+
+  .modal-result {
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  .modal-result .result-icon { font-size: 40px; margin-bottom: 0.5rem; }
+  .modal-result h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.4rem; }
+  .modal-result p  { font-size: 13px; color: #888; }
+
+  .btn-modal-primary {
+    width: 100%;
+    padding: 0.75rem;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: opacity 0.15s;
+  }
+
+  .btn-modal-primary:hover { opacity: 0.8; }
+
+  /* ── Misc ── */
   .empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
   .empty-state .icon { font-size: 40px; margin-bottom: 1rem; }
   .empty-state h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; color: #1a1a1a; }
-  .empty-state p { font-size: 14px; }
+  .empty-state p  { font-size: 14px; }
 
   .loading { text-align: center; padding: 4rem; color: #888; font-size: 14px; }
 
@@ -293,7 +525,8 @@
   @media (max-width: 700px) {
     .controls { flex-direction: column; }
     .control-group select,
-    .control-group input { min-width: 100%; }
+    .control-group input,
+    .multiselect-btn { min-width: 100%; }
     .worker-table th:nth-child(3),
     .worker-table td:nth-child(3) { display: none; }
     .supervisor-stamp { margin-left: 0; }
@@ -323,11 +556,17 @@
     <input type="date" id="date-select" onchange="loadEventOptions()">
   </div>
 
-  <div class="control-group">
-    <label>Event <span class="optional">(optional filter)</span></label>
-    <select id="event-select">
-      <option value="">All events</option>
-    </select>
+  <div class="control-group" id="event-control-group">
+    <label>Events <span class="optional">(optional filter)</span></label>
+    <button type="button" class="multiselect-btn" id="event-multiselect-btn" onclick="toggleEventPanel()">
+      <span id="event-btn-label">All events</span>
+      <span class="arrow">▼</span>
+    </button>
+    <div class="multiselect-panel" id="event-panel">
+      <label class="multiselect-option select-all">
+        <input type="checkbox" id="select-all-events" onchange="toggleAllEvents(this)"> Select all
+      </label>
+    </div>
   </div>
 
   <div class="control-group">
@@ -355,14 +594,137 @@
   </div>
 </div>
 
+<!-- ── Scan Modal ── -->
+<div class="modal-overlay" id="scan-modal" onclick="handleModalOverlayClick(event)">
+  <div class="modal-card" id="modal-card">
+    <div class="modal-header">
+      <span class="modal-title">Log Scan</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <!-- Worker badge -->
+    <div class="worker-badge">
+      <div class="avatar" id="modal-avatar"></div>
+      <div>
+        <div class="wname" id="modal-worker-name"></div>
+        <div class="wtag" id="modal-worker-tag"></div>
+      </div>
+    </div>
+
+    <!-- Setup fields (screen 1) -->
+    <div id="modal-setup">
+      <label class="modal-label">Manager</label>
+      <select class="modal-select" id="modal-manager">
+        <option value="">Select manager…</option>
+      </select>
+
+      <label class="modal-label">Room</label>
+      <select class="modal-select" id="modal-room">
+        <option value="">Select room…</option>
+      </select>
+
+      <label class="modal-label">Phase</label>
+      <select class="modal-select" id="modal-phase">
+        <option value="">Select phase…</option>
+        <option value="Load In">Load In</option>
+        <option value="Set Build">Set Build</option>
+        <option value="Rehearsal">Rehearsal</option>
+        <option value="Show Day">Show Day</option>
+        <option value="Strike">Strike</option>
+      </select>
+
+      <hr class="modal-divider">
+
+      <div class="pin-label" id="modal-pin-label">Enter manager PIN</div>
+      <div class="modal-error" id="modal-pin-error"></div>
+
+      <div class="pin-dots">
+        <div class="pin-dot" id="mdot-0"></div>
+        <div class="pin-dot" id="mdot-1"></div>
+        <div class="pin-dot" id="mdot-2"></div>
+        <div class="pin-dot" id="mdot-3"></div>
+      </div>
+
+      <div class="numpad">
+        <button onclick="mpinKey('1')">1</button>
+        <button onclick="mpinKey('2')">2</button>
+        <button onclick="mpinKey('3')">3</button>
+        <button onclick="mpinKey('4')">4</button>
+        <button onclick="mpinKey('5')">5</button>
+        <button onclick="mpinKey('6')">6</button>
+        <button onclick="mpinKey('7')">7</button>
+        <button onclick="mpinKey('8')">8</button>
+        <button onclick="mpinKey('9')">9</button>
+        <button class="empty"></button>
+        <button onclick="mpinKey('0')">0</button>
+        <button class="del" onclick="mpinBackspace()">⌫</button>
+      </div>
+    </div>
+
+    <!-- Confirm screen (screen 2) -->
+    <div id="modal-confirm" style="display:none;">
+      <div style="font-size:13px;color:#555;margin-bottom:1rem;">Confirm the details below then log the scan.</div>
+      <div style="background:#f8f8f8;border-radius:10px;padding:0.75rem 1rem;font-size:13px;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">
+          <span style="color:#888;">Manager</span><strong id="confirm-mgr"></strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">
+          <span style="color:#888;">Room</span><strong id="confirm-rm"></strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">
+          <span style="color:#888;">Phase</span><strong id="confirm-ph"></strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;">
+          <span style="color:#888;">Event</span><strong id="confirm-ev"></strong>
+        </div>
+      </div>
+      <button class="btn-modal-primary" id="modal-log-btn" onclick="submitModalScan()">
+        Log Scan
+      </button>
+      <button class="btn-modal-primary" style="background:#f0f0f0;color:#1a1a1a;margin-top:8px;" onclick="showModalSetup()">
+        Back
+      </button>
+    </div>
+
+    <!-- Result screen (screen 3) -->
+    <div id="modal-result" style="display:none;">
+      <div class="modal-result">
+        <div class="result-icon" id="modal-result-icon"></div>
+        <h3 id="modal-result-title"></h3>
+        <p id="modal-result-msg"></p>
+      </div>
+      <button class="btn-modal-primary" onclick="closeModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 const SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
 const LABOR_SHEET_ID = '1-ZZCVxUOe99c7C0I7nqai9a56uOOMmySjH76bhjk9ZE';
 
-let allWorkers = [];
+const MANAGERS = {
+  'Jasmine': { pin: '8608' },
+  'John':    { pin: '8608' },
+  'Peter':   { pin: '8608' },
+  'Cynthia': { pin: '8608' },
+  'Jorge':   { pin: '8608' },
+  'Geo':     { pin: '8608' },
+  'Chad':    { pin: '8608' },
+};
 
+const ALL_ROOMS = ['Grand Sierra BR','Caribbean BR','Palms BR','Expo Hall','Offices','Loading Dock/Bone Yard','Poolside','Breakouts','HOT Rooms','ESS Meetings','Grand Sierra F-I','Various Locations','Grand Sierra F','Grand Sierra C','Hibiscus','Clock IN','Clock Out','Lunch IN','Lunch OUT'];
+// ─────────────────────────────────────────────────────────────────────────────
+
+let allWorkers      = [];
+let selectedEvents  = new Set(); // empty = all
+let modalWorkerIdx  = null;
+let mPinBuffer      = '';
+const M_PIN_LENGTH  = 4;
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
   document.getElementById('date-select').value = today.toISOString().split('T')[0];
@@ -371,9 +733,75 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   const saved = sessionStorage.getItem('vit_supervisor');
   if (saved) document.getElementById('supervisor-name').value = saved;
+
+  // Populate modal manager dropdown
+  const mgrSel = document.getElementById('modal-manager');
+  Object.keys(MANAGERS).forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    mgrSel.appendChild(opt);
+  });
+
+  // Populate modal room dropdown
+  const roomSel = document.getElementById('modal-room');
+  ALL_ROOMS.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r; opt.textContent = r;
+    roomSel.appendChild(opt);
+  });
+
   loadLocations();
+
+  // Close multiselect panel on outside click
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('event-panel');
+    const btn   = document.getElementById('event-multiselect-btn');
+    if (!panel.contains(e.target) && !btn.contains(e.target)) {
+      panel.classList.remove('open');
+      btn.classList.remove('active');
+    }
+  });
 });
 
+// ── Multiselect panel ─────────────────────────────────────────────────────────
+function toggleEventPanel() {
+  const panel = document.getElementById('event-panel');
+  const btn   = document.getElementById('event-multiselect-btn');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
+}
+
+function toggleAllEvents(cb) {
+  const checkboxes = document.querySelectorAll('#event-panel input[data-event]');
+  checkboxes.forEach(c => {
+    c.checked = cb.checked;
+    if (cb.checked) selectedEvents.add(c.dataset.event);
+    else selectedEvents.delete(c.dataset.event);
+  });
+  updateEventBtnLabel();
+}
+
+function onEventCheckbox(cb) {
+  if (cb.checked) selectedEvents.add(cb.dataset.event);
+  else selectedEvents.delete(cb.dataset.event);
+  const allCb      = document.getElementById('select-all-events');
+  const checkboxes = document.querySelectorAll('#event-panel input[data-event]');
+  allCb.checked    = [...checkboxes].every(c => c.checked);
+  updateEventBtnLabel();
+}
+
+function updateEventBtnLabel() {
+  const label = document.getElementById('event-btn-label');
+  if (selectedEvents.size === 0) {
+    label.textContent = 'All events';
+  } else if (selectedEvents.size === 1) {
+    label.textContent = [...selectedEvents][0];
+  } else {
+    label.textContent = `${selectedEvents.size} events selected`;
+  }
+}
+
+// ── Load locations ────────────────────────────────────────────────────────────
 async function loadLocations() {
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`);
@@ -396,31 +824,42 @@ async function loadLocations() {
   }
 }
 
+// ── Load event options ────────────────────────────────────────────────────────
 async function loadEventOptions() {
   const location = document.getElementById('location-select').value;
   const date     = document.getElementById('date-select').value;
-  const sel      = document.getElementById('event-select');
-  sel.innerHTML  = '<option value="">All events</option>';
+  const panel    = document.getElementById('event-panel');
+
+  // Clear existing event checkboxes (keep select-all)
+  const existing = panel.querySelectorAll('[data-event]');
+  existing.forEach(el => el.closest('.multiselect-option').remove());
+  selectedEvents.clear();
+  updateEventBtnLabel();
+
   if (!location || !date) return;
+
   try {
     const url  = `${SCRIPT_URL}?action=getEvents&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`;
     const res  = await fetch(url);
     const data = await res.json();
+
     if (data.events && data.events.length) {
       data.events.forEach(ev => {
-        const opt = document.createElement('option');
-        opt.value = ev; opt.textContent = ev;
-        sel.appendChild(opt);
+        const label = document.createElement('label');
+        label.className = 'multiselect-option';
+        label.innerHTML = `<input type="checkbox" data-event="${escHtml(ev)}" onchange="onEventCheckbox(this)"> ${escHtml(ev)}`;
+        panel.appendChild(label);
       });
     }
   } catch(e) {}
 }
 
+// ── Load workers ──────────────────────────────────────────────────────────────
 async function loadWorkers() {
-  const location    = document.getElementById('location-select').value;
-  const date        = document.getElementById('date-select').value;
-  const eventFilter = document.getElementById('event-select').value;
-  const supervisor  = document.getElementById('supervisor-name').value.trim();
+  const location   = document.getElementById('location-select').value;
+  const date       = document.getElementById('date-select').value;
+  const supervisor = document.getElementById('supervisor-name').value.trim();
+  const eventFilter = selectedEvents.size > 0 ? [...selectedEvents].join('||') : '';
 
   if (!location)   { showToast('Please select a location.', 'error'); return; }
   if (!date)       { showToast('Please select a date.', 'error'); return; }
@@ -452,16 +891,17 @@ async function loadWorkers() {
 
   } catch(e) {
     showToast('Could not connect. Check your network.', 'error');
-    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Try again.</p></div>';
   }
 
   btn.disabled = false;
   btn.textContent = 'Load Workers';
 }
 
+// ── Render ────────────────────────────────────────────────────────────────────
 function renderWorkers(workers) {
   if (!workers.length) {
-    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this location, date, and event.</p></div>';
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this filter.</p></div>';
     document.getElementById('stats-bar').style.display = 'none';
     return;
   }
@@ -489,7 +929,7 @@ function renderWorkers(workers) {
               <th>Name</th>
               <th>Call Time</th>
               <th>Room / Area</th>
-              <th style="width:210px;">Tag #</th>
+              <th style="width:240px;">Actions</th>
             </tr>
           </thead>
           <tbody>${rows.map(w => renderRow(w)).join('')}</tbody>
@@ -518,29 +958,35 @@ function renderRow(w) {
       <td><span class="worker-time">${escHtml(w.bookedTime || '—')}</span></td>
       <td><span class="worker-room">${escHtml(w.room || '—')}</span></td>
       <td>
-        <div class="tag-input-wrap">
-          <span class="status-dot unsaved" id="dot-${w.idx}"></span>
-          <div>
-            <input
-              type="text"
-              class="tag-input ${w.tagId ? 'has-value' : ''}"
-              id="tag-${w.idx}"
-              value="${w.tagId || ''}"
-              placeholder="001"
-              maxlength="6"
-              oninput="onTagInput(${w.idx})"
-              onkeydown="if(event.key==='Enter') saveTag(${w.idx})"
-            >
-            <div class="conflict-msg" id="conflict-${w.idx}"></div>
+        <div class="actions-wrap">
+          <div class="tag-input-wrap">
+            <span class="status-dot unsaved" id="dot-${w.idx}"></span>
+            <div>
+              <input
+                type="text"
+                class="tag-input ${w.tagId ? 'has-value' : ''}"
+                id="tag-${w.idx}"
+                value="${w.tagId || ''}"
+                placeholder="001"
+                maxlength="6"
+                oninput="onTagInput(${w.idx})"
+                onkeydown="if(event.key==='Enter') saveTag(${w.idx})"
+              >
+              <div class="conflict-msg" id="conflict-${w.idx}"></div>
+            </div>
+            <button class="btn-action btn-save ${w.tagId ? 'saved' : ''}" id="savebtn-${w.idx}" onclick="saveTag(${w.idx})">
+              ${w.tagId ? 'Saved' : 'Save Tag'}
+            </button>
           </div>
-          <button class="save-btn ${w.tagId ? 'saved' : ''}" id="savebtn-${w.idx}" onclick="saveTag(${w.idx})">
-            ${w.tagId ? 'Saved' : 'Save'}
+          <button class="btn-action btn-scan-tag ${w.scanLogged ? 'logged' : ''}" id="scanbtn-${w.idx}" onclick="openScanModal(${w.idx})">
+            📲 Scan
           </button>
         </div>
       </td>
     </tr>`;
 }
 
+// ── Tag save ──────────────────────────────────────────────────────────────────
 function onTagInput(idx) {
   const input = document.getElementById(`tag-${idx}`);
   const dot   = document.getElementById(`dot-${idx}`);
@@ -549,7 +995,7 @@ function onTagInput(idx) {
   input.classList.remove('has-value', 'conflict');
   input.classList.toggle('has-value', input.value.length > 0);
   dot.className = 'status-dot unsaved';
-  btn.textContent = 'Save';
+  btn.textContent = 'Save Tag';
   btn.classList.remove('saved', 'conflict');
   btn.onclick = () => saveTag(idx);
   msg.style.display = 'none';
@@ -601,7 +1047,7 @@ async function saveTag(idx) {
 
     if (text.includes('ERROR')) {
       showToast(text, 'error');
-      btn.textContent = 'Retry';
+      btn.textContent = 'Save Tag';
       btn.classList.remove('saving');
       btn.disabled = false;
       dot.className = 'status-dot unsaved';
@@ -613,7 +1059,7 @@ async function saveTag(idx) {
 
   } catch(e) {
     showToast('Save failed. Check connection.', 'error');
-    btn.textContent = 'Retry';
+    btn.textContent = 'Save Tag';
     btn.classList.remove('saving');
     btn.disabled = false;
     dot.className = 'status-dot unsaved';
@@ -678,6 +1124,163 @@ function markSaved(idx) {
   if (dot) { dot.className = 'status-dot saved'; }
 }
 
+// ── Scan Modal ────────────────────────────────────────────────────────────────
+function openScanModal(idx) {
+  const worker = allWorkers[idx];
+  if (!worker) return;
+
+  if (!worker.tagId) {
+    showToast('Assign a tag number first before logging a scan.', 'warning');
+    return;
+  }
+
+  modalWorkerIdx = idx;
+  mPinBuffer     = '';
+
+  // Populate worker badge
+  const initials = worker.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  document.getElementById('modal-avatar').textContent      = initials;
+  document.getElementById('modal-worker-name').textContent = worker.name;
+  document.getElementById('modal-worker-tag').textContent  = `Tag ${worker.tagId} · ${worker.eventName || 'General'}`;
+
+  // Reset to setup screen
+  showModalSetup();
+  updateMPinDots();
+  document.getElementById('modal-pin-error').style.display = 'none';
+
+  document.getElementById('scan-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('scan-modal').classList.remove('open');
+  modalWorkerIdx = null;
+  mPinBuffer = '';
+}
+
+function handleModalOverlayClick(e) {
+  if (e.target === document.getElementById('scan-modal')) closeModal();
+}
+
+function showModalSetup() {
+  document.getElementById('modal-setup').style.display   = 'block';
+  document.getElementById('modal-confirm').style.display = 'none';
+  document.getElementById('modal-result').style.display  = 'none';
+  mPinBuffer = '';
+  updateMPinDots();
+  document.getElementById('modal-pin-error').style.display = 'none';
+}
+
+// ── Modal PIN ─────────────────────────────────────────────────────────────────
+function mpinKey(digit) {
+  if (mPinBuffer.length >= M_PIN_LENGTH) return;
+  mPinBuffer += digit;
+  updateMPinDots();
+  if (mPinBuffer.length === M_PIN_LENGTH) verifyModalPin();
+}
+
+function mpinBackspace() {
+  mPinBuffer = mPinBuffer.slice(0, -1);
+  updateMPinDots();
+}
+
+function updateMPinDots() {
+  for (let i = 0; i < M_PIN_LENGTH; i++) {
+    document.getElementById(`mdot-${i}`).classList.toggle('filled', i < mPinBuffer.length);
+  }
+}
+
+function verifyModalPin() {
+  const managerName = document.getElementById('modal-manager').value;
+  const room        = document.getElementById('modal-room').value;
+  const phase       = document.getElementById('modal-phase').value;
+  const err         = document.getElementById('modal-pin-error');
+
+  err.style.display = 'none';
+
+  if (!managerName) { showModalError('Please select a manager.'); mPinBuffer = ''; updateMPinDots(); return; }
+  if (!room)        { showModalError('Please select a room.'); mPinBuffer = ''; updateMPinDots(); return; }
+  if (!phase)       { showModalError('Please select a phase.'); mPinBuffer = ''; updateMPinDots(); return; }
+
+  const mgr = MANAGERS[managerName];
+  if (!mgr || mgr.pin !== mPinBuffer) {
+    showModalError('Incorrect PIN. Try again.');
+    mPinBuffer = '';
+    updateMPinDots();
+    return;
+  }
+
+  // PIN correct — show confirm screen
+  const worker = allWorkers[modalWorkerIdx];
+  document.getElementById('confirm-mgr').textContent = managerName;
+  document.getElementById('confirm-rm').textContent  = room;
+  document.getElementById('confirm-ph').textContent  = phase;
+  document.getElementById('confirm-ev').textContent  = worker.eventName || 'General';
+
+  document.getElementById('modal-setup').style.display   = 'none';
+  document.getElementById('modal-confirm').style.display = 'block';
+}
+
+function showModalError(msg) {
+  const err = document.getElementById('modal-pin-error');
+  err.textContent   = msg;
+  err.style.display = 'block';
+}
+
+// ── Submit scan from modal ────────────────────────────────────────────────────
+async function submitModalScan() {
+  const worker  = allWorkers[modalWorkerIdx];
+  if (!worker) return;
+
+  const manager = document.getElementById('modal-manager').value;
+  const room    = document.getElementById('modal-room').value;
+  const phase   = document.getElementById('modal-phase').value;
+  const tagId   = worker.tagId;
+  const uid     = tagId; // use tagId as UID for manual scans
+  const event   = worker.eventName || 'General';
+
+  const logBtn = document.getElementById('modal-log-btn');
+  logBtn.textContent = 'Logging…';
+  logBtn.disabled    = true;
+
+  try {
+    const url  = `${SCRIPT_URL}?uid=${encodeURIComponent(uid)}&tagId=${encodeURIComponent(tagId)}&manager=${encodeURIComponent(manager)}&room=${encodeURIComponent(room)}&phase=${encodeURIComponent(phase)}&event=${encodeURIComponent(event)}`;
+    const res  = await fetch(url);
+    const text = await res.text();
+
+    document.getElementById('modal-confirm').style.display = 'none';
+    document.getElementById('modal-result').style.display  = 'block';
+
+    if (text.includes('DUPLICATE')) {
+      document.getElementById('modal-result-icon').textContent  = '⚠️';
+      document.getElementById('modal-result-title').textContent = 'Already scanned';
+      document.getElementById('modal-result-msg').textContent   = 'This tag was scanned in the last 60 seconds.';
+    } else if (text.includes('ERROR')) {
+      document.getElementById('modal-result-icon').textContent  = '❌';
+      document.getElementById('modal-result-title').textContent = 'Could not log';
+      document.getElementById('modal-result-msg').textContent   = text;
+    } else {
+      document.getElementById('modal-result-icon').textContent  = '✅';
+      document.getElementById('modal-result-title').textContent = 'Scan logged!';
+      document.getElementById('modal-result-msg').textContent   = `${worker.name} checked in to ${room}.`;
+      // Mark scan button as logged
+      const scanBtn = document.getElementById(`scanbtn-${modalWorkerIdx}`);
+      if (scanBtn) { scanBtn.classList.add('logged'); scanBtn.textContent = '✅ Logged'; }
+      allWorkers[modalWorkerIdx].scanLogged = true;
+    }
+
+  } catch(e) {
+    document.getElementById('modal-confirm').style.display = 'none';
+    document.getElementById('modal-result').style.display  = 'block';
+    document.getElementById('modal-result-icon').textContent  = '❌';
+    document.getElementById('modal-result-title').textContent = 'Connection error';
+    document.getElementById('modal-result-msg').textContent   = 'Could not reach server.';
+  }
+
+  logBtn.textContent = 'Log Scan';
+  logBtn.disabled    = false;
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
 function updateStats() {
   const total    = allWorkers.length;
   const assigned = allWorkers.filter(w => w.tagId).length;
@@ -687,6 +1290,7 @@ function updateStats() {
   document.getElementById('stats-bar').style.display     = total ? 'flex' : 'none';
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function parseTime(str) {
   if (!str) return 9999;
   const m = str.match(/^(\d+)(?::(\d+))?\s*(am|pm)?/i);
