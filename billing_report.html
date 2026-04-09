@@ -31,7 +31,7 @@
   .header-title { font-size: 15px; font-weight: 600; }
   .header-right { display: flex; align-items: center; gap: 0.75rem; }
 
-  .btn-export {
+  .btn-export-all {
     padding: 0.4rem 1rem;
     background: transparent;
     color: #fff;
@@ -44,8 +44,8 @@
     display: none;
   }
 
-  .btn-export:hover { background: rgba(255,255,255,0.1); }
-  .btn-export.visible { display: block; }
+  .btn-export-all:hover { background: rgba(255,255,255,0.1); }
+  .btn-export-all.visible { display: block; }
 
   .controls {
     background: #fff;
@@ -119,57 +119,77 @@
 
   .summary-divider { width: 1px; height: 32px; background: #e5e5e5; }
 
-  .event-label-bar {
-    font-size: 12px;
+  .event-label-bar { font-size: 12px; color: #888; margin-left: auto; }
+  .event-label-bar strong { color: #1a1a1a; }
+
+  .policy-key {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.5rem;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 11px;
     color: #888;
-    margin-left: auto;
+    align-items: center;
   }
 
-  .event-label-bar strong { color: #1a1a1a; }
+  .policy-key span { display: flex; align-items: center; gap: 4px; }
 
   .main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 
-  /* ── Worker group ── */
-  .worker-group { margin-bottom: 1.75rem; }
+  /* ── Day group ── */
+  .day-group { margin-bottom: 2rem; }
 
-  .worker-header {
+  .day-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0;
+    gap: 1rem;
     background: #1a1a1a;
     color: #fff;
-    padding: 0.6rem 1rem;
+    padding: 0.85rem 1rem;
     border-radius: 10px 10px 0 0;
+    flex-wrap: wrap;
   }
 
-  .worker-avatar {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .day-date-block { display: flex; flex-direction: column; min-width: 90px; }
+  .day-date-primary { font-size: 16px; font-weight: 700; }
+  .day-date-name    { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+
+  .day-vdivider { width: 1px; height: 36px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
+
+  .day-stats { display: flex; gap: 1.5rem; flex: 1; flex-wrap: wrap; }
+  .day-stat  { display: flex; flex-direction: column; gap: 1px; }
+  .day-stat .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
+  .day-stat .val { font-size: 14px; font-weight: 700; }
+  .day-stat .val.ot-val { color: #fca5a5; }
+
+  .day-actions { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+
+  .status-badge {
     font-size: 11px;
     font-weight: 700;
-    flex-shrink: 0;
-    letter-spacing: 0.05em;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
   }
 
-  .worker-info { flex: 1; }
-  .worker-name-hdr { font-size: 14px; font-weight: 600; }
-  .worker-position-hdr { font-size: 11px; opacity: 0.55; margin-top: 1px; }
+  .status-complete { background: #22c55e; color: #fff; }
+  .status-pending  { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
 
-  .worker-totals-hdr {
-    display: flex;
-    gap: 1.5rem;
+  .btn-day-dl {
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
     font-size: 12px;
+    font-weight: 600;
+    border: none;
+    white-space: nowrap;
+    transition: opacity 0.15s;
   }
 
-  .worker-totals-hdr .tot { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
-  .worker-totals-hdr .tot .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
-  .worker-totals-hdr .tot .val { font-weight: 700; font-size: 14px; }
-  .worker-totals-hdr .tot .val.ot-val { color: #fca5a5; }
+  .btn-day-dl.ready  { background: #fff; color: #1a1a1a; cursor: pointer; }
+  .btn-day-dl.ready:hover { opacity: 0.85; }
+  .btn-day-dl.locked { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); cursor: not-allowed; }
 
   /* ── Shift table ── */
   .shift-table {
@@ -205,24 +225,32 @@
   }
 
   .shift-table tr:last-child td { border-bottom: none; }
-
   .shift-table tr.incomplete { background: #fffbeb; }
   .shift-table tr.overnight  { background: #fef2f2; }
 
-  .date-cell { white-space: nowrap; }
-  .date-primary { font-weight: 600; font-size: 13px; }
-  .date-day     { font-size: 11px; color: #aaa; margin-top: 1px; }
+  .worker-cell { display: flex; align-items: center; gap: 8px; }
+
+  .worker-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .worker-name-val { font-weight: 600; }
+  .worker-pos-val  { font-size: 11px; color: #aaa; margin-top: 1px; }
 
   .time-cell { white-space: nowrap; }
   .time-val  { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .time-date { font-size: 10px; color: #aaa; margin-top: 1px; }
 
-  .hours-val {
-    font-size: 14px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-  }
-
+  .hours-val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .hours-val.ot   { color: #c2410c; }
   .hours-val.reg  { color: #166534; }
   .hours-val.tot  { color: #1a1a1a; }
@@ -234,7 +262,7 @@
     font-weight: 600;
     padding: 2px 6px;
     border-radius: 4px;
-    margin-left: 4px;
+    margin-right: 3px;
     vertical-align: middle;
   }
 
@@ -243,7 +271,6 @@
   .flag-bumped    { background: #dbeafe; color: #1e40af; }
   .flag-missing   { background: #f3f4f6; color: #6b7280; }
 
-  /* ── Empty / loading ── */
   .empty-state { text-align: center; padding: 5rem 2rem; color: #888; }
   .empty-state .icon { font-size: 44px; margin-bottom: 1rem; }
   .empty-state h3 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; }
@@ -264,32 +291,18 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── Policy key ── */
-  .policy-key {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding: 0.75rem 1.5rem;
-    background: #fff;
-    border-bottom: 1px solid #e5e5e5;
-    font-size: 11px;
-    color: #888;
-    align-items: center;
-  }
-
-  .policy-key span { display: flex; align-items: center; gap: 4px; }
-
   @media (max-width: 700px) {
     .controls { flex-direction: column; }
     .control-group select,
     .control-group input { min-width: 100%; }
     .shift-table th:nth-child(2),
     .shift-table td:nth-child(2) { display: none; }
-    .worker-totals-hdr { gap: 0.75rem; }
+    .day-stats { gap: 0.75rem; }
+    .day-actions { width: 100%; justify-content: flex-end; }
   }
 
   @media print {
-    header, .controls, .policy-key, .btn-export { display: none !important; }
+    header, .controls, .policy-key, .btn-export-all, .btn-day-dl, .day-actions { display: none !important; }
     .summary-bar { border: none; }
     body { background: #fff; }
   }
@@ -303,7 +316,7 @@
     <span class="header-title">Time &amp; Attendance Report</span>
   </div>
   <div class="header-right">
-    <button class="btn-export" id="export-btn" onclick="exportCSV()">Export CSV</button>
+    <button class="btn-export-all" id="export-all-btn" onclick="exportAllCSV()">Export All Days</button>
   </div>
 </header>
 
@@ -314,17 +327,14 @@
       <option value="">Loading events…</option>
     </select>
   </div>
-
   <div class="control-group">
     <label>From</label>
     <input type="date" id="date-from">
   </div>
-
   <div class="control-group">
     <label>To</label>
     <input type="date" id="date-to">
   </div>
-
   <button class="btn-load" id="load-btn" onclick="loadReport()">Generate Report</button>
 </div>
 
@@ -338,6 +348,11 @@
 
 <div class="summary-bar" id="summary-bar">
   <div class="summary-stat">
+    <span class="label">Days</span>
+    <span class="value" id="sum-days">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
     <span class="label">Workers</span>
     <span class="value" id="sum-workers">0</span>
   </div>
@@ -348,17 +363,17 @@
   </div>
   <div class="summary-divider"></div>
   <div class="summary-stat">
-    <span class="label">Regular Hours</span>
+    <span class="label">Regular Hrs</span>
     <span class="value" id="sum-reg">0</span>
   </div>
   <div class="summary-divider"></div>
   <div class="summary-stat">
-    <span class="label">OT Hours</span>
+    <span class="label">OT Hrs</span>
     <span class="value ot" id="sum-ot">0</span>
   </div>
   <div class="summary-divider"></div>
   <div class="summary-stat">
-    <span class="label">Total Hours</span>
+    <span class="label">Total Hrs</span>
     <span class="value" id="sum-total">0</span>
   </div>
   <div class="event-label-bar" id="event-label-bar"></div>
@@ -368,20 +383,17 @@
   <div class="empty-state">
     <div class="icon">📊</div>
     <h3>Select an event and date range</h3>
-    <p>Clock IN and Clock OUT scans will be paired and hours calculated per your OT policy.</p>
+    <p>Clock IN and Clock OUT scans will be paired and hours calculated per your OT policy. Each day shows a Download button once all workers have clocked out.</p>
   </div>
 </div>
 
 <script>
-// ── CONFIG ────────────────────────────────────────────────────────────────────
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
-// ─────────────────────────────────────────────────────────────────────────────
 
-let reportData = [];
+let reportData  = [];
+let dayGroups   = {}; // date → { shifts, complete }
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Default date range: last 30 days
   const today = new Date();
   const prior = new Date(today);
   prior.setDate(prior.getDate() - 30);
@@ -392,7 +404,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function fmt(d) { return d.toISOString().split('T')[0]; }
 
-// ── Load events for dropdown ──────────────────────────────────────────────────
 async function loadEvents() {
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getEventList`);
@@ -411,7 +422,6 @@ async function loadEvents() {
   }
 }
 
-// ── Load report ───────────────────────────────────────────────────────────────
 async function loadReport() {
   const event    = document.getElementById('event-select').value;
   const dateFrom = document.getElementById('date-from').value;
@@ -424,7 +434,7 @@ async function loadReport() {
   btn.innerHTML = '<span class="spinner-inline"></span>Calculating…';
   document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Processing scan data…</div>';
   document.getElementById('summary-bar').classList.remove('visible');
-  document.getElementById('export-btn').classList.remove('visible');
+  document.getElementById('export-all-btn').classList.remove('visible');
 
   try {
     const url  = `${SCRIPT_URL}?action=getBillingData&eventFilter=${encodeURIComponent(event)}&dateFrom=${encodeURIComponent(dateFrom)}&dateTo=${encodeURIComponent(dateTo)}`;
@@ -437,7 +447,7 @@ async function loadReport() {
     }
 
     reportData = data.shifts || [];
-    renderReport(reportData, event, dateFrom, dateTo);
+    renderReport(reportData, event);
 
   } catch(e) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
@@ -447,77 +457,106 @@ async function loadReport() {
   btn.textContent = 'Generate Report';
 }
 
-// ── Render report ─────────────────────────────────────────────────────────────
-function renderReport(shifts, event, dateFrom, dateTo) {
+function renderReport(shifts, event) {
   if (!shifts.length) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No data found</h3><p>No Clock IN or Clock OUT scans found for this event and date range.</p></div>';
     return;
   }
 
-  // Group by worker
-  const workers = {};
+  // Group shifts by date
+  dayGroups = {};
   shifts.forEach(s => {
-    if (!workers[s.workerName]) workers[s.workerName] = { shifts: [], position: s.position, totalReg: 0, totalOT: 0, totalHrs: 0 };
-    workers[s.workerName].shifts.push(s);
-    if (s.regularHours != null) workers[s.workerName].totalReg  += s.regularHours;
-    if (s.otHours != null)      workers[s.workerName].totalOT   += s.otHours;
-    if (s.totalHours != null)   workers[s.workerName].totalHrs  += s.totalHours;
+    if (!dayGroups[s.date]) dayGroups[s.date] = { shifts: [], totalReg: 0, totalOT: 0, totalHrs: 0 };
+    dayGroups[s.date].shifts.push(s);
+    if (s.regularHours != null) dayGroups[s.date].totalReg += s.regularHours;
+    if (s.otHours != null)      dayGroups[s.date].totalOT  += s.otHours;
+    if (s.totalHours != null)   dayGroups[s.date].totalHrs += s.totalHours;
   });
 
-  // Summary totals
-  let sumWorkers = Object.keys(workers).length;
-  let sumShifts  = shifts.length;
-  let sumReg = 0, sumOT = 0, sumTotal = 0;
-  Object.values(workers).forEach(w => { sumReg += w.totalReg; sumOT += w.totalOT; sumTotal += w.totalHrs; });
+  // Mark each day complete/pending
+  Object.entries(dayGroups).forEach(([date, dg]) => {
+    dg.complete = dg.shifts.every(s => !s.flags || !s.flags.includes('incomplete'));
+  });
 
-  document.getElementById('sum-workers').textContent = sumWorkers;
-  document.getElementById('sum-shifts').textContent  = sumShifts;
+  // Summary
+  const uniqueWorkers = new Set(shifts.map(s => s.workerName)).size;
+  let sumReg = 0, sumOT = 0, sumTotal = 0;
+  Object.values(dayGroups).forEach(dg => { sumReg += dg.totalReg; sumOT += dg.totalOT; sumTotal += dg.totalHrs; });
+
+  document.getElementById('sum-days').textContent    = Object.keys(dayGroups).length;
+  document.getElementById('sum-workers').textContent = uniqueWorkers;
+  document.getElementById('sum-shifts').textContent  = shifts.length;
   document.getElementById('sum-reg').textContent     = r2(sumReg);
   document.getElementById('sum-ot').textContent      = r2(sumOT);
   document.getElementById('sum-total').textContent   = r2(sumTotal);
   document.getElementById('event-label-bar').innerHTML = event ? `Event: <strong>${escHtml(event)}</strong>` : `<strong>All events</strong>`;
   document.getElementById('summary-bar').classList.add('visible');
-  document.getElementById('export-btn').classList.add('visible');
+  document.getElementById('export-all-btn').classList.add('visible');
 
-  // Render worker groups
+  // Render day groups sorted by date
   let html = '';
-  Object.entries(workers).sort(([a], [b]) => a.localeCompare(b)).forEach(([name, w]) => {
-    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    html += `
-      <div class="worker-group">
-        <div class="worker-header">
-          <div class="worker-avatar">${escHtml(initials)}</div>
-          <div class="worker-info">
-            <div class="worker-name-hdr">${escHtml(name)}</div>
-            <div class="worker-position-hdr">${escHtml(w.position || 'No position on file')}</div>
-          </div>
-          <div class="worker-totals-hdr">
-            <div class="tot"><span class="lbl">Regular</span><span class="val">${r2(w.totalReg)}</span></div>
-            <div class="tot"><span class="lbl">OT</span><span class="val ot-val">${r2(w.totalOT)}</span></div>
-            <div class="tot"><span class="lbl">Total</span><span class="val">${r2(w.totalHrs)}</span></div>
-          </div>
-        </div>
-        <table class="shift-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Room / Area</th>
-              <th>Clock IN</th>
-              <th>Clock OUT</th>
-              <th class="right">Regular</th>
-              <th class="right">OT</th>
-              <th class="right">Total</th>
-              <th>Flags</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${w.shifts.sort((a,b) => a.date.localeCompare(b.date)).map(s => renderShiftRow(s)).join('')}
-          </tbody>
-        </table>
-      </div>`;
+  Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, dg]) => {
+    html += renderDayGroup(date, dg, event);
   });
 
   document.getElementById('main-content').innerHTML = html;
+}
+
+function renderDayGroup(date, dg, event) {
+  const dateObj  = new Date(date + 'T12:00:00');
+  const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  const dateStr  = dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
+  const complete = dg.complete;
+  const missing  = dg.shifts.filter(s => s.flags && s.flags.includes('incomplete')).length;
+
+  const statusHtml = complete
+    ? `<span class="status-badge status-complete">✓ Complete</span>`
+    : `<span class="status-badge status-pending">${missing} pending clock out</span>`;
+
+  const dlBtn = complete
+    ? `<button class="btn-day-dl ready" onclick="exportDayCSV('${date}')">Download CSV</button>`
+    : `<button class="btn-day-dl locked" disabled title="Waiting for all workers to clock out">Download CSV</button>`;
+
+  // Sort shifts by worker name
+  const sorted = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
+
+  const rows = sorted.map(s => renderShiftRow(s)).join('');
+
+  return `
+    <div class="day-group">
+      <div class="day-header">
+        <div class="day-date-block">
+          <span class="day-date-primary">${dateStr}</span>
+          <span class="day-date-name">${dayName}</span>
+        </div>
+        <div class="day-vdivider"></div>
+        <div class="day-stats">
+          <div class="day-stat"><span class="lbl">Workers</span><span class="val">${dg.shifts.length}</span></div>
+          <div class="day-stat"><span class="lbl">Regular</span><span class="val">${r2(dg.totalReg)}</span></div>
+          <div class="day-stat"><span class="lbl">OT</span><span class="val ot-val">${r2(dg.totalOT)}</span></div>
+          <div class="day-stat"><span class="lbl">Total</span><span class="val">${r2(dg.totalHrs)}</span></div>
+        </div>
+        <div class="day-actions">
+          ${statusHtml}
+          ${dlBtn}
+        </div>
+      </div>
+      <table class="shift-table">
+        <thead>
+          <tr>
+            <th>Worker</th>
+            <th>Position</th>
+            <th>Clock IN</th>
+            <th>Clock OUT</th>
+            <th class="right">Regular</th>
+            <th class="right">OT</th>
+            <th class="right">Total</th>
+            <th>Flags</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 function renderShiftRow(s) {
@@ -525,23 +564,23 @@ function renderShiftRow(s) {
   const isMinimum    = s.flags && s.flags.includes('minimum');
   const isBumped     = s.flags && s.flags.includes('bumped');
   const isIncomplete = s.flags && s.flags.includes('incomplete');
-
-  const rowClass = isIncomplete ? 'incomplete' : (isOvernight ? 'overnight' : '');
-
-  const dateObj = new Date(s.date + 'T12:00:00');
-  const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-  const dateStr = dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
+  const rowClass     = isIncomplete ? 'incomplete' : (isOvernight ? 'overnight' : '');
+  const initials     = s.workerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return `
     <tr class="${rowClass}">
-      <td class="date-cell">
-        <div class="date-primary">${dateStr}</div>
-        <div class="date-day">${dayName}</div>
+      <td>
+        <div class="worker-cell">
+          <div class="worker-avatar">${escHtml(initials)}</div>
+          <div>
+            <div class="worker-name-val">${escHtml(s.workerName)}</div>
+          </div>
+        </div>
       </td>
-      <td style="font-size:12px;color:#555;">${escHtml(s.room || '—')}</td>
+      <td style="font-size:12px;color:#888;">${escHtml(s.position || '—')}</td>
       <td class="time-cell">
         <div class="time-val">${escHtml(s.clockIn || '—')}</div>
-        ${s.clockInDate && s.clockInDate !== s.date ? `<div class="time-date">${s.clockInDate}</div>` : ''}
+        ${s.clockInDate && s.clockInDate !== s.date ? `<div class="time-date">${escHtml(s.clockInDate)}</div>` : ''}
       </td>
       <td class="time-cell">
         <div class="time-val">${escHtml(s.clockOut || '—')}</div>
@@ -557,20 +596,55 @@ function renderShiftRow(s) {
         ${s.totalHours != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>` : '<span class="hours-val dash">—</span>'}
       </td>
       <td>
-        ${isMinimum   ? '<span class="flag flag-minimum">MIN</span>'     : ''}
-        ${isBumped    ? '<span class="flag flag-bumped">10HR</span>'     : ''}
-        ${isOvernight ? '<span class="flag flag-overnight">OVERNIGHT</span>' : ''}
-        ${isIncomplete ? '<span class="flag flag-missing">MISSING</span>' : ''}
+        ${isMinimum    ? '<span class="flag flag-minimum">MIN</span>'         : ''}
+        ${isBumped     ? '<span class="flag flag-bumped">10HR</span>'         : ''}
+        ${isOvernight  ? '<span class="flag flag-overnight">OVERNIGHT</span>' : ''}
+        ${isIncomplete ? '<span class="flag flag-missing">MISSING</span>'     : ''}
       </td>
     </tr>`;
 }
 
-// ── Export CSV ────────────────────────────────────────────────────────────────
-function exportCSV() {
+// ── Export single day CSV ─────────────────────────────────────────────────────
+function exportDayCSV(date) {
+  const dg = dayGroups[date];
+  if (!dg) return;
+
+  const event   = document.getElementById('event-select').value || 'all-events';
+  const dateObj = new Date(date + 'T12:00:00');
+  const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+
+  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT', 'Regular Hours', 'OT Hours', 'Total Hours', 'Event', 'Flags'];
+  const rows    = dg.shifts.sort((a,b) => a.workerName.localeCompare(b.workerName)).map(s => [
+    s.workerName,
+    s.position || '',
+    s.date,
+    dayName,
+    s.clockIn  || '',
+    s.clockOut || '',
+    s.regularHours != null ? r2(s.regularHours) : '',
+    s.otHours != null      ? r2(s.otHours)      : '',
+    s.totalHours != null   ? r2(s.totalHours)   : '',
+    s.eventName || '',
+    (s.flags || []).join(', ')
+  ]);
+
+  downloadCSV(
+    [headers, ...rows],
+    `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`
+  );
+}
+
+// ── Export all days CSV ───────────────────────────────────────────────────────
+function exportAllCSV() {
   if (!reportData.length) return;
 
-  const headers = ['Worker', 'Position', 'Date', 'Day', 'Room/Area', 'Clock IN', 'Clock OUT', 'Regular Hours', 'OT Hours', 'Total Hours', 'Event', 'Flags'];
-  const rows    = reportData.map(s => {
+  const event   = document.getElementById('event-select').value || 'all-events';
+  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT', 'Regular Hours', 'OT Hours', 'Total Hours', 'Event', 'Flags'];
+
+  const rows = [...reportData].sort((a,b) => {
+    const dc = a.date.localeCompare(b.date);
+    return dc !== 0 ? dc : a.workerName.localeCompare(b.workerName);
+  }).map(s => {
     const d   = new Date(s.date + 'T12:00:00');
     const day = d.toLocaleDateString('en-US', { weekday: 'short' });
     return [
@@ -578,8 +652,7 @@ function exportCSV() {
       s.position || '',
       s.date,
       day,
-      s.room || '',
-      s.clockIn || '',
+      s.clockIn  || '',
       s.clockOut || '',
       s.regularHours != null ? r2(s.regularHours) : '',
       s.otHours != null      ? r2(s.otHours)      : '',
@@ -589,21 +662,22 @@ function exportCSV() {
     ];
   });
 
-  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+  downloadCSV([headers, ...rows], `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
+}
+
+function downloadCSV(rowsArray, filename) {
+  const csv  = rowsArray.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-
-  const event    = document.getElementById('event-select').value || 'all-events';
-  const dateFrom = document.getElementById('date-from').value;
-  const dateTo   = document.getElementById('date-to').value;
-  a.download = `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_${dateTo}.csv`;
+  a.download = filename + '.csv';
   a.click();
   URL.revokeObjectURL(url);
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function r2(n) { return Math.round(n * 100) / 100; }
 
 function escHtml(str) {
