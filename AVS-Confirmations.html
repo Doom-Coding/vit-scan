@@ -4,125 +4,305 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>VIT · Shift Response</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>AVS · Shift Confirmation</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f5f5f5;
-    min-height: 100vh;
+  html, body {
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+    background: #f2f2f2;
+    color: #111;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #111;
+    padding: 2.25rem 1.5rem 1.75rem;
+    padding-top: calc(2.25rem + env(safe-area-inset-top, 0px));
+  }
+
+  .header-top {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-    color: #1a1a1a;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
   }
 
-  .card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 2rem 1.75rem;
-    width: 100%;
-    max-width: 380px;
-    border: 1px solid #e5e5e5;
-    text-align: center;
+  .avs-mark {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: #fff;
+    text-transform: uppercase;
+    line-height: 1;
   }
 
-  .logo { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: #aaa; text-transform: uppercase; margin-bottom: 2rem; }
+  .avs-mark span { color: #cc1515; }
+
+  .header-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .worker-block { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.25rem; }
+
+  .worker-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #cc1515;
+    margin-bottom: 5px;
+  }
+
+  .worker-name {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  /* ── Loading ── */
+  .loading-wrap {
+    padding: 3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
 
   .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid #e5e5e5;
-    border-top-color: #1a1a1a;
+    width: 30px; height: 30px;
+    border: 2.5px solid rgba(255,255,255,0.12);
+    border-top-color: #cc1515;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
-    margin: 1rem auto;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .status-msg { font-size: 14px; color: #888; margin-top: 0.5rem; }
+  .loading-msg { font-size: 13px; color: rgba(255,255,255,0.35); }
 
-  .big-icon { font-size: 52px; margin: 0.5rem 0 1rem; line-height: 1; }
-
-  h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
-
-  .subtitle { font-size: 14px; color: #888; line-height: 1.55; margin-bottom: 1.5rem; }
-
-  .shift-card {
-    background: #f8f8f8;
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    text-align: left;
+  /* ── Body ── */
+  .body {
+    padding: 1.25rem 1.25rem 4rem;
+    max-width: 520px;
+    margin: 0 auto;
   }
 
-  .shift-row {
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 10px;
+    margin-top: 1.5rem;
+  }
+
+  .section-title:first-child { margin-top: 0; }
+
+  /* ── Shift table block ── */
+  .shift-block {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .shift-block-header {
+    background: #111;
+    padding: 11px 16px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 13px;
-    padding: 5px 0;
-    border-bottom: 1px solid #f0f0f0;
+    justify-content: space-between;
+    gap: 10px;
   }
 
-  .shift-row:last-child { border-bottom: none; }
-  .shift-row .k { color: #999; }
-  .shift-row .v { font-weight: 600; text-align: right; max-width: 60%; }
+  .shift-block-event {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-  .btn-group { display: flex; flex-direction: column; gap: 10px; }
+  .shift-block-index {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Clean data table */
+  .data-table { width: 100%; border-collapse: collapse; }
+
+  .data-table tr { border-bottom: 1px solid #f0f0f0; }
+  .data-table tr:last-child { border-bottom: none; }
+
+  .data-table td {
+    padding: 10px 14px;
+    font-size: 13px;
+    vertical-align: top;
+    line-height: 1.45;
+  }
+
+  .data-table td.col-label {
+    width: 38%;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #999;
+    padding-right: 8px;
+    white-space: nowrap;
+  }
+
+  .data-table td.col-value {
+    color: #111;
+    font-weight: 500;
+  }
+
+  .data-table td.col-value.accent { color: #cc1515; font-weight: 700; }
+
+  .data-table tr.highlight-row { background: #fafafa; }
+
+  /* ── Action buttons ── */
+  .actions { margin-top: 1.75rem; display: flex; flex-direction: column; gap: 10px; }
 
   .btn {
     width: 100%;
-    padding: 1rem;
-    border-radius: 14px;
-    font-size: 16px;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     border: none;
     font-family: inherit;
     transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.01em;
   }
 
-  .btn:active { transform: scale(0.97); opacity: 0.85; }
-  .btn:disabled { opacity: 0.4; cursor: default; }
-  .btn-confirm { background: #166534; color: #fff; }
-  .btn-deny    { background: #f0f0f0; color: #1a1a1a; }
+  .btn:active   { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+  .btn-confirm { background: #cc1515; color: #fff; }
+  .btn-confirm:hover { background: #b01010; }
+  .btn-deny    { background: #fff; color: #444; border: 1.5px solid #ddd; }
+
+  .action-note {
+    font-size: 11px;
+    color: #aaa;
+    text-align: center;
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  /* ── Result states ── */
+  .result-wrap { padding: 2.5rem 1.5rem 2rem; text-align: center; }
+
+  .result-icon {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 28px;
+    font-weight: 900;
+  }
+
+  .icon-confirm { background: rgba(204,21,21,0.12); color: #cc1515; }
+  .icon-deny    { background: rgba(0,0,0,0.08);      color: #555; }
 
   .result-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
+    display: inline-block;
+    font-size: 11px;
     font-weight: 700;
-    padding: 5px 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 14px;
     border-radius: 99px;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
   }
 
-  .badge-confirmed { background: #dcfce7; color: #166534; }
-  .badge-denied    { background: #fee2e2; color: #991b1b; }
+  .badge-confirmed { background: rgba(204,21,21,0.12); color: #cc1515; }
+  .badge-denied    { background: rgba(0,0,0,0.08);      color: #555; }
 
-  .close-hint { font-size: 12px; color: #bbb; margin-top: 1.25rem; }
+  .result-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
 
-  .error-box {
-    background: #fee2e2;
-    color: #991b1b;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
+  .result-msg {
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  .close-hint {
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    margin-top: 2rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── Error ── */
+  .error-wrap { padding: 2rem 1.5rem; text-align: center; }
+
+  .error-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
     font-size: 13px;
-    line-height: 1.5;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+    margin-top: 1rem;
+    text-align: left;
+  }
+
+  .contact-line {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 1.25rem;
+    letter-spacing: 0.04em;
   }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">VIT · Event Intelligence</div>
-  <div id="app">
+
+<div class="header">
+  <div class="header-top">
+    <div class="avs-mark">A<span>V</span>S</div>
+    <div class="header-label">Shift Confirmation</div>
+  </div>
+  <div class="worker-block" id="worker-block">
+    <div class="worker-eyebrow">Technician</div>
+    <div class="worker-name" id="worker-name">Loading…</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="loading-wrap">
     <div class="spinner"></div>
-    <div class="status-msg">Loading your shift details…</div>
+    <div class="loading-msg">Fetching your shift details…</div>
   </div>
 </div>
 
@@ -130,28 +310,26 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
 
 const params = new URLSearchParams(window.location.search);
-const NAME   = params.get('n') || '';  // worker name passed from SMS link
+const NAME   = params.get('n') || '';
 const DATE   = params.get('d') || '';
 
 let shiftData = null;
 
 async function init() {
   if (!NAME || !DATE) {
-    showError('Missing shift information. Please use the link from your reminder SMS.');
+    showError('Shift link is incomplete. Please use the link sent to you by AVS.');
     return;
   }
 
   try {
-    const url  = `${SCRIPT_URL}?action=getShiftDetails&tag=${encodeURIComponent(NAME)}&date=${encodeURIComponent(DATE)}`;
-    const res  = await fetch(url);
+    const res  = await fetch(`${SCRIPT_URL}?action=getShiftDetails&tag=${encodeURIComponent(NAME)}&date=${encodeURIComponent(DATE)}`);
     const data = await res.json();
-
     if (data.error) { showError(data.error); return; }
-
     shiftData = data;
 
-    if (data.existing) {
-      // Already responded — show current status
+    document.getElementById('worker-name').textContent = data.workerName || NAME;
+
+    if (data.existing === 'Confirmed' || data.existing === 'Denied') {
       showResult(data.existing === 'Confirmed' ? 'Y' : 'N', data.workerName, true);
     } else {
       showShiftCard(data);
@@ -162,108 +340,135 @@ async function init() {
   }
 }
 
+// ── Build shift cards ─────────────────────────────────────────────────────────
 function showShiftCard(data) {
-  const shift   = (data.shifts && data.shifts[0]) || {};
-  const firstName = (data.workerName || 'there').split(' ')[0];
+  const shifts = data.shifts || [];
 
-  let shiftRows = '';
-  if (shift.time)     shiftRows += shiftRow('Call time', formatTime(shift.time));
-  if (shift.position) shiftRows += shiftRow('Position', shift.position);
-  if (shift.event)    shiftRows += shiftRow('Event', shift.event);
-  if (shift.location) shiftRows += shiftRow('Location', shortLocation(shift.location));
-  shiftRows += shiftRow('Date', formatDate(DATE));
+  // Deduplicate by time + position
+  const seen   = new Set();
+  const unique = shifts.filter(s => {
+    const k = (s.time + '|' + s.position).toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+
+  const label = unique.length > 1
+    ? unique.length + ' shifts scheduled for ' + formatDateFull(DATE)
+    : 'Shift details for ' + formatDateFull(DATE);
+
+  let cardsHtml = '';
+  unique.forEach((s, idx) => {
+    const indexLabel = unique.length > 1 ? 'Shift ' + (idx + 1) + ' of ' + unique.length : '';
+    cardsHtml += `
+      <div class="shift-block">
+        <div class="shift-block-header">
+          <span class="shift-block-event">${escHtml(s.event || 'AVS Event')}</span>
+          ${indexLabel ? `<span class="shift-block-index">${indexLabel}</span>` : ''}
+        </div>
+        <table class="data-table">
+          ${tableRow('Location',    s.location,    false, false)}
+          ${tableRow('Date',        formatDateFull(DATE), true, false)}
+          ${tableRow('Call Time',   s.time,        false, true)}
+          ${tableRow('Position',    s.position,    true,  false)}
+          ${tableRow('Description', s.description, false, false)}
+          ${s.room ? tableRow('Room / Area', s.room, true, false) : ''}
+        </table>
+      </div>`;
+  });
 
   document.getElementById('app').innerHTML = `
-    <div class="big-icon">📋</div>
-    <h2>Hi ${escHtml(firstName)}!</h2>
-    <p class="subtitle">You have a shift coming up. Please confirm or let us know if you can't make it.</p>
-    <div class="shift-card">${shiftRows}</div>
-    <div class="btn-group">
-      <button class="btn btn-confirm" id="confirm-btn" onclick="respond('Y')">✅ I'll be there</button>
-      <button class="btn btn-deny"    id="deny-btn"    onclick="respond('N')">❌ I can't make it</button>
-    </div>
-  `;
+    <div class="body">
+      <div class="section-title">${escHtml(label)}</div>
+      ${cardsHtml}
+      <div class="actions">
+        <button class="btn btn-confirm" id="confirm-btn" onclick="respond('Y')">
+          ✓ &nbsp;Confirm my attendance
+        </button>
+        <button class="btn btn-deny" id="deny-btn" onclick="respond('N')">
+          I'm unable to make it
+        </button>
+      </div>
+      <p class="action-note">
+        Your response is sent directly to your AVS supervisor.<br>
+        If you have questions call or text your contact.
+      </p>
+    </div>`;
 }
 
-async function respond(r) {
-  const confirmBtn = document.getElementById('confirm-btn');
-  const denyBtn    = document.getElementById('deny-btn');
-  if (confirmBtn) confirmBtn.disabled = true;
-  if (denyBtn)    denyBtn.disabled    = true;
+function tableRow(label, value, highlight, accent) {
+  if (!value) return '';
+  return `
+    <tr${highlight ? ' class="highlight-row"' : ''}>
+      <td class="col-label">${label}</td>
+      <td class="col-value${accent ? ' accent' : ''}">${escHtml(value)}</td>
+    </tr>`;
+}
 
-  const workerName = shiftData ? shiftData.workerName : NAME;
+// ── Submit response ───────────────────────────────────────────────────────────
+async function respond(r) {
+  const cb = document.getElementById('confirm-btn');
+  const db = document.getElementById('deny-btn');
+  if (cb) cb.disabled = true;
+  if (db) db.disabled = true;
 
   try {
-    const url  = `${SCRIPT_URL}?action=confirmShift&tag=${encodeURIComponent(NAME)}&date=${encodeURIComponent(DATE)}&response=${encodeURIComponent(r)}`;
-    const res  = await fetch(url);
+    const res  = await fetch(`${SCRIPT_URL}?action=confirmShift&tag=${encodeURIComponent(NAME)}&date=${encodeURIComponent(DATE)}&response=${encodeURIComponent(r)}`);
     const data = await res.json();
-
     if (data.error) { showError(data.error); return; }
-    showResult(r, data.workerName || workerName, false);
-
+    showResult(r, data.workerName || NAME, false);
   } catch(e) {
     showError('Could not save your response. Check your connection and try again.');
-    if (confirmBtn) confirmBtn.disabled = false;
-    if (denyBtn)    denyBtn.disabled    = false;
+    if (cb) cb.disabled = false;
+    if (db) db.disabled = false;
   }
 }
 
+// ── Result state ──────────────────────────────────────────────────────────────
 function showResult(r, workerName, alreadyDone) {
-  const isConfirm  = r === 'Y';
-  const icon       = isConfirm ? '✅' : '❌';
-  const badgeCls   = isConfirm ? 'badge-confirmed' : 'badge-denied';
-  const badgeTxt   = isConfirm ? 'Confirmed' : 'Denied';
-  const title      = isConfirm ? 'You\'re confirmed!' : 'Response recorded';
-  const msg        = alreadyDone
-    ? `Your response of <strong>${badgeTxt}</strong> is already on file.`
+  const isConfirm = r === 'Y';
+  const firstName = (workerName || NAME).split(' ')[0];
+  const badgeTxt  = isConfirm ? 'Confirmed' : 'Denied';
+  const title     = isConfirm ? 'See you on site.' : 'Response recorded.';
+  const msg       = alreadyDone
+    ? `Your <strong style="color:#fff">${badgeTxt.toLowerCase()}</strong> response is already on file.`
     : isConfirm
-      ? `Thanks ${escHtml((workerName||'').split(' ')[0])}! We'll see you there.`
-      : `Thanks for letting us know, ${escHtml((workerName||'').split(' ')[0])}. We'll be in touch.`;
+      ? `Thanks, ${escHtml(firstName)}. Your supervisor has been notified. We look forward to working with you.`
+      : `Thanks for the heads up, ${escHtml(firstName)}. Your supervisor has been notified.`;
 
   document.getElementById('app').innerHTML = `
-    <div class="big-icon">${icon}</div>
-    <span class="result-badge ${badgeCls}">${badgeTxt}</span>
-    <h2>${title}</h2>
-    <p class="subtitle">${msg}</p>
-    <p class="close-hint">You can close this page.</p>
-  `;
+    <div class="result-wrap">
+      <div class="result-icon ${isConfirm ? 'icon-confirm' : 'icon-deny'}">
+        ${isConfirm ? '✓' : '✕'}
+      </div>
+      <div class="result-badge ${isConfirm ? 'badge-confirmed' : 'badge-denied'}">${badgeTxt}</div>
+      <div class="result-title">${title}</div>
+      <p class="result-msg">${msg}</p>
+      <p class="close-hint">You can close this page</p>
+    </div>`;
 }
 
+// ── Error state ───────────────────────────────────────────────────────────────
 function showError(msg) {
+  document.getElementById('worker-name').textContent = '—';
   document.getElementById('app').innerHTML = `
-    <div class="big-icon">⚠️</div>
-    <h2>Something went wrong</h2>
-    <div class="error-box" style="margin-top:1rem">${escHtml(msg)}</div>
-    <p class="close-hint" style="margin-top:1rem">Please contact your supervisor.</p>
-  `;
+    <div class="error-wrap">
+      <div style="font-size:32px;margin-bottom:0.75rem;color:rgba(255,255,255,0.3)">⚠</div>
+      <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:0.25rem">Something went wrong</div>
+      <div class="error-card">${escHtml(msg)}</div>
+      <p class="contact-line">Contact your AVS supervisor directly.</p>
+    </div>`;
 }
 
-function shiftRow(k, v) {
-  return `<div class="shift-row"><span class="k">${k}</span><span class="v">${escHtml(v)}</span></div>`;
-}
-
-function formatTime(t) {
-  if (!t) return '—';
-  const parts = t.split(':');
-  if (parts.length < 2) return t;
-  let h = parseInt(parts[0]), m = parts[1];
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return h + ':' + m + ' ' + ampm;
-}
-
-function formatDate(d) {
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function formatDateFull(d) {
   if (!d) return '—';
-  const parts = d.split('/');
-  if (parts.length < 3) return d;
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const mo = parseInt(parts[0]) - 1;
-  return (months[mo] || parts[0]) + ' ' + parseInt(parts[1]) + ', ' + parts[2];
-}
-
-function shortLocation(loc) {
-  // Trim long location strings for display
-  return loc.length > 30 ? loc.substring(0, 28) + '…' : loc;
+  const p = d.split('/');
+  if (p.length < 3) return d;
+  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const dt = new Date(parseInt(p[2]), parseInt(p[0])-1, parseInt(p[1]));
+  return days[dt.getDay()] + ', ' + months[dt.getMonth()] + ' ' + dt.getDate() + ', ' + dt.getFullYear();
 }
 
 function escHtml(s) {
