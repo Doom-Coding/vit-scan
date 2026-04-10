@@ -743,7 +743,7 @@ async function submitRating(stars) {
 
   try {
     // Pass TAG_ID as workerName — Apps Script resolves to actual name via Assignments tab
-    const url = `${SCRIPT_URL}?action=submitRating&workerName=${encodeURIComponent(TAG_ID)}&tagId=${encodeURIComponent(TAG_ID)}&rating=${stars}`;
+    const url = `${SCRIPT_URL}?action=submitRating&tagId=${encodeURIComponent(TAG_ID)}&rating=${stars}`;
     await fetch(url);
   } catch(e) {
     // Fail silently — rating is optional, never blocks scan flow
