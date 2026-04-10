@@ -796,7 +796,7 @@ const ppSections = [
     body:'<strong style="color:#f0eeea">Vector Integrated Production Technologies</strong><br>Orlando, Florida<br>Phone: (404) 922-8608' }
 ];
 
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   const el = document.getElementById('pp-inline');
   if (!el) return;
   el.innerHTML = ppSections.map(s => `
@@ -807,7 +807,7 @@ const ppSections = [
       </div>
       <div style="font-family:'Rajdhani',sans-serif;font-size:14px;line-height:1.8;letter-spacing:0.03em;color:rgba(240,238,234,0.4);">${s.body}</div>
     </div>`).join('');
-})();
+});
 </script>
 
 </body>
