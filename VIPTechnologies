@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIP Technologies — Event Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:      #e01c1c;
+  --red-glow: rgba(224,28,28,0.35);
+  --red-dim:  rgba(224,28,28,0.12);
+  --white:    #f0eeea;
+  --dim:      rgba(240,238,234,0.45);
+  --dimmer:   rgba(240,238,234,0.18);
+  --black:    #060608;
+  --panel:    rgba(255,255,255,0.025);
+  --border:   rgba(255,255,255,0.06);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Animated grid background ── */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridshift 25s linear infinite;
+}
+
+@keyframes gridshift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 60px 60px, 60px 60px; }
+}
+
+/* ── Red horizon glow ── */
+.horizon {
+  position: fixed;
+  bottom: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140vw;
+  height: 60vh;
+  background: radial-gradient(ellipse at center bottom,
+    rgba(224,28,28,0.18) 0%,
+    rgba(224,28,28,0.06) 30%,
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.top-glow {
+  position: fixed;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80vw;
+  height: 50vh;
+  background: radial-gradient(ellipse at center,
+    rgba(200,200,255,0.04) 0%,
+    transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Scan line ── */
+.scanline {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(to right,
+    transparent 0%, rgba(224,28,28,0.6) 50%, transparent 100%);
+  animation: scan 6s ease-in-out infinite;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0%   { top: 0%; opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 0.4; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ── Wrapper ── */
+.wrapper {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+}
+
+/* ── System label ── */
+.sys-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--red);
+  margin-bottom: 3.5rem;
+  opacity: 0;
+  animation: fadein 0.8s ease 0.3s forwards;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sys-label::before, .sys-label::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--red));
+}
+
+.sys-label::after {
+  background: linear-gradient(to left, transparent, var(--red));
+}
+
+/* ── LOGO ── */
+.logo-wrap {
+  position: relative;
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  animation: fadein 1s ease 0.5s forwards;
+}
+
+/* Hexagon SVG logo */
+.hex-logo {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.hex-logo svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Rotating outer ring */
+.ring-outer {
+  animation: rotatering 20s linear infinite;
+  transform-origin: center;
+}
+
+.ring-inner {
+  animation: rotatering 12s linear infinite reverse;
+  transform-origin: center;
+}
+
+@keyframes rotatering {
+  to { transform: rotate(360deg); }
+}
+
+/* Pulse on center mark */
+.center-pulse {
+  animation: pulse 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; r: 4; }
+  50%       { opacity: 0.4; r: 6; }
+}
+
+/* VIP text glow flicker */
+.vip-text {
+  animation: textflicker 8s ease-in-out infinite;
+}
+
+@keyframes textflicker {
+  0%, 96%, 100% { opacity: 1; }
+  97%            { opacity: 0.85; }
+  98%            { opacity: 1; }
+  99%            { opacity: 0.9; }
+}
+
+/* ── Company name ── */
+.company-name {
+  opacity: 0;
+  animation: fadein 1s ease 0.9s forwards;
+  margin-bottom: 0.5rem;
+}
+
+.name-vector {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(28px, 6vw, 52px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--white);
+}
+
+.name-vector .highlight { color: var(--red); }
+
+.name-sub {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(11px, 2vw, 15px);
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-top: 8px;
+}
+
+/* ── Divider ── */
+.tech-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2.75rem auto;
+  width: 100%;
+  max-width: 600px;
+  opacity: 0;
+  animation: fadein 1s ease 1.1s forwards;
+}
+
+.td-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent, rgba(224,28,28,0.5), rgba(255,255,255,0.15), rgba(224,28,28,0.5), transparent);
+}
+
+.td-nodes {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.td-node {
+  width: 4px; height: 4px;
+  background: var(--red);
+  transform: rotate(45deg);
+  box-shadow: 0 0 6px var(--red-glow);
+}
+
+.td-node.big {
+  width: 7px; height: 7px;
+  box-shadow: 0 0 12px var(--red-glow);
+}
+
+/* ── Hero statement ── */
+.hero-statement {
+  opacity: 0;
+  animation: fadein 1s ease 1.2s forwards;
+  margin-bottom: 1.5rem;
+}
+
+.hero-line1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(11px, 2.2vw, 14px);
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 14px;
+}
+
+.hero-line2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(18px, 4vw, 30px);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  line-height: 1.5;
+  max-width: 640px;
+}
+
+.hero-line2 strong {
+  font-weight: 600;
+  color: var(--white);
+}
+
+/* ── Capability grid ── */
+.cap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  width: 100%;
+  max-width: 720px;
+  margin: 2.5rem auto;
+  background: var(--border);
+  border: 1px solid var(--border);
+  opacity: 0;
+  animation: fadein 1s ease 1.4s forwards;
+}
+
+.cap-cell {
+  background: var(--black);
+  padding: 18px 16px;
+  text-align: left;
+  transition: background 0.3s ease;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.cap-cell::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 0;
+  background: var(--red);
+  transition: height 0.3s ease;
+}
+
+.cap-cell:hover { background: rgba(224,28,28,0.04); }
+.cap-cell:hover::before { height: 100%; }
+
+.cap-icon {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--red);
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.cap-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--white);
+  line-height: 1.3;
+}
+
+/* ── Intelligence callout ── */
+.intel-callout {
+  border: 1px solid rgba(224,28,28,0.25);
+  background: var(--red-dim);
+  padding: 1.5rem 2rem;
+  max-width: 620px;
+  width: 100%;
+  margin: 0 auto 3rem;
+  position: relative;
+  opacity: 0;
+  animation: fadein 1s ease 1.6s forwards;
+}
+
+.intel-callout::before, .intel-callout::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--red);
+  border-style: solid;
+}
+
+.intel-callout::before {
+  top: -1px; left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.intel-callout::after {
+  bottom: -1px; right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.intel-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 10px;
+}
+
+.intel-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(14px, 2.5vw, 17px);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  line-height: 1.65;
+}
+
+.intel-text strong { color: var(--white); font-weight: 600; }
+
+/* ── Contact ── */
+.contact-wrap {
+  opacity: 0;
+  animation: fadein 1s ease 1.8s forwards;
+  text-align: center;
+}
+
+.contact-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-bottom: 14px;
+}
+
+.phone {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(36px, 9vw, 70px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  text-decoration: none;
+  display: block;
+  line-height: 1;
+  transition: color 0.3s, text-shadow 0.3s;
+  text-shadow: 0 0 0 transparent;
+}
+
+.phone:hover {
+  color: var(--red);
+  text-shadow: 0 0 30px var(--red-glow);
+}
+
+.phone-note {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dimmer);
+  margin-top: 10px;
+}
+
+/* ── Footer ── */
+.footer-mark {
+  margin-top: 4rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(240,238,234,0.1);
+  opacity: 0;
+  animation: fadein 1s ease 2s forwards;
+}
+
+/* ── Animations ── */
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .hex-logo { width: 150px; height: 150px; }
+  .cap-grid { grid-template-columns: repeat(2, 1fr); }
+  .intel-callout { padding: 1.25rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="horizon"></div>
+<div class="top-glow"></div>
+<div class="scanline"></div>
+
+<div class="wrapper">
+
+  <!-- System label -->
+  <div class="sys-label">VIP // SYSTEM ONLINE // ORLANDO FL</div>
+
+  <!-- SVG Logo -->
+  <div class="logo-wrap">
+    <div class="hex-logo">
+      <svg viewBox="-110 -110 220 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="redglow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="softglow">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- Outer dashed rotating ring -->
+        <g class="ring-outer">
+          <circle cx="0" cy="0" r="98"
+            fill="none" stroke="rgba(224,28,28,0.3)" stroke-width="0.5"
+            stroke-dasharray="4 8"/>
+          <!-- Tick marks -->
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6"/>
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6" transform="rotate(45)"/>
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6" transform="rotate(90)"/>
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6" transform="rotate(135)"/>
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6" transform="rotate(180)"/>
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6" transform="rotate(225)"/>
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6" transform="rotate(270)"/>
+          <line x1="0" y1="-92" x2="0" y2="-102" stroke="#e01c1c" stroke-width="1" opacity="0.6" transform="rotate(315)"/>
+          <!-- Corner diamonds -->
+          <rect x="-4" y="-101" width="8" height="8" fill="#e01c1c"
+            transform="rotate(45 0 -97)" filter="url(#redglow)" opacity="0.9"/>
+          <rect x="-4" y="-101" width="8" height="8" fill="#e01c1c"
+            transform="rotate(45 0 -97) rotate(90)" opacity="0.6"/>
+          <rect x="-4" y="-101" width="8" height="8" fill="#e01c1c"
+            transform="rotate(45 0 -97) rotate(180)" opacity="0.6"/>
+          <rect x="-4" y="-101" width="8" height="8" fill="#e01c1c"
+            transform="rotate(45 0 -97) rotate(270)" opacity="0.6"/>
+        </g>
+
+        <!-- Inner counter-rotating ring with segments -->
+        <g class="ring-inner">
+          <circle cx="0" cy="0" r="76"
+            fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+          <circle cx="0" cy="0" r="76"
+            fill="none" stroke="rgba(224,28,28,0.5)" stroke-width="1.5"
+            stroke-dasharray="24 12" stroke-dashoffset="0"/>
+        </g>
+
+        <!-- Hexagon body -->
+        <polygon
+          points="0,-68 58.9,-34 58.9,34 0,68 -58.9,34 -58.9,-34"
+          fill="rgba(6,6,8,0.95)"
+          stroke="#e01c1c"
+          stroke-width="1.5"
+          filter="url(#softglow)"/>
+
+        <!-- Inner hex hairline -->
+        <polygon
+          points="0,-56 48.5,-28 48.5,28 0,56 -48.5,28 -48.5,-28"
+          fill="none"
+          stroke="rgba(224,28,28,0.2)"
+          stroke-width="0.5"/>
+
+        <!-- Hex corner accent marks -->
+        <circle cx="0"     cy="-68"  r="2.5" fill="#e01c1c" filter="url(#redglow)"/>
+        <circle cx="58.9"  cy="-34"  r="2.5" fill="#e01c1c" filter="url(#redglow)"/>
+        <circle cx="58.9"  cy="34"   r="2.5" fill="#e01c1c" filter="url(#redglow)"/>
+        <circle cx="0"     cy="68"   r="2.5" fill="#e01c1c" filter="url(#redglow)"/>
+        <circle cx="-58.9" cy="34"   r="2.5" fill="#e01c1c" filter="url(#redglow)"/>
+        <circle cx="-58.9" cy="-34"  r="2.5" fill="#e01c1c" filter="url(#redglow)"/>
+
+        <!-- Crosshair lines inside hex -->
+        <line x1="-48" y1="0" x2="48" y2="0"
+          stroke="rgba(224,28,28,0.15)" stroke-width="0.5"/>
+        <line x1="0" y1="-48" x2="0" y2="48"
+          stroke="rgba(224,28,28,0.15)" stroke-width="0.5"/>
+
+        <!-- V.I.P letters -->
+        <g class="vip-text" filter="url(#redglow)">
+          <text x="0" y="14"
+            text-anchor="middle"
+            font-family="Orbitron, sans-serif"
+            font-size="38"
+            font-weight="900"
+            fill="white"
+            letter-spacing="6">
+            VIP
+          </text>
+        </g>
+
+        <!-- Center pulse dot -->
+        <circle class="center-pulse" cx="0" cy="0" r="3"
+          fill="#e01c1c" filter="url(#redglow)"/>
+
+      </svg>
+    </div>
+  </div>
+
+  <!-- Company name -->
+  <div class="company-name">
+    <div class="name-vector">
+      <span class="highlight">V</span>ector&nbsp;
+      <span class="highlight">I</span>ntegrated&nbsp;
+      <span class="highlight">P</span>roduction
+    </div>
+    <div class="name-sub">Technologies &nbsp;·&nbsp; Event Intelligence Platform</div>
+  </div>
+
+  <!-- Divider -->
+  <div class="tech-divider">
+    <div class="td-line"></div>
+    <div class="td-nodes">
+      <div class="td-node"></div>
+      <div class="td-node big"></div>
+      <div class="td-node"></div>
+    </div>
+    <div class="td-line"></div>
+  </div>
+
+  <!-- Hero statement -->
+  <div class="hero-statement">
+    <div class="hero-line1">The Future of Event Production</div>
+    <div class="hero-line2">
+      <strong>Real-time intelligence.</strong> Precision labor. Seamless execution.<br>
+      We don't just run events — we engineer them.
+    </div>
+  </div>
+
+  <!-- Capabilities grid -->
+  <div class="cap-grid">
+    <div class="cap-cell">
+      <span class="cap-icon">// 01</span>
+      <div class="cap-title">Event Intelligence</div>
+    </div>
+    <div class="cap-cell">
+      <span class="cap-icon">// 02</span>
+      <div class="cap-title">Real-Time Labor Tracking</div>
+    </div>
+    <div class="cap-cell">
+      <span class="cap-icon">// 03</span>
+      <div class="cap-title">Audio &amp; Video Systems</div>
+    </div>
+    <div class="cap-cell">
+      <span class="cap-icon">// 04</span>
+      <div class="cap-title">Lighting &amp; Staging</div>
+    </div>
+    <div class="cap-cell">
+      <span class="cap-icon">// 05</span>
+      <div class="cap-title">Technical Direction</div>
+    </div>
+    <div class="cap-cell">
+      <span class="cap-icon">// 06</span>
+      <div class="cap-title">Data-Driven Production</div>
+    </div>
+  </div>
+
+  <!-- Intelligence callout -->
+  <div class="intel-callout">
+    <div class="intel-label">// Event Intelligence — Active</div>
+    <div class="intel-text">
+      VIP Technologies is pioneering the next generation of live event infrastructure —
+      combining <strong>NFC-enabled crew management</strong>, <strong>AI-assisted decision making</strong>,
+      and <strong>real-time production analytics</strong> into a single unified platform.
+      Built for meeting planners and production companies who demand more than execution —
+      they demand <strong>intelligence</strong>.
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="contact-wrap">
+    <div class="contact-label">// Connect with us</div>
+    <a class="phone" href="tel:+14049228608">(404) 922-8608</a>
+    <div class="phone-note">Orlando, FL &nbsp;·&nbsp; Available for Inquiries &amp; Bookings</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-mark">
+    © Vector Integrated Production Technologies &nbsp;·&nbsp; vip-tech.io &nbsp;·&nbsp; All Rights Reserved
+  </div>
+
+</div>
+</body>
+</html>
