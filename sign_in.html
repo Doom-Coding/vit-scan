@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIT · Tag Assignment</title>
+<title>VIT · Event Intelligence</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -23,7 +23,7 @@
     justify-content: space-between;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 300;
   }
 
   .header-left { display: flex; align-items: center; gap: 1rem; }
@@ -31,6 +31,58 @@
   .header-title { font-size: 15px; font-weight: 600; }
   .header-meta  { font-size: 12px; opacity: 0.5; }
 
+  /* ── Tab bar ── */
+  .tab-bar {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    position: sticky;
+    top: 57px;
+    z-index: 200;
+  }
+
+  .tab-btn {
+    padding: 0.85rem 1.5rem;
+    font-size: 13px;
+    font-weight: 600;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    color: #888;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tab-btn.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+  .tab-btn:hover:not(.active) { color: #555; }
+
+  .tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 99px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  /* ── Sections ── */
+  #signin-section { display: block; }
+  #signin-section.hidden { display: none; }
+  #command-section { display: none; background: #f0f0ee; }
+  #command-section.visible { display: block; }
+
+  /* ────────────────────────────────────────────────────────
+     SIGN IN STYLES
+  ──────────────────────────────────────────────────────── */
   .controls {
     background: #fff;
     border-bottom: 1px solid #e5e5e5;
@@ -44,56 +96,31 @@
   .control-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
 
   .control-group label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #888;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #888;
   }
 
   .control-group label .optional {
-    font-weight: 400;
-    text-transform: none;
-    letter-spacing: 0;
-    color: #bbb;
-    margin-left: 4px;
+    font-weight: 400; text-transform: none; letter-spacing: 0;
+    color: #bbb; margin-left: 4px;
   }
 
   .control-group select,
   .control-group input[type="date"],
   .control-group input[type="text"] {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fafafa;
-    color: #1a1a1a;
-    appearance: none;
-    -webkit-appearance: none;
-    min-width: 180px;
-    cursor: pointer;
+    padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px; background: #fafafa; color: #1a1a1a;
+    appearance: none; -webkit-appearance: none; min-width: 180px; cursor: pointer;
   }
 
   .control-group input[type="text"] { cursor: text; min-width: 160px; }
-  .control-group select:focus,
-  .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+  .control-group select:focus, .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
 
-  /* ── Multi-select dropdown ── */
   .multiselect-btn {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fafafa;
-    color: #1a1a1a;
-    min-width: 200px;
-    cursor: pointer;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    transition: border-color 0.15s;
+    padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px; background: #fafafa; color: #1a1a1a; min-width: 200px;
+    cursor: pointer; text-align: left; display: flex; align-items: center;
+    justify-content: space-between; gap: 8px; transition: border-color 0.15s;
   }
 
   .multiselect-btn:focus { outline: none; border-color: #1a1a1a; background: #fff; }
@@ -101,30 +128,16 @@
   .multiselect-btn .arrow { font-size: 10px; opacity: 0.5; }
 
   .multiselect-panel {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    min-width: 240px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    z-index: 200;
-    display: none;
-    overflow: hidden;
+    position: absolute; top: calc(100% + 4px); left: 0; min-width: 240px;
+    background: #fff; border: 1px solid #ddd; border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 201; display: none; overflow: hidden;
   }
 
   .multiselect-panel.open { display: block; }
 
   .multiselect-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0.6rem 0.85rem;
-    font-size: 13px;
-    cursor: pointer;
-    border-bottom: 1px solid #f5f5f5;
-    transition: background 0.1s;
+    display: flex; align-items: center; gap: 10px; padding: 0.6rem 0.85rem;
+    font-size: 13px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background 0.1s;
   }
 
   .multiselect-option:last-child { border-bottom: none; }
@@ -133,44 +146,26 @@
   .multiselect-option.select-all { font-weight: 600; background: #f8f8f8; border-bottom: 2px solid #e5e5e5; }
 
   .btn-load {
-    padding: 0.5rem 1.25rem;
-    background: #1a1a1a;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.15s;
-    align-self: flex-end;
-    white-space: nowrap;
+    padding: 0.5rem 1.25rem; background: #1a1a1a; color: #fff; border: none;
+    border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.15s; align-self: flex-end; white-space: nowrap;
   }
 
   .btn-load:hover { opacity: 0.8; }
   .btn-load:disabled { opacity: 0.4; cursor: default; }
 
   .stats-bar {
-    padding: 0.75rem 1.5rem;
-    display: flex;
-    gap: 1.5rem;
-    font-size: 13px;
-    color: #666;
-    border-bottom: 1px solid #e5e5e5;
-    background: #fff;
-    flex-wrap: wrap;
-    align-items: center;
+    padding: 0.75rem 1.5rem; display: flex; gap: 1.5rem; font-size: 13px;
+    color: #666; border-bottom: 1px solid #e5e5e5; background: #fff;
+    flex-wrap: wrap; align-items: center;
   }
 
   .stat { display: flex; gap: 6px; align-items: center; }
   .stat strong { color: #1a1a1a; font-weight: 600; }
 
   .supervisor-stamp {
-    margin-left: auto;
-    font-size: 12px;
-    color: #888;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    margin-left: auto; font-size: 12px; color: #888;
+    display: flex; align-items: center; gap: 6px;
   }
 
   .supervisor-stamp strong { color: #1a1a1a; }
@@ -179,52 +174,29 @@
 
   .event-group { margin-bottom: 2rem; }
 
-  .event-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
+  .event-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
 
   .event-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    background: #1a1a1a;
-    color: #fff;
-    padding: 4px 10px;
-    border-radius: 4px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    background: #1a1a1a; color: #fff; padding: 4px 10px; border-radius: 4px;
   }
 
   .event-count { font-size: 12px; color: #888; }
 
   .worker-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid #e5e5e5;
+    width: 100%; border-collapse: collapse; background: #fff;
+    border-radius: 12px; overflow: hidden; border: 1px solid #e5e5e5;
   }
 
   .worker-table th {
-    background: #f8f8f8;
-    padding: 0.6rem 1rem;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #888;
-    border-bottom: 1px solid #e5e5e5;
+    background: #f8f8f8; padding: 0.6rem 1rem; text-align: left;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #888; border-bottom: 1px solid #e5e5e5;
   }
 
   .worker-table td {
-    padding: 0.65rem 1rem;
-    font-size: 14px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: middle;
+    padding: 0.65rem 1rem; font-size: 14px;
+    border-bottom: 1px solid #f0f0f0; vertical-align: middle;
   }
 
   .worker-table tr:last-child td { border-bottom: none; }
@@ -237,61 +209,38 @@
   .worker-room { font-size: 13px; color: #555; }
 
   .actions-wrap { display: flex; gap: 6px; align-items: flex-start; }
-
   .tag-input-wrap { display: flex; gap: 6px; align-items: flex-start; }
 
   .tag-input {
-    width: 72px;
-    padding: 0.4rem 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    background: #fafafa;
-    transition: border-color 0.15s;
+    width: 72px; padding: 0.4rem 0.5rem; border: 1px solid #ddd;
+    border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center;
+    background: #fafafa; transition: border-color 0.15s;
   }
 
   .tag-input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  .tag-input.has-value  { border-color: #166534; background: #f0fdf4; color: #166534; }
-  .tag-input.conflict   { border-color: #c2410c; background: #fff7ed; color: #c2410c; }
+  .tag-input.has-value { border-color: #166534; background: #f0fdf4; color: #166534; }
+  .tag-input.conflict  { border-color: #c2410c; background: #fff7ed; color: #c2410c; }
 
   .btn-action {
-    padding: 0.38rem 0.7rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.15s, background 0.15s;
-    white-space: nowrap;
+    padding: 0.38rem 0.7rem; border: none; border-radius: 6px; font-size: 12px;
+    font-weight: 600; cursor: pointer; transition: opacity 0.15s, background 0.15s; white-space: nowrap;
   }
 
-  .btn-save      { background: #1a1a1a; color: #fff; }
+  .btn-save { background: #1a1a1a; color: #fff; }
   .btn-save:hover { opacity: 0.8; }
   .btn-save.saved    { background: #166534; }
   .btn-save.conflict { background: #c2410c; }
   .btn-save.saving   { opacity: 0.5; cursor: default; }
   .btn-save:disabled { opacity: 0.3; cursor: default; }
-
-  .btn-scan-tag  { background: #f0f0f0; color: #1a1a1a; }
+  .btn-scan-tag { background: #f0f0f0; color: #1a1a1a; }
   .btn-scan-tag:hover { background: #e5e5e5; }
   .btn-scan-tag.logged { background: #dbeafe; color: #1e40af; }
 
-  .conflict-msg {
-    font-size: 11px;
-    color: #c2410c;
-    margin-top: 4px;
-    display: none;
-    line-height: 1.3;
-  }
+  .conflict-msg { font-size: 11px; color: #c2410c; margin-top: 4px; display: none; line-height: 1.3; }
 
   .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-    margin-top: 9px;
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; flex-shrink: 0; margin-top: 9px;
   }
 
   .status-dot.saved    { background: #22c55e; }
@@ -303,124 +252,60 @@
 
   /* ── Scan Modal ── */
   .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 500; display: flex; align-items: center; justify-content: center;
+    padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s;
   }
 
   .modal-overlay.open { opacity: 1; pointer-events: all; }
 
   .modal-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 1.75rem;
-    width: 100%;
-    max-width: 360px;
-    transform: translateY(12px);
-    transition: transform 0.2s;
-    max-height: 90vh;
-    overflow-y: auto;
+    background: #fff; border-radius: 16px; padding: 1.75rem; width: 100%;
+    max-width: 360px; transform: translateY(12px); transition: transform 0.2s;
+    max-height: 90vh; overflow-y: auto;
   }
 
   .modal-overlay.open .modal-card { transform: translateY(0); }
 
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.25rem;
-  }
-
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
   .modal-title { font-size: 16px; font-weight: 600; }
-
-  .modal-close {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #888;
-    padding: 2px 6px;
-    border-radius: 6px;
-    line-height: 1;
-  }
-
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; padding: 2px 6px; border-radius: 6px; line-height: 1; }
   .modal-close:hover { background: #f0f0f0; color: #1a1a1a; }
 
   .worker-badge {
-    background: #f8f8f8;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    background: #f8f8f8; border-radius: 10px; padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem;
   }
 
   .worker-badge .avatar {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    background: #1a1a1a;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 700;
-    flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 50%; background: #1a1a1a;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
   }
 
   .worker-badge .wname { font-weight: 600; font-size: 15px; }
   .worker-badge .wtag  { font-size: 12px; color: #888; margin-top: 2px; }
 
   .modal-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #888;
-    margin-bottom: 5px;
-    display: block;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #888; margin-bottom: 5px; display: block;
   }
 
   .modal-select {
-    width: 100%;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fafafa;
-    color: #1a1a1a;
-    appearance: none;
-    -webkit-appearance: none;
-    margin-bottom: 1rem;
+    width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #ddd;
+    border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a;
+    appearance: none; -webkit-appearance: none; margin-bottom: 1rem;
   }
 
   .modal-select:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-
   .modal-divider { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
 
-  .pin-label {
-    font-size: 13px;
-    color: #555;
-    text-align: center;
-    margin-bottom: 0.75rem;
-  }
-
-  .pin-dots { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
+  .pin-label { font-size: 13px; color: #555; text-align: center; margin-bottom: 0.75rem; }
+  .pin-dots  { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
 
   .pin-dot {
-    width: 13px; height: 13px;
-    border-radius: 50%;
-    border: 2px solid #ccc;
-    background: transparent;
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid #ccc; background: transparent;
     transition: background 0.15s, border-color 0.15s;
   }
 
@@ -429,15 +314,9 @@
   .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
   .numpad button {
-    padding: 0.85rem 0;
-    border: 1px solid #e5e5e5;
-    border-radius: 10px;
-    font-size: 18px;
-    font-weight: 500;
-    background: #fafafa;
-    cursor: pointer;
-    color: #1a1a1a;
-    transition: background 0.1s;
+    padding: 0.85rem 0; border: 1px solid #e5e5e5; border-radius: 10px;
+    font-size: 18px; font-weight: 500; background: #fafafa; cursor: pointer;
+    color: #1a1a1a; transition: background 0.1s;
   }
 
   .numpad button:active { background: #e5e5e5; }
@@ -445,41 +324,243 @@
   .numpad button.empty { visibility: hidden; }
 
   .modal-error {
-    background: #fee2e2;
-    color: #991b1b;
-    border-radius: 8px;
-    padding: 0.5rem 0.75rem;
-    font-size: 13px;
-    margin-bottom: 0.75rem;
-    display: none;
+    background: #fee2e2; color: #991b1b; border-radius: 8px;
+    padding: 0.5rem 0.75rem; font-size: 13px; margin-bottom: 0.75rem; display: none;
   }
 
-  .modal-result {
-    text-align: center;
-    padding: 1rem 0;
-  }
-
+  .modal-result { text-align: center; padding: 1rem 0; }
   .modal-result .result-icon { font-size: 40px; margin-bottom: 0.5rem; }
   .modal-result h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.4rem; }
   .modal-result p  { font-size: 13px; color: #888; }
 
   .btn-modal-primary {
-    width: 100%;
-    padding: 0.75rem;
-    background: #1a1a1a;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 1rem;
-    transition: opacity 0.15s;
+    width: 100%; padding: 0.75rem; background: #1a1a1a; color: #fff;
+    border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 1rem; transition: opacity 0.15s; font-family: inherit;
   }
 
   .btn-modal-primary:hover { opacity: 0.8; }
 
-  /* ── Misc ── */
+  /* ────────────────────────────────────────────────────────
+     COMMAND CENTER STYLES
+  ──────────────────────────────────────────────────────── */
+  .cc-refresh-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.6rem 1.5rem; background: #fff; border-bottom: 1px solid #e5e5e5;
+    font-size: 12px; color: #aaa; flex-wrap: wrap; gap: 0.5rem;
+  }
+
+  .cc-refresh-btn {
+    padding: 4px 12px; background: #1a1a1a; color: #fff; border: none;
+    border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: opacity 0.15s;
+  }
+
+  .cc-refresh-btn:hover { opacity: 0.8; }
+
+  .cc-wrap {
+    max-width: 1400px; margin: 0 auto; padding: 1.25rem 1.5rem;
+    display: flex; flex-direction: column; gap: 1.25rem;
+  }
+
+  .cc-section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #aaa; margin-bottom: 10px;
+  }
+
+  .cc-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+
+  .cc-stat { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 14px 16px; }
+  .cc-stat .val { font-size: 28px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; margin-bottom: 5px; color: #1a1a1a; }
+  .cc-stat .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
+  .cc-stat.green { background: #f0fdf4; border-color: #bbf7d0; }
+  .cc-stat.green .val { color: #16a34a; }
+  .cc-stat.amber { background: #fffbeb; border-color: #fde68a; }
+  .cc-stat.amber .val { color: #d97706; }
+  .cc-stat.blue  { background: #eff6ff; border-color: #bfdbfe; }
+  .cc-stat.blue .val  { color: #2563eb; }
+
+  .cc-rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+
+  .cc-room-card {
+    background: #fff; border: 1.5px solid #e5e5e5; border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s;
+  }
+
+  .cc-room-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); transform: translateY(-1px); }
+  .cc-room-card:active { transform: scale(0.98); }
+
+  .cc-room-name { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+
+  .cc-room-count { display: flex; align-items: baseline; gap: 3px; margin-bottom: 8px; }
+  .cc-room-count .big { font-size: 28px; font-weight: 800; color: #1a1a1a; line-height: 1; }
+  .cc-room-count .of  { font-size: 13px; color: #aaa; }
+
+  .cc-progress { height: 4px; background: #f0f0f0; border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+  .cc-progress-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+
+  .cc-bottom { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+
+  .cc-workers { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 14px; overflow: hidden; }
+
+  .cc-workers-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid #e5e5e5; gap: 10px; flex-wrap: wrap;
+  }
+
+  .cc-workers-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+
+  .cc-search {
+    padding: 7px 12px; border: 1.5px solid #e5e5e5; border-radius: 8px;
+    font-size: 12px; outline: none; background: #fafafa; min-width: 160px; font-family: inherit;
+  }
+
+  .cc-search:focus { border-color: #1a1a1a; background: #fff; }
+
+  .cc-workers-table { width: 100%; border-collapse: collapse; }
+
+  .cc-workers-table th {
+    padding: 8px 14px; text-align: left; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; color: #aaa;
+    background: #f8f8f8; border-bottom: 1px solid #e5e5e5;
+  }
+
+  .cc-workers-table td {
+    padding: 10px 14px; font-size: 12px;
+    border-bottom: 1px solid #f5f5f5; vertical-align: middle;
+  }
+
+  .cc-workers-table tr:last-child td { border-bottom: none; }
+  .cc-workers-table tr.flagged { background: #fffcfc; }
+
+  .cc-name { font-weight: 600; color: #1a1a1a; font-size: 13px; }
+
+  .cc-status-pill {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+    font-weight: 600; padding: 3px 8px; border-radius: 99px; white-space: nowrap;
+  }
+
+  .cc-status-pill .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  .pill-active  { background: #f0fdf4; color: #15803d; }
+  .pill-active .dot { background: #16a34a; }
+  .pill-lunch   { background: #fffbeb; color: #b45309; }
+  .pill-lunch .dot  { background: #d97706; }
+  .pill-out     { background: #f8fafc; color: #64748b; }
+  .pill-out .dot    { background: #94a3b8; }
+  .pill-notseen { background: #f1f5f9; color: #94a3b8; }
+  .pill-notseen .dot { background: #cbd5e1; }
+
+  .cc-scan-late { color: #dc2626; font-weight: 600; }
+
+  .cc-stars { display: inline-flex; gap: 2px; }
+
+  .cc-star {
+    font-size: 16px; cursor: pointer; line-height: 1; transition: transform 0.1s;
+    color: #e2e8f0; background: none; border: none; padding: 0; font-family: inherit;
+  }
+
+  .cc-star.filled { color: #f59e0b; }
+  .cc-star:hover  { transform: scale(1.2); }
+
+  .cc-submit-ratings {
+    margin: 12px 16px; padding: 10px; width: calc(100% - 32px); background: #1a1a1a;
+    color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s; font-family: inherit;
+  }
+
+  .cc-submit-ratings:hover { opacity: 0.8; }
+  .cc-submit-ratings:disabled { opacity: 0.35; cursor: default; }
+
+  .cc-alerts { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 14px; overflow: hidden; }
+
+  .cc-alerts-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid #e5e5e5;
+  }
+
+  .cc-alerts-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+
+  .cc-alert-count { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+  .cc-alert-count.has-alerts { background: #fef2f2; color: #dc2626; }
+  .cc-alert-count.clear      { background: #f0fdf4; color: #16a34a; }
+
+  .cc-alerts-body { max-height: 500px; overflow-y: auto; }
+
+  .cc-alert-item { padding: 14px 16px; border-bottom: 1px solid #e5e5e5; }
+  .cc-alert-item:last-child { border-bottom: none; }
+  .cc-alert-item.lunch { background: #fffbeb; }
+
+  .cc-alert-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
+
+  .cc-alert-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
+  .cc-alert-type.scan-type  { color: #2563eb; }
+  .cc-alert-type.lunch-type { color: #d97706; }
+  .cc-alert-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .cc-alert-desc { font-size: 12px; color: #555; line-height: 1.5; margin-top: 4px; }
+
+  .cc-dismiss {
+    background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer;
+    width: 28px; height: 28px; border-radius: 6px; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  .cc-dismiss:hover { background: #f5f5f5; color: #1a1a1a; }
+
+  .cc-all-clear { padding: 40px 20px; text-align: center; color: #aaa; font-size: 13px; }
+
+  /* Room modal */
+  .cc-room-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+    z-index: 600; align-items: center; justify-content: center; padding: 20px;
+  }
+
+  .cc-room-modal-overlay.open { display: flex; }
+
+  .cc-room-modal {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 540px;
+    max-height: 85vh; display: flex; flex-direction: column;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2); overflow: hidden;
+  }
+
+  .cc-room-modal-header {
+    padding: 18px 20px; border-bottom: 1px solid #e5e5e5;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+
+  .cc-room-modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
+  .cc-room-modal-sub   { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+  .cc-room-modal-close {
+    background: none; border: none; font-size: 22px; cursor: pointer; color: #aaa;
+    width: 34px; height: 34px; border-radius: 8px; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  .cc-room-modal-close:hover { background: #f5f5f5; color: #1a1a1a; }
+
+  .cc-room-modal-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; padding: 14px 20px; border-bottom: 1px solid #e5e5e5;
+  }
+
+  .cc-modal-stat { background: #f8fafc; border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px 12px; }
+  .cc-modal-stat .val { font-size: 22px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .cc-modal-stat .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; }
+
+  .cc-room-modal-body { overflow-y: auto; flex: 1; }
+
+  .cc-modal-worker-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; border-bottom: 1px solid #f5f5f5; gap: 10px;
+  }
+
+  .cc-modal-worker-row:last-child { border-bottom: none; }
+  .cc-modal-worker-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .cc-modal-worker-meta { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  /* Misc */
   .empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
   .empty-state .icon { font-size: 40px; margin-bottom: 1rem; }
   .empty-state h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; color: #1a1a1a; }
@@ -488,33 +569,24 @@
   .loading { text-align: center; padding: 4rem; color: #888; font-size: 14px; }
 
   .spinner-inline {
-    display: inline-block;
-    width: 16px; height: 16px;
-    border: 2px solid #ddd;
-    border-top-color: #1a1a1a;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
+    display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd;
+    border-top-color: #1a1a1a; border-radius: 50%;
+    animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px;
+  }
+
+  .cc-spinner {
+    display: inline-block; width: 14px; height: 14px; border: 2px solid #ddd;
+    border-top-color: #1a1a1a; border-radius: 50%;
+    animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .toast {
-    position: fixed;
-    bottom: 1.5rem; right: 1.5rem;
-    background: #1a1a1a;
-    color: #fff;
-    padding: 0.75rem 1.25rem;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.2s, transform 0.2s;
-    pointer-events: none;
-    z-index: 999;
-    max-width: 320px;
+    position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1a1a1a;
+    color: #fff; padding: 0.75rem 1.25rem; border-radius: 10px; font-size: 14px;
+    font-weight: 500; opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; max-width: 320px;
   }
 
   .toast.show    { opacity: 1; transform: translateY(0); }
@@ -522,14 +594,16 @@
   .toast.error   { background: #991b1b; }
   .toast.warning { background: #92400e; }
 
+  @media (max-width: 900px) { .cc-bottom { grid-template-columns: 1fr; } }
+
   @media (max-width: 700px) {
     .controls { flex-direction: column; }
-    .control-group select,
-    .control-group input,
-    .multiselect-btn { min-width: 100%; }
-    .worker-table th:nth-child(3),
-    .worker-table td:nth-child(3) { display: none; }
+    .control-group select, .control-group input, .multiselect-btn { min-width: 100%; }
+    .worker-table th:nth-child(3), .worker-table td:nth-child(3) { display: none; }
     .supervisor-stamp { margin-left: 0; }
+    .cc-rooms-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .cc-workers-table th:nth-child(3), .cc-workers-table td:nth-child(3),
+    .cc-workers-table th:nth-child(4), .cc-workers-table td:nth-child(4) { display: none; }
   }
 </style>
 </head>
@@ -538,160 +612,242 @@
 <header>
   <div class="header-left">
     <span class="logo">VIT</span>
-    <span class="header-title">Tag Assignment</span>
+    <span class="header-title">Event Intelligence</span>
   </div>
   <span class="header-meta" id="header-date"></span>
 </header>
 
-<div class="controls">
-  <div class="control-group">
-    <label>Location</label>
-    <select id="location-select" onchange="loadEventOptions()">
-      <option value="">Select location…</option>
-    </select>
+<!-- ── Tab bar ── -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
+  <button class="tab-btn" id="tab-command" onclick="switchTab('command')">
+    Command Center
+    <span class="tab-badge" id="alert-badge" style="display:none">0</span>
+  </button>
+</div>
+
+<!-- ══ SIGN IN ══════════════════════════════════════════════════════════════ -->
+<div id="signin-section">
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Location</label>
+      <select id="location-select" onchange="loadEventOptions()">
+        <option value="">Select location…</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Date</label>
+      <input type="date" id="date-select" onchange="loadEventOptions()">
+    </div>
+    <div class="control-group" id="event-control-group">
+      <label>Events <span class="optional">(optional filter)</span></label>
+      <button type="button" class="multiselect-btn" id="event-multiselect-btn" onclick="toggleEventPanel()">
+        <span id="event-btn-label">All events</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="multiselect-panel" id="event-panel">
+        <label class="multiselect-option select-all">
+          <input type="checkbox" id="select-all-events" onchange="toggleAllEvents(this)"> Select all
+        </label>
+      </div>
+    </div>
+    <div class="control-group">
+      <label>Your name</label>
+      <input type="text" id="supervisor-name" placeholder="Supervisor name" autocomplete="name">
+    </div>
+    <button class="btn-load" id="load-btn" onclick="loadWorkers()">Load Workers</button>
   </div>
 
-  <div class="control-group">
-    <label>Date</label>
-    <input type="date" id="date-select" onchange="loadEventOptions()">
-  </div>
-
-  <div class="control-group" id="event-control-group">
-    <label>Events <span class="optional">(optional filter)</span></label>
-    <button type="button" class="multiselect-btn" id="event-multiselect-btn" onclick="toggleEventPanel()">
-      <span id="event-btn-label">All events</span>
-      <span class="arrow">▼</span>
-    </button>
-    <div class="multiselect-panel" id="event-panel">
-      <label class="multiselect-option select-all">
-        <input type="checkbox" id="select-all-events" onchange="toggleAllEvents(this)"> Select all
-      </label>
+  <div class="stats-bar" id="stats-bar" style="display:none;">
+    <div class="stat">Total booked: <strong id="stat-total">0</strong></div>
+    <div class="stat">Tags assigned: <strong id="stat-assigned">0</strong></div>
+    <div class="stat">Unassigned: <strong id="stat-unassigned">0</strong></div>
+    <div class="supervisor-stamp" id="supervisor-stamp" style="display:none;">
+      Assigning as <strong id="stamp-name"></strong>
     </div>
   </div>
 
-  <div class="control-group">
-    <label>Your name</label>
-    <input type="text" id="supervisor-name" placeholder="Supervisor name" autocomplete="name">
+  <div class="main" id="main-content">
+    <div class="empty-state">
+      <div class="icon">📋</div>
+      <h3>Select a location and date</h3>
+      <p>Workers will appear grouped by event, sorted by call time.</p>
+    </div>
   </div>
 
-  <button class="btn-load" id="load-btn" onclick="loadWorkers()">Load Workers</button>
 </div>
 
-<div class="stats-bar" id="stats-bar" style="display:none;">
-  <div class="stat">Total booked: <strong id="stat-total">0</strong></div>
-  <div class="stat">Tags assigned: <strong id="stat-assigned">0</strong></div>
-  <div class="stat">Unassigned: <strong id="stat-unassigned">0</strong></div>
-  <div class="supervisor-stamp" id="supervisor-stamp" style="display:none;">
-    Assigning as <strong id="stamp-name"></strong>
+<!-- ══ COMMAND CENTER ═══════════════════════════════════════════════════════ -->
+<div id="command-section">
+
+  <div class="cc-refresh-bar">
+    <span id="cc-asof">Select a date and hit Refresh to load.</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Date</label>
+        <input type="date" id="cc-date-select"
+          style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:130px;">
+      </div>
+      <span id="cc-countdown" style="font-size:11px;color:#aaa;"></span>
+      <button class="cc-refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="cc-wrap">
+
+    <!-- Summary -->
+    <div class="cc-summary">
+      <div class="cc-stat">
+        <div class="val" id="cc-scheduled">—</div>
+        <div class="lbl">Scheduled Today</div>
+      </div>
+      <div class="cc-stat blue">
+        <div class="val" id="cc-clockedin">—</div>
+        <div class="lbl">Clocked In</div>
+      </div>
+      <div class="cc-stat green">
+        <div class="val" id="cc-active">—</div>
+        <div class="lbl">Active</div>
+      </div>
+      <div class="cc-stat amber">
+        <div class="val" id="cc-lunch">—</div>
+        <div class="lbl">On Lunch</div>
+      </div>
+      <div class="cc-stat">
+        <div class="val" id="cc-out">—</div>
+        <div class="lbl">Clocked Out</div>
+      </div>
+    </div>
+
+    <!-- Rooms -->
+    <div>
+      <div class="cc-section-label">Room Status — tap to view workers</div>
+      <div class="cc-rooms-grid" id="cc-rooms">
+        <div style="color:#aaa;font-size:13px;padding:1rem 0;">Hit Refresh to load room data.</div>
+      </div>
+    </div>
+
+    <!-- Bottom split -->
+    <div class="cc-bottom">
+
+      <div class="cc-workers">
+        <div class="cc-workers-header">
+          <span class="cc-workers-title">Workers</span>
+          <input class="cc-search" id="cc-worker-search"
+            placeholder="Search name or room…" oninput="filterWorkers()">
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="cc-workers-table">
+            <thead>
+              <tr>
+                <th>Worker</th>
+                <th>Status</th>
+                <th>Room</th>
+                <th>Last Scan</th>
+                <th>Clock In</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody id="cc-worker-rows">
+              <tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">
+                Load the dashboard to see workers.
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="cc-submit-ratings" id="submit-ratings-btn"
+          onclick="submitAllRatings()" disabled>
+          Submit All Ratings (0 rated)
+        </button>
+      </div>
+
+      <div class="cc-alerts">
+        <div class="cc-alerts-header">
+          <span class="cc-alerts-title">Alert Log</span>
+          <span class="cc-alert-count clear" id="cc-alert-count">0 open</span>
+        </div>
+        <div class="cc-alerts-body" id="cc-alert-body">
+          <div class="cc-all-clear">No alerts yet.</div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
-<div class="main" id="main-content">
-  <div class="empty-state">
-    <div class="icon">📋</div>
-    <h3>Select a location and date</h3>
-    <p>Workers will appear grouped by event, sorted by call time.</p>
+<!-- ── Room detail modal ── -->
+<div class="cc-room-modal-overlay" id="cc-room-modal" onclick="closeRoomModal(event)">
+  <div class="cc-room-modal">
+    <div class="cc-room-modal-header">
+      <div>
+        <div class="cc-room-modal-title" id="modal-room-name">Room</div>
+        <div class="cc-room-modal-sub"   id="modal-room-sub"></div>
+      </div>
+      <button class="cc-room-modal-close" onclick="closeRoomModal()">×</button>
+    </div>
+    <div class="cc-room-modal-stats" id="modal-room-stats"></div>
+    <div class="cc-room-modal-body"  id="modal-room-body"></div>
   </div>
 </div>
 
 <!-- ── Scan Modal ── -->
 <div class="modal-overlay" id="scan-modal" onclick="handleModalOverlayClick(event)">
-  <div class="modal-card" id="modal-card">
+  <div class="modal-card">
     <div class="modal-header">
       <span class="modal-title">Log Scan</span>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
-
-    <!-- Worker badge -->
     <div class="worker-badge">
       <div class="avatar" id="modal-avatar"></div>
       <div>
         <div class="wname" id="modal-worker-name"></div>
-        <div class="wtag" id="modal-worker-tag"></div>
+        <div class="wtag"  id="modal-worker-tag"></div>
       </div>
     </div>
-
-    <!-- Setup fields (screen 1) -->
     <div id="modal-setup">
       <label class="modal-label">Manager</label>
-      <select class="modal-select" id="modal-manager">
-        <option value="">Select manager…</option>
-      </select>
-
+      <select class="modal-select" id="modal-manager"><option value="">Select manager…</option></select>
       <label class="modal-label">Room</label>
-      <select class="modal-select" id="modal-room">
-        <option value="">Select room…</option>
-      </select>
-
+      <select class="modal-select" id="modal-room"><option value="">Select room…</option></select>
       <label class="modal-label">Phase</label>
       <select class="modal-select" id="modal-phase">
         <option value="">Select phase…</option>
-        <option value="Load In">Load In</option>
-        <option value="Set Build">Set Build</option>
-        <option value="Rehearsal">Rehearsal</option>
-        <option value="Show Day">Show Day</option>
-        <option value="Strike">Strike</option>
+        <option>Load In</option><option>Set Build</option>
+        <option>Rehearsal</option><option>Show Day</option><option>Strike</option>
       </select>
-
       <hr class="modal-divider">
-
-      <div class="pin-label" id="modal-pin-label">Enter manager PIN</div>
+      <div class="pin-label">Enter manager PIN</div>
       <div class="modal-error" id="modal-pin-error"></div>
-
       <div class="pin-dots">
         <div class="pin-dot" id="mdot-0"></div>
         <div class="pin-dot" id="mdot-1"></div>
         <div class="pin-dot" id="mdot-2"></div>
         <div class="pin-dot" id="mdot-3"></div>
       </div>
-
       <div class="numpad">
-        <button onclick="mpinKey('1')">1</button>
-        <button onclick="mpinKey('2')">2</button>
-        <button onclick="mpinKey('3')">3</button>
-        <button onclick="mpinKey('4')">4</button>
-        <button onclick="mpinKey('5')">5</button>
-        <button onclick="mpinKey('6')">6</button>
-        <button onclick="mpinKey('7')">7</button>
-        <button onclick="mpinKey('8')">8</button>
-        <button onclick="mpinKey('9')">9</button>
-        <button class="empty"></button>
-        <button onclick="mpinKey('0')">0</button>
-        <button class="del" onclick="mpinBackspace()">⌫</button>
+        <button onclick="mpinKey('1')">1</button><button onclick="mpinKey('2')">2</button><button onclick="mpinKey('3')">3</button>
+        <button onclick="mpinKey('4')">4</button><button onclick="mpinKey('5')">5</button><button onclick="mpinKey('6')">6</button>
+        <button onclick="mpinKey('7')">7</button><button onclick="mpinKey('8')">8</button><button onclick="mpinKey('9')">9</button>
+        <button class="empty"></button><button onclick="mpinKey('0')">0</button><button class="del" onclick="mpinBackspace()">⌫</button>
       </div>
     </div>
-
-    <!-- Confirm screen (screen 2) -->
     <div id="modal-confirm" style="display:none;">
       <div style="font-size:13px;color:#555;margin-bottom:1rem;">Confirm the details below then log the scan.</div>
       <div style="background:#f8f8f8;border-radius:10px;padding:0.75rem 1rem;font-size:13px;margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">
-          <span style="color:#888;">Manager</span><strong id="confirm-mgr"></strong>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">
-          <span style="color:#888;">Room</span><strong id="confirm-rm"></strong>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">
-          <span style="color:#888;">Phase</span><strong id="confirm-ph"></strong>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;">
-          <span style="color:#888;">Event</span><strong id="confirm-ev"></strong>
-        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span style="color:#888;">Manager</span><strong id="confirm-mgr"></strong></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span style="color:#888;">Room</span><strong id="confirm-rm"></strong></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span style="color:#888;">Phase</span><strong id="confirm-ph"></strong></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#888;">Event</span><strong id="confirm-ev"></strong></div>
       </div>
-      <button class="btn-modal-primary" id="modal-log-btn" onclick="submitModalScan()">
-        Log Scan
-      </button>
-      <button class="btn-modal-primary" style="background:#f0f0f0;color:#1a1a1a;margin-top:8px;" onclick="showModalSetup()">
-        Back
-      </button>
+      <button class="btn-modal-primary" id="modal-log-btn" onclick="submitModalScan()">Log Scan</button>
+      <button class="btn-modal-primary" style="background:#f0f0f0;color:#1a1a1a;margin-top:8px;" onclick="showModalSetup()">Back</button>
     </div>
-
-    <!-- Result screen (screen 3) -->
     <div id="modal-result" style="display:none;">
       <div class="modal-result">
         <div class="result-icon" id="modal-result-icon"></div>
         <h3 id="modal-result-title"></h3>
-        <p id="modal-result-msg"></p>
+        <p  id="modal-result-msg"></p>
       </div>
       <button class="btn-modal-primary" onclick="closeModal()">Done</button>
     </div>
@@ -706,53 +862,61 @@ const SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-e
 const LABOR_SHEET_ID = '1-ZZCVxUOe99c7C0I7nqai9a56uOOMmySjH76bhjk9ZE';
 
 const MANAGERS = {
-  'Jasmine': { pin: '8608' },
-  'John':    { pin: '8608' },
-  'Peter':   { pin: '8608' },
-  'Cynthia': { pin: '8608' },
-  'Jorge':   { pin: '8608' },
-  'Geo':     { pin: '8608' },
+  'Jasmine': { pin: '8608' }, 'John':    { pin: '8608' },
+  'Peter':   { pin: '8608' }, 'Cynthia': { pin: '8608' },
+  'Jorge':   { pin: '8608' }, 'Geo':     { pin: '8608' },
   'Chad':    { pin: '8608' },
 };
 
-const ALL_ROOMS = ['Grand Sierra BR','Caribbean BR','Palms BR','Expo Hall','Offices','Loading Dock/Bone Yard','Poolside','Breakouts','HOT Rooms','ESS Meetings','Grand Sierra F-I','Various Locations','Grand Sierra F','Grand Sierra C','Hibiscus','Clock IN','Clock Out','Lunch IN','Lunch OUT'];
+const ALL_ROOMS = [
+  'Grand Sierra BR','Caribbean BR','Palms BR','Expo Hall','Offices',
+  'Loading Dock/Bone Yard','Poolside','Breakouts','HOT Rooms','ESS Meetings',
+  'Grand Sierra F-I','Various Locations','Grand Sierra F','Grand Sierra C',
+  'Hibiscus','Clock IN','Clock Out','Lunch IN','Lunch OUT'
+];
 // ─────────────────────────────────────────────────────────────────────────────
 
-let allWorkers      = [];
-let selectedEvents  = new Set(); // empty = all
-let modalWorkerIdx  = null;
-let mPinBuffer      = '';
-const M_PIN_LENGTH  = 4;
+// Sign-in state
+let allWorkers     = [];
+let selectedEvents = new Set();
+let modalWorkerIdx = null;
+let mPinBuffer     = '';
+const M_PIN_LENGTH = 4;
+
+// Command center state
+let ccData          = null;
+let ccRatings       = {};
+let ccDismissed     = new Set();
+let ccRefreshTimer  = null;
+let ccCountdownInt  = null;
+let ccCountdownSecs = 60;
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
-  document.getElementById('date-select').value = today.toISOString().split('T')[0];
+  const iso   = today.toISOString().split('T')[0];
+  document.getElementById('date-select').value    = iso;
+  document.getElementById('cc-date-select').value = iso;
   document.getElementById('header-date').textContent = today.toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
   });
+
   const saved = sessionStorage.getItem('vit_supervisor');
   if (saved) document.getElementById('supervisor-name').value = saved;
 
-  // Populate modal manager dropdown
-  const mgrSel = document.getElementById('modal-manager');
+  const mgrSel  = document.getElementById('modal-manager');
+  const roomSel = document.getElementById('modal-room');
   Object.keys(MANAGERS).forEach(name => {
     const opt = document.createElement('option');
-    opt.value = name; opt.textContent = name;
-    mgrSel.appendChild(opt);
+    opt.value = name; opt.textContent = name; mgrSel.appendChild(opt);
   });
-
-  // Populate modal room dropdown
-  const roomSel = document.getElementById('modal-room');
   ALL_ROOMS.forEach(r => {
     const opt = document.createElement('option');
-    opt.value = r; opt.textContent = r;
-    roomSel.appendChild(opt);
+    opt.value = r; opt.textContent = r; roomSel.appendChild(opt);
   });
 
   loadLocations();
 
-  // Close multiselect panel on outside click
   document.addEventListener('click', e => {
     const panel = document.getElementById('event-panel');
     const btn   = document.getElementById('event-multiselect-btn');
@@ -763,17 +927,300 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── Multiselect panel ─────────────────────────────────────────────────────────
+// ══ TAB SWITCHING ═════════════════════════════════════════════════════════════
+function switchTab(tab) {
+  const si = document.getElementById('signin-section');
+  const cc = document.getElementById('command-section');
+  const ts = document.getElementById('tab-signin');
+  const tc = document.getElementById('tab-command');
+
+  if (tab === 'signin') {
+    si.classList.remove('hidden');
+    cc.classList.remove('visible');
+    ts.classList.add('active');
+    tc.classList.remove('active');
+    stopAutoRefresh();
+  } else {
+    si.classList.add('hidden');
+    cc.classList.add('visible');
+    ts.classList.remove('active');
+    tc.classList.add('active');
+    if (!ccData) loadDashboard();
+    startAutoRefresh();
+  }
+}
+
+// ══ COMMAND CENTER ════════════════════════════════════════════════════════════
+async function loadDashboard() {
+  document.getElementById('cc-asof').innerHTML = '<span class="cc-spinner"></span>Loading…';
+  try {
+    const dateVal = document.getElementById('cc-date-select').value;
+    const url = `${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.error) { document.getElementById('cc-asof').textContent = 'Error: ' + data.error; return; }
+    ccData = data;
+    renderDashboard(data);
+  } catch(err) {
+    document.getElementById('cc-asof').textContent = 'Connection error — ' + err.message;
+  }
+}
+
+function renderDashboard(data) {
+  document.getElementById('cc-scheduled').textContent = data.summary.scheduled;
+  document.getElementById('cc-clockedin').textContent = data.summary.clockedIn;
+  document.getElementById('cc-active').textContent    = data.summary.active;
+  document.getElementById('cc-lunch').textContent     = data.summary.onLunch;
+  document.getElementById('cc-out').textContent       = data.summary.clockedOut;
+  document.getElementById('cc-asof').textContent      = 'As of ' + (data.asOf || '—');
+  renderRooms(data.rooms);
+  renderWorkers(data.workers);
+  renderAlerts(data.alerts);
+  resetCountdown();
+}
+
+function renderRooms(rooms) {
+  const grid = document.getElementById('cc-rooms');
+  if (!rooms || !rooms.length) {
+    grid.innerHTML = '<div style="color:#aaa;font-size:13px;padding:1rem 0;">No rooms scheduled for this date.</div>';
+    return;
+  }
+  grid.innerHTML = rooms.map((room, idx) => {
+    const ratio    = room.scheduled > 0 ? Math.min(room.present / room.scheduled, 1) : 0;
+    const pct      = Math.round(ratio * 100);
+    const barColor = ratio >= 0.8 ? '#16a34a' : ratio >= 0.5 ? '#d97706' : '#dc2626';
+    return `
+      <div class="cc-room-card" onclick="openRoomModal(${idx})">
+        <div class="cc-room-name">${escHtml(room.name)}</div>
+        <div class="cc-room-count">
+          <span class="big">${room.present}</span>
+          <span class="of">/ ${room.scheduled}</span>
+        </div>
+        <div class="cc-progress">
+          <div class="cc-progress-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+        <div style="font-size:11px;color:#aaa;">${pct}% staffed</div>
+      </div>`;
+  }).join('');
+}
+
+function renderWorkers(workers) {
+  if (!workers) return;
+  const tbody  = document.getElementById('cc-worker-rows');
+  const search = (document.getElementById('cc-worker-search').value || '').toLowerCase();
+  const filtered = workers.filter(w =>
+    !search || w.name.toLowerCase().includes(search) ||
+    (w.lastRoom || '').toLowerCase().includes(search)
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">No workers match.</td></tr>';
+    updateSubmitButton(); return;
+  }
+
+  tbody.innerHTML = filtered.map(w => {
+    const flagged  = w.alert ? 'flagged' : '';
+    const pill     = statusPill(w.status);
+    const scanHtml = w.minsSince && w.minsSince >= 120
+      ? `<span class="cc-scan-late">${escHtml(w.lastScan)} (${w.minsSince}m ago)</span>`
+      : `<span style="color:#555;">${escHtml(w.lastScan || '—')}</span>`;
+    const safeId = w.name.replace(/[^a-zA-Z0-9]/g, '-');
+    const cur    = ccRatings[w.name] || 0;
+    const stars  = [1,2,3,4,5].map(n =>
+      `<button class="cc-star ${n <= cur ? 'filled' : ''}"
+        onclick="setRating('${w.name.replace(/'/g,"\\'")}',${n})"
+        onmouseover="hoverStars('${safeId}',${n})"
+        onmouseout="unhoverStars('${safeId}',${cur})">★</button>`
+    ).join('');
+
+    return `
+      <tr class="${flagged}">
+        <td><div class="cc-name">${escHtml(w.name)}</div></td>
+        <td>${pill}</td>
+        <td style="font-size:12px;color:#555;">${escHtml(w.lastRoom || '—')}</td>
+        <td>${scanHtml}</td>
+        <td style="font-size:12px;color:#555;">${escHtml(w.clockIn || '—')}</td>
+        <td><div class="cc-stars" id="stars-${safeId}">${stars}</div></td>
+      </tr>`;
+  }).join('');
+
+  updateSubmitButton();
+}
+
+function filterWorkers() { if (ccData) renderWorkers(ccData.workers); }
+
+function statusPill(status) {
+  const map = {
+    active:      ['pill-active',  'Active'],
+    on_lunch:    ['pill-lunch',   'On Lunch'],
+    clocked_out: ['pill-out',     'Clocked Out'],
+    not_in:      ['pill-notseen', 'Not In'],
+  };
+  const [cls, label] = map[status] || ['pill-notseen', 'Unknown'];
+  return `<span class="cc-status-pill ${cls}"><span class="dot"></span>${label}</span>`;
+}
+
+function setRating(workerName, stars) {
+  ccRatings[workerName] = (ccRatings[workerName] === stars) ? 0 : stars;
+  if (ccData) renderWorkers(ccData.workers);
+}
+
+function hoverStars(safeId, n) {
+  const c = document.getElementById('stars-' + safeId);
+  if (!c) return;
+  c.querySelectorAll('.cc-star').forEach((s, i) => s.classList.toggle('filled', i < n));
+}
+
+function unhoverStars(safeId, current) {
+  const c = document.getElementById('stars-' + safeId);
+  if (!c) return;
+  c.querySelectorAll('.cc-star').forEach((s, i) => s.classList.toggle('filled', i < current));
+}
+
+function updateSubmitButton() {
+  const btn   = document.getElementById('submit-ratings-btn');
+  const count = Object.values(ccRatings).filter(v => v > 0).length;
+  btn.textContent = `Submit All Ratings (${count} rated)`;
+  btn.disabled    = count === 0;
+}
+
+async function submitAllRatings() {
+  const btn     = document.getElementById('submit-ratings-btn');
+  const entries = Object.entries(ccRatings).filter(([, v]) => v > 0);
+  if (!entries.length) return;
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  let success = 0;
+  for (const [workerName, rating] of entries) {
+    try {
+      const res = await fetch(`${SCRIPT_URL}?action=submitRating&workerName=${encodeURIComponent(workerName)}&rating=${rating}`);
+      if ((await res.text()) === 'OK') success++;
+    } catch(e) {}
+  }
+  showToast(`${success} rating${success !== 1 ? 's' : ''} submitted`, 'success');
+  btn.textContent = `✓ ${success} submitted`;
+  setTimeout(() => { ccRatings = {}; if (ccData) renderWorkers(ccData.workers); }, 2500);
+}
+
+function renderAlerts(alerts) {
+  const body    = document.getElementById('cc-alert-body');
+  const count   = document.getElementById('cc-alert-count');
+  const badge   = document.getElementById('alert-badge');
+  const visible = (alerts || []).filter(a => !ccDismissed.has(alertKey(a)));
+
+  badge.style.display = visible.length > 0 ? 'inline-flex' : 'none';
+  badge.textContent   = visible.length;
+  count.textContent   = visible.length + ' open';
+  count.className     = 'cc-alert-count ' + (visible.length > 0 ? 'has-alerts' : 'clear');
+
+  if (!visible.length) {
+    body.innerHTML = `<div class="cc-all-clear">
+      <div style="width:36px;height:36px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8l3.5 3.5L13 4.5" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px;">All clear</div>
+      <div>No active alerts</div>
+    </div>`;
+    return;
+  }
+
+  body.innerHTML = visible.map(a => {
+    const isLunch = a.type === 'lunch_overdue';
+    const key     = alertKey(a);
+    const desc    = isLunch
+      ? `On lunch since <strong>${a.lunchOut || '—'}</strong> — ${a.mins} minutes elapsed.`
+      : `Clocked in at <strong>${a.clockIn || '—'}</strong> — no room scan in <strong>${a.mins} minutes</strong>. Last seen: <strong>${escHtml(a.room)}</strong>.`;
+    return `
+      <div class="cc-alert-item ${isLunch ? 'lunch' : ''}">
+        <div class="cc-alert-bar">
+          <div>
+            <div class="cc-alert-type ${isLunch ? 'lunch-type' : 'scan-type'}">${isLunch ? 'Lunch Overdue' : 'No Scan'}</div>
+            <div class="cc-alert-name">${escHtml(a.name)}</div>
+          </div>
+          <button class="cc-dismiss" onclick="dismissAlert('${key.replace(/'/g,"\\'")}')">×</button>
+        </div>
+        <div class="cc-alert-desc">${desc}</div>
+      </div>`;
+  }).join('');
+}
+
+function alertKey(a) { return a.type + '|' + a.name; }
+function dismissAlert(key) { ccDismissed.add(key); if (ccData) renderAlerts(ccData.alerts); }
+
+function openRoomModal(idx) {
+  if (!ccData || !ccData.rooms) return;
+  const room = ccData.rooms[idx];
+  if (!room) return;
+
+  document.getElementById('modal-room-name').textContent = room.name;
+  document.getElementById('modal-room-sub').textContent  = room.present + ' present · ' + room.scheduled + ' scheduled';
+
+  const pct   = room.scheduled > 0 ? Math.round(room.present / room.scheduled * 100) : 0;
+  const color = pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626';
+
+  document.getElementById('modal-room-stats').innerHTML = `
+    <div class="cc-modal-stat"><div class="val" style="color:${color}">${room.present}</div><div class="lbl">Present</div></div>
+    <div class="cc-modal-stat"><div class="val">${room.scheduled}</div><div class="lbl">Scheduled</div></div>
+    <div class="cc-modal-stat"><div class="val" style="color:${color}">${pct}%</div><div class="lbl">Coverage</div></div>`;
+
+  const body = document.getElementById('modal-room-body');
+  if (!room.workers || !room.workers.length) {
+    body.innerHTML = '<div style="padding:30px;text-align:center;color:#aaa;font-size:13px;">No workers currently active in this room.</div>';
+  } else {
+    body.innerHTML = room.workers.map(w => `
+      <div class="cc-modal-worker-row">
+        <div>
+          <div class="cc-modal-worker-name">${escHtml(w.name)}</div>
+          <div class="cc-modal-worker-meta">
+            In at ${escHtml(w.clockIn || '—')} · Last scan ${escHtml(w.lastScan || '—')}
+            ${w.minsSince >= 120 ? ` <span style="color:#dc2626;font-weight:600;">(${w.minsSince}m ago)</span>` : ''}
+          </div>
+        </div>
+        ${statusPill(w.status)}
+      </div>`).join('');
+  }
+  document.getElementById('cc-room-modal').classList.add('open');
+}
+
+function closeRoomModal(e) {
+  if (e && e.target !== document.getElementById('cc-room-modal')) return;
+  document.getElementById('cc-room-modal').classList.remove('open');
+}
+
+function startAutoRefresh() {
+  if (ccRefreshTimer) return;
+  ccRefreshTimer = setInterval(() => loadDashboard(), 60000);
+  resetCountdown();
+}
+
+function stopAutoRefresh() {
+  if (ccRefreshTimer) { clearInterval(ccRefreshTimer); ccRefreshTimer = null; }
+  if (ccCountdownInt) { clearInterval(ccCountdownInt); ccCountdownInt = null; }
+  const el = document.getElementById('cc-countdown');
+  if (el) el.textContent = '';
+}
+
+function resetCountdown() {
+  ccCountdownSecs = 60;
+  if (ccCountdownInt) clearInterval(ccCountdownInt);
+  ccCountdownInt = setInterval(() => {
+    ccCountdownSecs--;
+    const el = document.getElementById('cc-countdown');
+    if (el) el.textContent = 'Refreshes in ' + ccCountdownSecs + 's';
+    if (ccCountdownSecs <= 0) ccCountdownSecs = 60;
+  }, 1000);
+}
+
+// ══ SIGN IN ═══════════════════════════════════════════════════════════════════
 function toggleEventPanel() {
-  const panel = document.getElementById('event-panel');
-  const btn   = document.getElementById('event-multiselect-btn');
-  panel.classList.toggle('open');
-  btn.classList.toggle('active');
+  document.getElementById('event-panel').classList.toggle('open');
+  document.getElementById('event-multiselect-btn').classList.toggle('active');
 }
 
 function toggleAllEvents(cb) {
-  const checkboxes = document.querySelectorAll('#event-panel input[data-event]');
-  checkboxes.forEach(c => {
+  document.querySelectorAll('#event-panel input[data-event]').forEach(c => {
     c.checked = cb.checked;
     if (cb.checked) selectedEvents.add(c.dataset.event);
     else selectedEvents.delete(c.dataset.event);
@@ -784,24 +1231,18 @@ function toggleAllEvents(cb) {
 function onEventCheckbox(cb) {
   if (cb.checked) selectedEvents.add(cb.dataset.event);
   else selectedEvents.delete(cb.dataset.event);
-  const allCb      = document.getElementById('select-all-events');
   const checkboxes = document.querySelectorAll('#event-panel input[data-event]');
-  allCb.checked    = [...checkboxes].every(c => c.checked);
+  document.getElementById('select-all-events').checked = [...checkboxes].every(c => c.checked);
   updateEventBtnLabel();
 }
 
 function updateEventBtnLabel() {
   const label = document.getElementById('event-btn-label');
-  if (selectedEvents.size === 0) {
-    label.textContent = 'All events';
-  } else if (selectedEvents.size === 1) {
-    label.textContent = [...selectedEvents][0];
-  } else {
-    label.textContent = `${selectedEvents.size} events selected`;
-  }
+  if (selectedEvents.size === 0)      label.textContent = 'All events';
+  else if (selectedEvents.size === 1) label.textContent = [...selectedEvents][0];
+  else                                label.textContent = `${selectedEvents.size} events selected`;
 }
 
-// ── Load locations ────────────────────────────────────────────────────────────
 async function loadLocations() {
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`);
@@ -810,8 +1251,7 @@ async function loadLocations() {
     if (data.locations && data.locations.length) {
       data.locations.forEach(loc => {
         const opt = document.createElement('option');
-        opt.value = loc; opt.textContent = loc;
-        sel.appendChild(opt);
+        opt.value = loc; opt.textContent = loc; sel.appendChild(opt);
       });
       if (data.locations.length === 1) { sel.value = data.locations[0]; loadEventOptions(); }
     }
@@ -824,25 +1264,18 @@ async function loadLocations() {
   }
 }
 
-// ── Load event options ────────────────────────────────────────────────────────
 async function loadEventOptions() {
   const location = document.getElementById('location-select').value;
   const date     = document.getElementById('date-select').value;
   const panel    = document.getElementById('event-panel');
-
-  // Clear existing event checkboxes (keep select-all)
-  const existing = panel.querySelectorAll('[data-event]');
-  existing.forEach(el => el.closest('.multiselect-option').remove());
+  panel.querySelectorAll('[data-event]').forEach(el => el.closest('.multiselect-option').remove());
   selectedEvents.clear();
   updateEventBtnLabel();
-
   if (!location || !date) return;
-
   try {
     const url  = `${SCRIPT_URL}?action=getEvents&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`;
     const res  = await fetch(url);
     const data = await res.json();
-
     if (data.events && data.events.length) {
       data.events.forEach(ev => {
         const label = document.createElement('label');
@@ -854,11 +1287,10 @@ async function loadEventOptions() {
   } catch(e) {}
 }
 
-// ── Load workers ──────────────────────────────────────────────────────────────
 async function loadWorkers() {
-  const location   = document.getElementById('location-select').value;
-  const date       = document.getElementById('date-select').value;
-  const supervisor = document.getElementById('supervisor-name').value.trim();
+  const location    = document.getElementById('location-select').value;
+  const date        = document.getElementById('date-select').value;
+  const supervisor  = document.getElementById('supervisor-name').value.trim();
   const eventFilter = selectedEvents.size > 0 ? [...selectedEvents].join('||') : '';
 
   if (!location)   { showToast('Please select a location.', 'error'); return; }
@@ -886,7 +1318,7 @@ async function loadWorkers() {
     }
 
     allWorkers = data.workers || [];
-    renderWorkers(allWorkers);
+    renderWorkers_signin(allWorkers);
     updateStats();
 
   } catch(e) {
@@ -898,8 +1330,7 @@ async function loadWorkers() {
   btn.textContent = 'Load Workers';
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
-function renderWorkers(workers) {
+function renderWorkers_signin(workers) {
   if (!workers.length) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this filter.</p></div>';
     document.getElementById('stats-bar').style.display = 'none';
@@ -912,7 +1343,6 @@ function renderWorkers(workers) {
     if (!groups[ev]) groups[ev] = [];
     groups[ev].push({ ...w, idx });
   });
-
   Object.values(groups).forEach(g => g.sort((a, b) => parseTime(a.bookedTime) - parseTime(b.bookedTime)));
 
   let html = '';
@@ -924,14 +1354,7 @@ function renderWorkers(workers) {
           <span class="event-count">${rows.length} worker${rows.length !== 1 ? 's' : ''}</span>
         </div>
         <table class="worker-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Call Time</th>
-              <th>Room / Area</th>
-              <th style="width:240px;">Actions</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Name</th><th>Call Time</th><th>Room / Area</th><th style="width:240px;">Actions</th></tr></thead>
           <tbody>${rows.map(w => renderRow(w)).join('')}</tbody>
         </table>
       </div>`;
@@ -962,16 +1385,10 @@ function renderRow(w) {
           <div class="tag-input-wrap">
             <span class="status-dot unsaved" id="dot-${w.idx}"></span>
             <div>
-              <input
-                type="text"
-                class="tag-input ${w.tagId ? 'has-value' : ''}"
-                id="tag-${w.idx}"
-                value="${w.tagId || ''}"
-                placeholder="001"
-                maxlength="6"
-                oninput="onTagInput(${w.idx})"
-                onkeydown="if(event.key==='Enter') saveTag(${w.idx})"
-              >
+              <input type="text" class="tag-input ${w.tagId ? 'has-value' : ''}"
+                id="tag-${w.idx}" value="${w.tagId || ''}" placeholder="001"
+                maxlength="6" oninput="onTagInput(${w.idx})"
+                onkeydown="if(event.key==='Enter') saveTag(${w.idx})">
               <div class="conflict-msg" id="conflict-${w.idx}"></div>
             </div>
             <button class="btn-action btn-save ${w.tagId ? 'saved' : ''}" id="savebtn-${w.idx}" onclick="saveTag(${w.idx})">
@@ -986,17 +1403,16 @@ function renderRow(w) {
     </tr>`;
 }
 
-// ── Tag save ──────────────────────────────────────────────────────────────────
 function onTagInput(idx) {
   const input = document.getElementById(`tag-${idx}`);
   const dot   = document.getElementById(`dot-${idx}`);
   const btn   = document.getElementById(`savebtn-${idx}`);
   const msg   = document.getElementById(`conflict-${idx}`);
-  input.classList.remove('has-value', 'conflict');
+  input.classList.remove('has-value','conflict');
   input.classList.toggle('has-value', input.value.length > 0);
   dot.className = 'status-dot unsaved';
   btn.textContent = 'Save Tag';
-  btn.classList.remove('saved', 'conflict');
+  btn.classList.remove('saved','conflict');
   btn.onclick = () => saveTag(idx);
   msg.style.display = 'none';
 }
@@ -1011,32 +1427,22 @@ async function saveTag(idx) {
                      sessionStorage.getItem('vit_supervisor') || 'Supervisor';
 
   if (!tagVal) { showToast('Enter a tag number first.', 'error'); return; }
-
-  const tagId = tagVal.padStart(3, '0');
+  const tagId = tagVal.padStart(3,'0');
   input.value = tagId;
-
   const worker = allWorkers[idx];
   if (!worker) return;
 
-  btn.textContent = 'Saving…';
-  btn.classList.add('saving');
-  btn.disabled = true;
-  dot.className = 'status-dot saving';
-  conflictEl.style.display = 'none';
+  btn.textContent = 'Saving…'; btn.classList.add('saving'); btn.disabled = true;
+  dot.className = 'status-dot saving'; conflictEl.style.display = 'none';
 
   try {
-    const url  = `${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName || '')}&position=${encodeURIComponent(worker.position || '')}&phone=${encodeURIComponent(worker.phone || '')}&supervisor=${encodeURIComponent(supervisor)}&force=false`;
-    const res  = await fetch(url);
-    const text = await res.text();
+    const url  = `${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName||'')}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=false`;
+    const text = await (await fetch(url)).text();
 
     if (text.startsWith('CONFLICT:')) {
-      const existing = text.replace('CONFLICT:', '').trim();
-      input.classList.add('conflict');
-      dot.className = 'status-dot conflict';
-      btn.textContent = 'Override';
-      btn.classList.remove('saving');
-      btn.classList.add('conflict');
-      btn.disabled = false;
+      const existing = text.replace('CONFLICT:','').trim();
+      input.classList.add('conflict'); dot.className = 'status-dot conflict';
+      btn.textContent = 'Override'; btn.classList.remove('saving'); btn.classList.add('conflict'); btn.disabled = false;
       conflictEl.textContent = `Already assigned to ${existing} — click Override to reassign`;
       conflictEl.style.display = 'block';
       document.getElementById(`row-${idx}`).classList.add('conflict-row');
@@ -1046,23 +1452,14 @@ async function saveTag(idx) {
     }
 
     if (text.includes('ERROR')) {
-      showToast(text, 'error');
-      btn.textContent = 'Save Tag';
-      btn.classList.remove('saving');
-      btn.disabled = false;
-      dot.className = 'status-dot unsaved';
-      return;
+      showToast(text, 'error'); btn.textContent = 'Save Tag'; btn.classList.remove('saving'); btn.disabled = false; dot.className = 'status-dot unsaved'; return;
     }
 
     allWorkers[idx].tagId = tagId;
     finalizeSave(idx, tagId, worker.name);
 
   } catch(e) {
-    showToast('Save failed. Check connection.', 'error');
-    btn.textContent = 'Save Tag';
-    btn.classList.remove('saving');
-    btn.disabled = false;
-    dot.className = 'status-dot unsaved';
+    showToast('Save failed.', 'error'); btn.textContent = 'Save Tag'; btn.classList.remove('saving'); btn.disabled = false; dot.className = 'status-dot unsaved';
   }
 }
 
@@ -1070,40 +1467,21 @@ async function saveTagForce(idx, tagId, worker, supervisor) {
   const btn        = document.getElementById(`savebtn-${idx}`);
   const dot        = document.getElementById(`dot-${idx}`);
   const conflictEl = document.getElementById(`conflict-${idx}`);
-
-  btn.textContent = 'Saving…';
-  btn.classList.remove('conflict');
-  btn.classList.add('saving');
-  btn.disabled = true;
-  dot.className = 'status-dot saving';
-
+  btn.textContent = 'Saving…'; btn.classList.remove('conflict'); btn.classList.add('saving'); btn.disabled = true; dot.className = 'status-dot saving';
   try {
-    const url  = `${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName || '')}&position=${encodeURIComponent(worker.position || '')}&phone=${encodeURIComponent(worker.phone || '')}&supervisor=${encodeURIComponent(supervisor)}&force=true`;
-    const res  = await fetch(url);
-    const text = await res.text();
-
+    const url  = `${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName||'')}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=true`;
+    const text = await (await fetch(url)).text();
     if (text.includes('ERROR')) {
-      showToast(text, 'error');
-      btn.textContent = 'Retry';
-      btn.classList.remove('saving');
-      btn.disabled = false;
-      dot.className = 'status-dot unsaved';
-      return;
+      showToast(text, 'error'); btn.textContent = 'Retry'; btn.classList.remove('saving'); btn.disabled = false; dot.className = 'status-dot unsaved'; return;
     }
-
     allWorkers[idx].tagId = tagId;
     conflictEl.style.display = 'none';
     document.getElementById(`row-${idx}`).classList.remove('conflict-row');
     document.getElementById(`tag-${idx}`).classList.remove('conflict');
     finalizeSave(idx, tagId, worker.name);
     showToast(`Tag ${tagId} → ${worker.name} (overridden)`, 'success');
-
   } catch(e) {
-    showToast('Save failed. Check connection.', 'error');
-    btn.textContent = 'Retry';
-    btn.classList.remove('saving');
-    btn.disabled = false;
-    dot.className = 'status-dot unsaved';
+    showToast('Save failed.', 'error'); btn.textContent = 'Retry'; btn.classList.remove('saving'); btn.disabled = false; dot.className = 'status-dot unsaved';
   }
 }
 
@@ -1120,140 +1498,85 @@ function finalizeSave(idx, tagId, workerName) {
 function markSaved(idx) {
   const btn = document.getElementById(`savebtn-${idx}`);
   const dot = document.getElementById(`dot-${idx}`);
-  if (btn) { btn.textContent = 'Saved'; btn.classList.add('saved'); btn.classList.remove('saving', 'conflict'); btn.disabled = false; }
+  if (btn) { btn.textContent = 'Saved'; btn.classList.add('saved'); btn.classList.remove('saving','conflict'); btn.disabled = false; }
   if (dot) { dot.className = 'status-dot saved'; }
 }
 
-// ── Scan Modal ────────────────────────────────────────────────────────────────
 function openScanModal(idx) {
   const worker = allWorkers[idx];
   if (!worker) return;
-
-  if (!worker.tagId) {
-    showToast('Assign a tag number first before logging a scan.', 'warning');
-    return;
-  }
-
-  modalWorkerIdx = idx;
-  mPinBuffer     = '';
-
-  // Populate worker badge
-  const initials = worker.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  if (!worker.tagId) { showToast('Assign a tag number first.', 'warning'); return; }
+  modalWorkerIdx = idx; mPinBuffer = '';
+  const initials = worker.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('modal-avatar').textContent      = initials;
   document.getElementById('modal-worker-name').textContent = worker.name;
   document.getElementById('modal-worker-tag').textContent  = `Tag ${worker.tagId} · ${worker.eventName || 'General'}`;
-
-  // Reset to setup screen
-  showModalSetup();
-  updateMPinDots();
+  showModalSetup(); updateMPinDots();
   document.getElementById('modal-pin-error').style.display = 'none';
-
   document.getElementById('scan-modal').classList.add('open');
 }
 
-function closeModal() {
-  document.getElementById('scan-modal').classList.remove('open');
-  modalWorkerIdx = null;
-  mPinBuffer = '';
-}
-
-function handleModalOverlayClick(e) {
-  if (e.target === document.getElementById('scan-modal')) closeModal();
-}
+function closeModal() { document.getElementById('scan-modal').classList.remove('open'); modalWorkerIdx = null; mPinBuffer = ''; }
+function handleModalOverlayClick(e) { if (e.target === document.getElementById('scan-modal')) closeModal(); }
 
 function showModalSetup() {
   document.getElementById('modal-setup').style.display   = 'block';
   document.getElementById('modal-confirm').style.display = 'none';
   document.getElementById('modal-result').style.display  = 'none';
-  mPinBuffer = '';
-  updateMPinDots();
+  mPinBuffer = ''; updateMPinDots();
   document.getElementById('modal-pin-error').style.display = 'none';
 }
 
-// ── Modal PIN ─────────────────────────────────────────────────────────────────
 function mpinKey(digit) {
   if (mPinBuffer.length >= M_PIN_LENGTH) return;
-  mPinBuffer += digit;
-  updateMPinDots();
+  mPinBuffer += digit; updateMPinDots();
   if (mPinBuffer.length === M_PIN_LENGTH) verifyModalPin();
 }
 
-function mpinBackspace() {
-  mPinBuffer = mPinBuffer.slice(0, -1);
-  updateMPinDots();
-}
+function mpinBackspace() { mPinBuffer = mPinBuffer.slice(0,-1); updateMPinDots(); }
 
 function updateMPinDots() {
-  for (let i = 0; i < M_PIN_LENGTH; i++) {
+  for (let i = 0; i < M_PIN_LENGTH; i++)
     document.getElementById(`mdot-${i}`).classList.toggle('filled', i < mPinBuffer.length);
-  }
 }
 
 function verifyModalPin() {
   const managerName = document.getElementById('modal-manager').value;
   const room        = document.getElementById('modal-room').value;
   const phase       = document.getElementById('modal-phase').value;
-  const err         = document.getElementById('modal-pin-error');
-
-  err.style.display = 'none';
-
-  if (!managerName) { showModalError('Please select a manager.'); mPinBuffer = ''; updateMPinDots(); return; }
-  if (!room)        { showModalError('Please select a room.'); mPinBuffer = ''; updateMPinDots(); return; }
-  if (!phase)       { showModalError('Please select a phase.'); mPinBuffer = ''; updateMPinDots(); return; }
-
+  if (!managerName) { showModalError('Please select a manager.'); mPinBuffer=''; updateMPinDots(); return; }
+  if (!room)        { showModalError('Please select a room.');    mPinBuffer=''; updateMPinDots(); return; }
+  if (!phase)       { showModalError('Please select a phase.');   mPinBuffer=''; updateMPinDots(); return; }
   const mgr = MANAGERS[managerName];
-  if (!mgr || mgr.pin !== mPinBuffer) {
-    showModalError('Incorrect PIN. Try again.');
-    mPinBuffer = '';
-    updateMPinDots();
-    return;
-  }
-
-  // PIN correct — show confirm screen
+  if (!mgr || mgr.pin !== mPinBuffer) { showModalError('Incorrect PIN.'); mPinBuffer=''; updateMPinDots(); return; }
   const worker = allWorkers[modalWorkerIdx];
   document.getElementById('confirm-mgr').textContent = managerName;
   document.getElementById('confirm-rm').textContent  = room;
   document.getElementById('confirm-ph').textContent  = phase;
   document.getElementById('confirm-ev').textContent  = worker.eventName || 'General';
-
   document.getElementById('modal-setup').style.display   = 'none';
   document.getElementById('modal-confirm').style.display = 'block';
 }
 
 function showModalError(msg) {
   const err = document.getElementById('modal-pin-error');
-  err.textContent   = msg;
-  err.style.display = 'block';
+  err.textContent = msg; err.style.display = 'block';
 }
 
-// ── Submit scan from modal ────────────────────────────────────────────────────
 async function submitModalScan() {
   const worker  = allWorkers[modalWorkerIdx];
   if (!worker) return;
-
-  const manager = document.getElementById('modal-manager').value;
-  const room    = document.getElementById('modal-room').value;
-  const phase   = document.getElementById('modal-phase').value;
-  const tagId   = worker.tagId;
-  const uid     = tagId; // use tagId as UID for manual scans
-  const event   = worker.eventName || 'General';
-
   const logBtn = document.getElementById('modal-log-btn');
-  logBtn.textContent = 'Logging…';
-  logBtn.disabled    = true;
-
+  logBtn.textContent = 'Logging…'; logBtn.disabled = true;
   try {
-    const url  = `${SCRIPT_URL}?uid=${encodeURIComponent(uid)}&tagId=${encodeURIComponent(tagId)}&manager=${encodeURIComponent(manager)}&room=${encodeURIComponent(room)}&phase=${encodeURIComponent(phase)}&event=${encodeURIComponent(event)}`;
-    const res  = await fetch(url);
-    const text = await res.text();
-
+    const url  = `${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(document.getElementById('modal-manager').value)}&room=${encodeURIComponent(document.getElementById('modal-room').value)}&phase=${encodeURIComponent(document.getElementById('modal-phase').value)}&event=${encodeURIComponent(worker.eventName||'General')}`;
+    const text = await (await fetch(url)).text();
     document.getElementById('modal-confirm').style.display = 'none';
     document.getElementById('modal-result').style.display  = 'block';
-
     if (text.includes('DUPLICATE')) {
       document.getElementById('modal-result-icon').textContent  = '⚠️';
       document.getElementById('modal-result-title').textContent = 'Already scanned';
-      document.getElementById('modal-result-msg').textContent   = 'This tag was scanned in the last 60 seconds.';
+      document.getElementById('modal-result-msg').textContent   = 'Scanned in the last 60 seconds.';
     } else if (text.includes('ERROR')) {
       document.getElementById('modal-result-icon').textContent  = '❌';
       document.getElementById('modal-result-title').textContent = 'Could not log';
@@ -1261,13 +1584,11 @@ async function submitModalScan() {
     } else {
       document.getElementById('modal-result-icon').textContent  = '✅';
       document.getElementById('modal-result-title').textContent = 'Scan logged!';
-      document.getElementById('modal-result-msg').textContent   = `${worker.name} checked in to ${room}.`;
-      // Mark scan button as logged
+      document.getElementById('modal-result-msg').textContent   = `${worker.name} checked in to ${document.getElementById('modal-room').value}.`;
       const scanBtn = document.getElementById(`scanbtn-${modalWorkerIdx}`);
       if (scanBtn) { scanBtn.classList.add('logged'); scanBtn.textContent = '✅ Logged'; }
       allWorkers[modalWorkerIdx].scanLogged = true;
     }
-
   } catch(e) {
     document.getElementById('modal-confirm').style.display = 'none';
     document.getElementById('modal-result').style.display  = 'block';
@@ -1275,12 +1596,9 @@ async function submitModalScan() {
     document.getElementById('modal-result-title').textContent = 'Connection error';
     document.getElementById('modal-result-msg').textContent   = 'Could not reach server.';
   }
-
-  logBtn.textContent = 'Log Scan';
-  logBtn.disabled    = false;
+  logBtn.textContent = 'Log Scan'; logBtn.disabled = false;
 }
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
 function updateStats() {
   const total    = allWorkers.length;
   const assigned = allWorkers.filter(w => w.tagId).length;
@@ -1290,17 +1608,16 @@ function updateStats() {
   document.getElementById('stats-bar').style.display     = total ? 'flex' : 'none';
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Shared helpers ────────────────────────────────────────────────────────────
 function parseTime(str) {
   if (!str) return 9999;
   const m = str.match(/^(\d+)(?::(\d+))?\s*(am|pm)?/i);
   if (!m) return 9999;
   let h = parseInt(m[1]);
-  const min  = parseInt(m[2] || 0);
-  const ampm = (m[3] || '').toLowerCase();
-  if (ampm === 'pm' && h !== 12) h += 12;
-  if (ampm === 'am' && h === 12) h = 0;
-  return h * 60 + min;
+  const min = parseInt(m[2]||0), ampm = (m[3]||'').toLowerCase();
+  if (ampm==='pm' && h!==12) h+=12;
+  if (ampm==='am' && h===12) h=0;
+  return h*60+min;
 }
 
 function escHtml(str) {
@@ -1308,10 +1625,9 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function showToast(msg, type = '') {
+function showToast(msg, type='') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast show ${type}`;
+  t.textContent = msg; t.className = `toast show ${type}`;
   setTimeout(() => { t.className = 'toast'; }, 3500);
 }
 </script>
