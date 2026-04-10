@@ -4,151 +4,142 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>AVS · Shift Confirmation</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   html, body {
-    min-height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
-    background: #f2f2f2;
-    color: #111;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1a1a1a;
+    color: #1a1a1a;
+    overscroll-behavior: none;
   }
 
-  /* ── Header ── */
-  .header {
-    background: #111;
-    padding: 2.25rem 1.5rem 1.75rem;
-    padding-top: calc(2.25rem + env(safe-area-inset-top, 0px));
+  body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 100vh;
+    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
   }
 
-  .header-top {
+  .card {
+    background: #fff;
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    padding: 2rem 1.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Logo bar ── */
+  .logo-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
 
-  .avs-mark {
-    font-size: 26px;
+  .logo {
+    font-size: 18px;
     font-weight: 900;
     letter-spacing: 0.08em;
-    color: #fff;
+    color: #1a1a1a;
     text-transform: uppercase;
-    line-height: 1;
   }
 
-  .avs-mark span { color: #cc1515; }
+  .logo span { color: #cc1515; }
 
-  .header-label {
+  .logo-sub {
     font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.16em;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
+    color: #aaa;
   }
 
-  .worker-block { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.25rem; }
+  /* ── Typography ── */
+  h2 { font-size: 22px; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
 
-  .worker-eyebrow {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #cc1515;
-    margin-bottom: 5px;
-  }
+  .subtitle { font-size: 14px; color: #888; margin-bottom: 2rem; line-height: 1.55; }
 
-  .worker-name {
-    font-size: 26px;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-  }
-
-  /* ── Loading ── */
-  .loading-wrap {
-    padding: 3rem 1.5rem;
+  /* ── Worker name display ── */
+  .worker-badge {
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.75rem;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 12px;
   }
 
-  .spinner {
-    width: 30px; height: 30px;
-    border: 2.5px solid rgba(255,255,255,0.12);
-    border-top-color: #cc1515;
+  .worker-avatar {
+    width: 40px; height: 40px;
     border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-msg { font-size: 13px; color: rgba(255,255,255,0.35); }
-
-  /* ── Body ── */
-  .body {
-    padding: 1.25rem 1.25rem 4rem;
-    max-width: 520px;
-    margin: 0 auto;
-  }
-
-  .section-title {
-    font-size: 10px;
+    background: #1a1a1a;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    flex-shrink: 0;
+    letter-spacing: 0.05em;
+  }
+
+  .worker-info .wname { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+  .worker-info .wrole { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    color: #888;
-    margin-bottom: 10px;
+    letter-spacing: 0.08em;
+    color: #aaa;
+    margin-bottom: 8px;
     margin-top: 1.5rem;
   }
 
-  .section-title:first-child { margin-top: 0; }
+  .section-label:first-of-type { margin-top: 0; }
 
-  /* ── Shift table block ── */
-  .shift-block {
-    background: #fff;
-    border-radius: 14px;
-    border: 1px solid #e0e0e0;
+  /* ── Shift table card ── */
+  .shift-card {
+    border: 1.5px solid #e5e5e5;
+    border-radius: 12px;
     overflow: hidden;
     margin-bottom: 10px;
   }
 
-  .shift-block-header {
-    background: #111;
-    padding: 11px 16px;
+  .shift-card-event {
+    background: #1a1a1a;
+    padding: 9px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
   }
 
-  .shift-block-event {
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .shift-block-index {
+  .shift-card-event .event-index {
     font-size: 10px;
-    font-weight: 700;
     color: rgba(255,255,255,0.4);
-    white-space: nowrap;
-    flex-shrink: 0;
+    font-weight: 600;
   }
 
   /* Clean data table */
   .data-table { width: 100%; border-collapse: collapse; }
 
-  .data-table tr { border-bottom: 1px solid #f0f0f0; }
+  .data-table tr { border-bottom: 1px solid #f2f2f2; }
   .data-table tr:last-child { border-bottom: none; }
+  .data-table tr:nth-child(even) { background: #fafafa; }
 
   .data-table td {
     padding: 10px 14px;
@@ -157,153 +148,140 @@
     line-height: 1.45;
   }
 
-  .data-table td.col-label {
-    width: 38%;
-    font-weight: 700;
+  .data-table td.col-key {
+    width: 36%;
     font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #999;
-    padding-right: 8px;
+    color: #aaa;
     white-space: nowrap;
+    padding-right: 6px;
   }
 
-  .data-table td.col-value {
-    color: #111;
+  .data-table td.col-val {
+    color: #1a1a1a;
     font-weight: 500;
   }
 
-  .data-table td.col-value.accent { color: #cc1515; font-weight: 700; }
+  .data-table td.col-val.accent {
+    color: #cc1515;
+    font-weight: 700;
+    font-size: 14px;
+  }
 
-  .data-table tr.highlight-row { background: #fafafa; }
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1.5px solid #f0f0f0; margin: 1.75rem 0; }
 
-  /* ── Action buttons ── */
-  .actions { margin-top: 1.75rem; display: flex; flex-direction: column; gap: 10px; }
-
+  /* ── Buttons ── */
   .btn {
     width: 100%;
-    padding: 1rem 1.25rem;
-    border-radius: 12px;
-    font-size: 15px;
+    padding: 1rem;
+    border-radius: 14px;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     border: none;
     font-family: inherit;
     transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.01em;
   }
 
-  .btn:active   { transform: scale(0.97); }
+  .btn:active   { transform: scale(0.97); opacity: 0.85; }
   .btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+  .btn + .btn   { margin-top: 10px; }
 
-  .btn-confirm { background: #cc1515; color: #fff; }
-  .btn-confirm:hover { background: #b01010; }
-  .btn-deny    { background: #fff; color: #444; border: 1.5px solid #ddd; }
+  .btn-confirm  { background: #cc1515; color: #fff; }
+  .btn-deny     { background: #f0f0f0; color: #1a1a1a; }
 
   .action-note {
-    font-size: 11px;
-    color: #aaa;
+    font-size: 12px;
+    color: #bbb;
     text-align: center;
-    margin-top: 10px;
+    margin-top: 1rem;
     line-height: 1.6;
   }
 
-  /* ── Result states ── */
-  .result-wrap { padding: 2.5rem 1.5rem 2rem; text-align: center; }
-
+  /* ── Result ── */
   .result-icon {
-    width: 72px; height: 72px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.25rem;
-    font-size: 28px;
-    font-weight: 900;
+    font-size: 48px;
+    text-align: center;
+    margin: 0.5rem 0 1rem;
+    line-height: 1;
   }
-
-  .icon-confirm { background: rgba(204,21,21,0.12); color: #cc1515; }
-  .icon-deny    { background: rgba(0,0,0,0.08);      color: #555; }
 
   .result-badge {
-    display: inline-block;
-    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     padding: 4px 14px;
     border-radius: 99px;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    letter-spacing: 0.04em;
   }
 
-  .badge-confirmed { background: rgba(204,21,21,0.12); color: #cc1515; }
-  .badge-denied    { background: rgba(0,0,0,0.08);      color: #555; }
+  .badge-confirmed { background: #fee2e2; color: #cc1515; }
+  .badge-denied    { background: #f0f0f0; color: #555; }
 
-  .result-title {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: #fff;
-    margin-bottom: 0.5rem;
-  }
+  .result-title { font-size: 22px; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
+  .result-msg   { font-size: 14px; color: #888; line-height: 1.55; }
 
-  .result-msg {
-    font-size: 14px;
-    color: rgba(255,255,255,0.45);
-    line-height: 1.6;
-    max-width: 300px;
-    margin: 0 auto;
-  }
-
-  .close-hint {
-    font-size: 11px;
-    color: rgba(255,255,255,0.2);
-    margin-top: 2rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
+  .close-hint { font-size: 12px; color: #bbb; margin-top: 1.5rem; text-align: center; }
 
   /* ── Error ── */
-  .error-wrap { padding: 2rem 1.5rem; text-align: center; }
-
-  .error-card {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
+  .error-box {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
     font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    line-height: 1.6;
+    line-height: 1.5;
     margin-top: 1rem;
-    text-align: left;
   }
 
-  .contact-line {
-    font-size: 11px;
-    color: rgba(255,255,255,0.25);
-    margin-top: 1.25rem;
-    letter-spacing: 0.04em;
+  /* ── Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid #e5e5e5;
+    border-top-color: #cc1515;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading { text-align: center; padding: 3rem 0; color: #aaa; font-size: 14px; }
+
+  @media (min-width: 480px) {
+    body { padding: 2rem 1rem; background: #f0f0ee; }
+    .card {
+      min-height: auto;
+      border-radius: 20px;
+      border: 1px solid #e5e5e5;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
   }
 </style>
 </head>
 <body>
+<div class="card">
 
-<div class="header">
-  <div class="header-top">
-    <div class="avs-mark">A<span>V</span>S</div>
-    <div class="header-label">Shift Confirmation</div>
+  <div class="logo-bar">
+    <div class="logo">A<span>V</span>S</div>
+    <div class="logo-sub">Shift Confirmation</div>
   </div>
-  <div class="worker-block" id="worker-block">
-    <div class="worker-eyebrow">Technician</div>
-    <div class="worker-name" id="worker-name">Loading…</div>
-  </div>
-</div>
 
-<div id="app">
-  <div class="loading-wrap">
-    <div class="spinner"></div>
-    <div class="loading-msg">Fetching your shift details…</div>
+  <div id="app">
+    <div class="loading">
+      <span class="spinner"></span>Loading your shift details…
+    </div>
   </div>
+
 </div>
 
 <script>
@@ -327,12 +305,10 @@ async function init() {
     if (data.error) { showError(data.error); return; }
     shiftData = data;
 
-    document.getElementById('worker-name').textContent = data.workerName || NAME;
-
     if (data.existing === 'Confirmed' || data.existing === 'Denied') {
       showResult(data.existing === 'Confirmed' ? 'Y' : 'N', data.workerName, true);
     } else {
-      showShiftCard(data);
+      showShiftView(data);
     }
 
   } catch(e) {
@@ -340,9 +316,11 @@ async function init() {
   }
 }
 
-// ── Build shift cards ─────────────────────────────────────────────────────────
-function showShiftCard(data) {
-  const shifts = data.shifts || [];
+// ── Shift view ────────────────────────────────────────────────────────────────
+function showShiftView(data) {
+  const wname    = data.workerName || NAME;
+  const initials = wname.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+  const shifts   = data.shifts || [];
 
   // Deduplicate by time + position
   const seen   = new Set();
@@ -352,56 +330,62 @@ function showShiftCard(data) {
     seen.add(k); return true;
   });
 
-  const label = unique.length > 1
-    ? unique.length + ' shifts scheduled for ' + formatDateFull(DATE)
-    : 'Shift details for ' + formatDateFull(DATE);
-
   let cardsHtml = '';
   unique.forEach((s, idx) => {
-    const indexLabel = unique.length > 1 ? 'Shift ' + (idx + 1) + ' of ' + unique.length : '';
+    const idxLabel = unique.length > 1 ? 'Shift ' + (idx+1) + ' of ' + unique.length : '';
     cardsHtml += `
-      <div class="shift-block">
-        <div class="shift-block-header">
-          <span class="shift-block-event">${escHtml(s.event || 'AVS Event')}</span>
-          ${indexLabel ? `<span class="shift-block-index">${indexLabel}</span>` : ''}
+      <div class="shift-card">
+        <div class="shift-card-event">
+          <span>${escHtml(s.event || 'AVS Event')}</span>
+          ${idxLabel ? `<span class="event-index">${idxLabel}</span>` : ''}
         </div>
         <table class="data-table">
-          ${tableRow('Location',    s.location,    false, false)}
-          ${tableRow('Date',        formatDateFull(DATE), true, false)}
-          ${tableRow('Call Time',   s.time,        false, true)}
-          ${tableRow('Position',    s.position,    true,  false)}
-          ${tableRow('Description', s.description, false, false)}
-          ${s.room ? tableRow('Room / Area', s.room, true, false) : ''}
+          ${row('Location',    s.location,    false)}
+          ${row('Date',        formatDate(DATE), false)}
+          ${row('Call Time',   s.time,        true)}
+          ${row('Position',    s.position,    false)}
+          ${row('Description', s.description, false)}
+          ${s.room ? row('Room / Area', s.room, false) : ''}
         </table>
       </div>`;
   });
 
+  const shiftCountLabel = unique.length > 1
+    ? unique.length + ' shifts on ' + formatDateShort(DATE)
+    : 'Your shift on ' + formatDateShort(DATE);
+
   document.getElementById('app').innerHTML = `
-    <div class="body">
-      <div class="section-title">${escHtml(label)}</div>
-      ${cardsHtml}
-      <div class="actions">
-        <button class="btn btn-confirm" id="confirm-btn" onclick="respond('Y')">
-          ✓ &nbsp;Confirm my attendance
-        </button>
-        <button class="btn btn-deny" id="deny-btn" onclick="respond('N')">
-          I'm unable to make it
-        </button>
+    <div class="worker-badge">
+      <div class="worker-avatar">${escHtml(initials)}</div>
+      <div class="worker-info">
+        <div class="wname">${escHtml(wname)}</div>
+        <div class="wrole">AVS Technician</div>
       </div>
-      <p class="action-note">
-        Your response is sent directly to your AVS supervisor.<br>
-        If you have questions call or text your contact.
-      </p>
-    </div>`;
+    </div>
+
+    <div class="section-label">${escHtml(shiftCountLabel)}</div>
+    ${cardsHtml}
+
+    <hr class="divider">
+
+    <h2>Confirm your attendance</h2>
+    <p class="subtitle">Please let your supervisor know if you'll be on site.</p>
+
+    <button class="btn btn-confirm" id="confirm-btn" onclick="respond('Y')">✓ &nbsp;I'll be there</button>
+    <button class="btn btn-deny"    id="deny-btn"    onclick="respond('N')">I can't make it</button>
+
+    <p class="action-note">
+      Your response goes directly to your AVS supervisor.<br>
+      No action needed if you already confirmed by phone.
+    </p>`;
 }
 
-function tableRow(label, value, highlight, accent) {
-  if (!value) return '';
-  return `
-    <tr${highlight ? ' class="highlight-row"' : ''}>
-      <td class="col-label">${label}</td>
-      <td class="col-value${accent ? ' accent' : ''}">${escHtml(value)}</td>
-    </tr>`;
+function row(label, value, accent) {
+  if (!value || !String(value).trim()) return '';
+  return `<tr>
+    <td class="col-key">${label}</td>
+    <td class="col-val${accent ? ' accent' : ''}">${escHtml(value)}</td>
+  </tr>`;
 }
 
 // ── Submit response ───────────────────────────────────────────────────────────
@@ -423,44 +407,37 @@ async function respond(r) {
   }
 }
 
-// ── Result state ──────────────────────────────────────────────────────────────
+// ── Result ────────────────────────────────────────────────────────────────────
 function showResult(r, workerName, alreadyDone) {
   const isConfirm = r === 'Y';
   const firstName = (workerName || NAME).split(' ')[0];
   const badgeTxt  = isConfirm ? 'Confirmed' : 'Denied';
-  const title     = isConfirm ? 'See you on site.' : 'Response recorded.';
+  const title     = isConfirm ? 'See you on site!' : 'Response recorded.';
   const msg       = alreadyDone
-    ? `Your <strong style="color:#fff">${badgeTxt.toLowerCase()}</strong> response is already on file.`
+    ? `Your <strong>${badgeTxt.toLowerCase()}</strong> response is already on file.`
     : isConfirm
-      ? `Thanks, ${escHtml(firstName)}. Your supervisor has been notified. We look forward to working with you.`
+      ? `Thanks, ${escHtml(firstName)}! Your supervisor has been notified. We look forward to working with you.`
       : `Thanks for the heads up, ${escHtml(firstName)}. Your supervisor has been notified.`;
 
   document.getElementById('app').innerHTML = `
-    <div class="result-wrap">
-      <div class="result-icon ${isConfirm ? 'icon-confirm' : 'icon-deny'}">
-        ${isConfirm ? '✓' : '✕'}
-      </div>
-      <div class="result-badge ${isConfirm ? 'badge-confirmed' : 'badge-denied'}">${badgeTxt}</div>
-      <div class="result-title">${title}</div>
-      <p class="result-msg">${msg}</p>
-      <p class="close-hint">You can close this page</p>
-    </div>`;
+    <div class="result-icon">${isConfirm ? '✅' : '❌'}</div>
+    <span class="result-badge ${isConfirm ? 'badge-confirmed' : 'badge-denied'}">${badgeTxt}</span>
+    <h2 class="result-title">${title}</h2>
+    <p class="result-msg">${msg}</p>
+    <p class="close-hint">You can close this page.</p>`;
 }
 
-// ── Error state ───────────────────────────────────────────────────────────────
+// ── Error ─────────────────────────────────────────────────────────────────────
 function showError(msg) {
-  document.getElementById('worker-name').textContent = '—';
   document.getElementById('app').innerHTML = `
-    <div class="error-wrap">
-      <div style="font-size:32px;margin-bottom:0.75rem;color:rgba(255,255,255,0.3)">⚠</div>
-      <div style="font-size:17px;font-weight:700;color:#fff;margin-bottom:0.25rem">Something went wrong</div>
-      <div class="error-card">${escHtml(msg)}</div>
-      <p class="contact-line">Contact your AVS supervisor directly.</p>
-    </div>`;
+    <div class="result-icon">⚠️</div>
+    <h2 class="result-title">Something went wrong</h2>
+    <div class="error-box">${escHtml(msg)}</div>
+    <p class="close-hint">Contact your AVS supervisor directly.</p>`;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function formatDateFull(d) {
+function formatDate(d) {
   if (!d) return '—';
   const p = d.split('/');
   if (p.length < 3) return d;
@@ -469,6 +446,14 @@ function formatDateFull(d) {
                   'July','August','September','October','November','December'];
   const dt = new Date(parseInt(p[2]), parseInt(p[0])-1, parseInt(p[1]));
   return days[dt.getDay()] + ', ' + months[dt.getMonth()] + ' ' + dt.getDate() + ', ' + dt.getFullYear();
+}
+
+function formatDateShort(d) {
+  if (!d) return '—';
+  const p = d.split('/');
+  if (p.length < 3) return d;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return (months[parseInt(p[0])-1] || p[0]) + ' ' + parseInt(p[1]);
 }
 
 function escHtml(s) {
