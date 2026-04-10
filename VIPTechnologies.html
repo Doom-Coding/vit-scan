@@ -769,10 +769,10 @@ function renderPrivacy() {
 document.addEventListener('DOMContentLoaded', renderPrivacy);
 </script>
 
-</body>
-</html>
-<!-- PRIVACY POLICY MODAL -->
-<div id="pp-overlay" style="display:none;position:fixed;inset:0;z-index:500;overflow-y:auto;background:rgba(6,6,8,0.96);backdrop-filter:blur(8px);">
+
+
+<!-- ── Privacy Policy Modal ── -->
+<div id="pp-overlay" style="display:none;position:fixed;inset:0;z-index:500;overflow-y:auto;background:rgba(6,6,8,0.97);backdrop-filter:blur(8px);">
   <div style="max-width:720px;margin:0 auto;padding:4rem 2rem 6rem;">
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3rem;border-bottom:1px solid rgba(224,28,28,0.2);padding-bottom:1.5rem;">
@@ -781,8 +781,8 @@ document.addEventListener('DOMContentLoaded', renderPrivacy);
         <div style="font-family:'Orbitron',sans-serif;font-size:clamp(18px,4vw,26px);font-weight:700;letter-spacing:0.08em;color:#f0eeea;">Privacy Policy</div>
       </div>
       <button onclick="document.getElementById('pp-overlay').style.display='none'"
-        style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.15em;color:rgba(240,238,234,0.4);background:none;border:1px solid rgba(255,255,255,0.1);padding:8px 16px;cursor:pointer;transition:all 0.2s;"
-        onmouseover="this.style.color='#e01c1c';this.style.borderColor='rgba(224,28,28,0.4)'"
+        style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.15em;color:rgba(240,238,234,0.4);background:none;border:1px solid rgba(255,255,255,0.1);padding:10px 20px;cursor:pointer;transition:all 0.2s;"
+        onmouseover="this.style.color='#e01c1c';this.style.borderColor='rgba(224,28,28,0.5)'"
         onmouseout="this.style.color='rgba(240,238,234,0.4)';this.style.borderColor='rgba(255,255,255,0.1)'">
         CLOSE ✕
       </button>
@@ -792,9 +792,47 @@ document.addEventListener('DOMContentLoaded', renderPrivacy);
       Last updated: April 10, 2025 &nbsp;·&nbsp; Vector Integrated Production Technologies, Orlando FL
     </div>
 
-    <div id="pp-content">
-      <!-- Sections injected below via JS for cleanliness -->
-    </div>
-
+    <div id="pp-content"></div>
   </div>
 </div>
+
+<script>
+const ppSections = [
+  { num:'01', title:'Overview',
+    body:'Vector Integrated Production Technologies ("VIP Technologies", "we", "us") operates an event production and labor management platform serving live event venues, corporate meeting planners, and production companies. This policy describes how we collect, use, store, and protect information gathered through our services — including our web applications, NFC-based attendance systems, shift management tools, and communication services.' },
+  { num:'02', title:'Information We Collect',
+    body:'<strong>Worker &amp; Crew Data:</strong> Names, phone numbers, position titles, and scheduled shift information provided by clients through labor order documentation. Used solely for event staffing coordination.<br><br><strong>Attendance &amp; Scan Data:</strong> When NFC tags are scanned at events we log the tag identifier, timestamp, location, room assignment, manager name, and event name. Used for real-time labor tracking, billing, and reporting.<br><br><strong>Performance Ratings:</strong> Supervisors may submit star ratings for workers following a shift. Ratings are averaged over time and stored against the worker's name and tag identifier.<br><br><strong>Shift Confirmations:</strong> When workers respond to reminder messages we record their name, shift date, and response (Confirmed or Denied).<br><br><strong>Contact Information:</strong> Phone numbers are collected from labor documentation and used exclusively for shift reminder communications.' },
+  { num:'03', title:'How We Use Your Information',
+    body:'• <strong>Event Operations:</strong> Real-time tracking of crew attendance, room assignments, and shift status<br>• <strong>Billing &amp; Payroll:</strong> Calculating regular and overtime hours from clock-in and clock-out records<br>• <strong>Communications:</strong> Sending shift reminders and confirmation requests via SMS<br>• <strong>Performance Management:</strong> Supervisor ratings to inform future staffing decisions<br>• <strong>Platform Improvement:</strong> Aggregated anonymized data may improve our scheduling algorithms and event intelligence systems' },
+  { num:'04', title:'Data Storage &amp; Security',
+    body:'Worker and event data is stored in secured Google Workspace infrastructure under access-controlled environments. Scan logs, assignments, and billing data are retained for a minimum of 24 months. We implement role-based access controls so only authorized managers and administrators can access crew data. All data in transit is encrypted via HTTPS.' },
+  { num:'05', title:'SMS Communications',
+    body:'Phone numbers may be used to send operational shift reminder messages containing shift time, position, and event details with a confirmation link. Workers may opt out by notifying their supervisor or VIP Technologies directly. We do not send marketing messages to worker phone numbers.' },
+  { num:'06', title:'Third-Party Services',
+    body:'• <strong>Google Workspace / Apps Script:</strong> Data storage and backend processing<br>• <strong>GitHub Pages:</strong> Hosting of client-facing web applications<br>• <strong>Twilio:</strong> SMS delivery for shift reminders<br><br>We do not sell, rent, or share personal information with third parties for marketing purposes.' },
+  { num:'07', title:'Client &amp; Meeting Planner Data',
+    body:'Information shared by event clients — including event schedules, venue details, and logistics — is treated as confidential and not disclosed to outside parties without explicit authorization.' },
+  { num:'08', title:'Your Rights',
+    body:'You may request access to, correction of, or deletion of your personal data, or opt out of SMS communications by contacting us directly at the phone number on this page.' },
+  { num:'09', title:'Changes to This Policy',
+    body:'We may update this policy as our platform evolves. Material changes will be reflected in the "Last updated" date above.' },
+  { num:'10', title:'Contact',
+    body:'<strong>Vector Integrated Production Technologies</strong><br>Orlando, Florida<br>Phone: (404) 922-8608' }
+];
+
+function renderPrivacy() {
+  const el = document.getElementById('pp-content');
+  if (!el) return;
+  el.innerHTML = ppSections.map(s => `
+    <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:12px;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.2em;color:#e01c1c;">// ${s.num}</span>
+        <span style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#f0eeea;">${s.title}</span>
+      </div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:15px;line-height:1.75;letter-spacing:0.03em;color:rgba(240,238,234,0.6);">${s.body}</div>
+    </div>`).join('');
+}
+</script>
+
+</body>
+</html>
