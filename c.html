@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>VIT · Shift Response</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    color: #1a1a1a;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2rem 1.75rem;
+    width: 100%;
+    max-width: 380px;
+    border: 1px solid #e5e5e5;
+    text-align: center;
+  }
+
+  .logo { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: #aaa; text-transform: uppercase; margin-bottom: 2rem; }
+
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid #e5e5e5;
+    border-top-color: #1a1a1a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 1rem auto;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .status-msg { font-size: 14px; color: #888; margin-top: 0.5rem; }
+
+  .big-icon { font-size: 52px; margin: 0.5rem 0 1rem; line-height: 1; }
+
+  h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+
+  .subtitle { font-size: 14px; color: #888; line-height: 1.55; margin-bottom: 1.5rem; }
+
+  .shift-card {
+    background: #f8f8f8;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .shift-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .shift-row:last-child { border-bottom: none; }
+  .shift-row .k { color: #999; }
+  .shift-row .v { font-weight: 600; text-align: right; max-width: 60%; }
+
+  .btn-group { display: flex; flex-direction: column; gap: 10px; }
+
+  .btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: -0.01em;
+  }
+
+  .btn:active { transform: scale(0.97); opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn-confirm { background: #166534; color: #fff; }
+  .btn-deny    { background: #f0f0f0; color: #1a1a1a; }
+
+  .result-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 99px;
+    margin-bottom: 1.25rem;
+  }
+
+  .badge-confirmed { background: #dcfce7; color: #166534; }
+  .badge-denied    { background: #fee2e2; color: #991b1b; }
+
+  .close-hint { font-size: 12px; color: #bbb; margin-top: 1.25rem; }
+
+  .error-box {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">VIT · Event Intelligence</div>
+  <div id="app">
+    <div class="spinner"></div>
+    <div class="status-msg">Loading your shift details…</div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
+
+const params = new URLSearchParams(window.location.search);
+const NAME   = params.get('n') || '';  // worker name passed from SMS link
+const DATE   = params.get('d') || '';
+
+let shiftData = null;
+
+async function init() {
+  if (!NAME || !DATE) {
+    showError('Missing shift information. Please use the link from your reminder SMS.');
+    return;
+  }
+
+  try {
+    const url  = `${SCRIPT_URL}?action=getShiftDetails&tag=${encodeURIComponent(NAME)}&date=${encodeURIComponent(DATE)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) { showError(data.error); return; }
+
+    shiftData = data;
+
+    if (data.existing) {
+      // Already responded — show current status
+      showResult(data.existing === 'Confirmed' ? 'Y' : 'N', data.workerName, true);
+    } else {
+      showShiftCard(data);
+    }
+
+  } catch(e) {
+    showError('Could not load shift details. Check your connection and try again.');
+  }
+}
+
+function showShiftCard(data) {
+  const shift   = (data.shifts && data.shifts[0]) || {};
+  const firstName = (data.workerName || 'there').split(' ')[0];
+
+  let shiftRows = '';
+  if (shift.time)     shiftRows += shiftRow('Call time', formatTime(shift.time));
+  if (shift.position) shiftRows += shiftRow('Position', shift.position);
+  if (shift.event)    shiftRows += shiftRow('Event', shift.event);
+  if (shift.location) shiftRows += shiftRow('Location', shortLocation(shift.location));
+  shiftRows += shiftRow('Date', formatDate(DATE));
+
+  document.getElementById('app').innerHTML = `
+    <div class="big-icon">📋</div>
+    <h2>Hi ${escHtml(firstName)}!</h2>
+    <p class="subtitle">You have a shift coming up. Please confirm or let us know if you can't make it.</p>
+    <div class="shift-card">${shiftRows}</div>
+    <div class="btn-group">
+      <button class="btn btn-confirm" id="confirm-btn" onclick="respond('Y')">✅ I'll be there</button>
+      <button class="btn btn-deny"    id="deny-btn"    onclick="respond('N')">❌ I can't make it</button>
+    </div>
+  `;
+}
+
+async function respond(r) {
+  const confirmBtn = document.getElementById('confirm-btn');
+  const denyBtn    = document.getElementById('deny-btn');
+  if (confirmBtn) confirmBtn.disabled = true;
+  if (denyBtn)    denyBtn.disabled    = true;
+
+  const workerName = shiftData ? shiftData.workerName : NAME;
+
+  try {
+    const url  = `${SCRIPT_URL}?action=confirmShift&tag=${encodeURIComponent(NAME)}&date=${encodeURIComponent(DATE)}&response=${encodeURIComponent(r)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.error) { showError(data.error); return; }
+    showResult(r, data.workerName || workerName, false);
+
+  } catch(e) {
+    showError('Could not save your response. Check your connection and try again.');
+    if (confirmBtn) confirmBtn.disabled = false;
+    if (denyBtn)    denyBtn.disabled    = false;
+  }
+}
+
+function showResult(r, workerName, alreadyDone) {
+  const isConfirm  = r === 'Y';
+  const icon       = isConfirm ? '✅' : '❌';
+  const badgeCls   = isConfirm ? 'badge-confirmed' : 'badge-denied';
+  const badgeTxt   = isConfirm ? 'Confirmed' : 'Denied';
+  const title      = isConfirm ? 'You\'re confirmed!' : 'Response recorded';
+  const msg        = alreadyDone
+    ? `Your response of <strong>${badgeTxt}</strong> is already on file.`
+    : isConfirm
+      ? `Thanks ${escHtml((workerName||'').split(' ')[0])}! We'll see you there.`
+      : `Thanks for letting us know, ${escHtml((workerName||'').split(' ')[0])}. We'll be in touch.`;
+
+  document.getElementById('app').innerHTML = `
+    <div class="big-icon">${icon}</div>
+    <span class="result-badge ${badgeCls}">${badgeTxt}</span>
+    <h2>${title}</h2>
+    <p class="subtitle">${msg}</p>
+    <p class="close-hint">You can close this page.</p>
+  `;
+}
+
+function showError(msg) {
+  document.getElementById('app').innerHTML = `
+    <div class="big-icon">⚠️</div>
+    <h2>Something went wrong</h2>
+    <div class="error-box" style="margin-top:1rem">${escHtml(msg)}</div>
+    <p class="close-hint" style="margin-top:1rem">Please contact your supervisor.</p>
+  `;
+}
+
+function shiftRow(k, v) {
+  return `<div class="shift-row"><span class="k">${k}</span><span class="v">${escHtml(v)}</span></div>`;
+}
+
+function formatTime(t) {
+  if (!t) return '—';
+  const parts = t.split(':');
+  if (parts.length < 2) return t;
+  let h = parseInt(parts[0]), m = parts[1];
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return h + ':' + m + ' ' + ampm;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const parts = d.split('/');
+  if (parts.length < 3) return d;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mo = parseInt(parts[0]) - 1;
+  return (months[mo] || parts[0]) + ' ' + parseInt(parts[1]) + ', ' + parts[2];
+}
+
+function shortLocation(loc) {
+  // Trim long location strings for display
+  return loc.length > 30 ? loc.substring(0, 28) + '…' : loc;
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
