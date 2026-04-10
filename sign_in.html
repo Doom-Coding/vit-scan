@@ -632,13 +632,13 @@
   <div class="controls">
     <div class="control-group">
       <label>Location</label>
-      <select id="location-select" onchange="loadEventOptions()">
+      <select id="location-select">
         <option value="">Select location…</option>
       </select>
     </div>
     <div class="control-group">
       <label>Date</label>
-      <input type="date" id="date-select" onchange="loadEventOptions()">
+      <input type="date" id="date-select">
     </div>
     <div class="control-group" id="event-control-group">
       <label>Events <span class="optional">(optional filter)</span></label>
@@ -890,6 +890,7 @@ let ccDismissed     = new Set();
 let ccRefreshTimer  = null;
 let ccCountdownInt  = null;
 let ccCountdownSecs = 60;
+let currentLocation  = ''; // set by loadWorkers, used by loadDashboard
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -955,7 +956,7 @@ async function loadDashboard() {
   document.getElementById('cc-asof').innerHTML = '<span class="cc-spinner"></span>Loading…';
   try {
     const dateVal = document.getElementById('cc-date-select').value;
-    const url = `${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`;
+    const url = `${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(currentLocation)}`;
     const res  = await fetch(url);
     const data = await res.json();
     if (data.error) { document.getElementById('cc-asof').textContent = 'Error: ' + data.error; return; }
@@ -1226,6 +1227,7 @@ function toggleAllEvents(cb) {
     else selectedEvents.delete(c.dataset.event);
   });
   updateEventBtnLabel();
+  filterAndRenderWorkers();
 }
 
 function onEventCheckbox(cb) {
@@ -1234,6 +1236,7 @@ function onEventCheckbox(cb) {
   const checkboxes = document.querySelectorAll('#event-panel input[data-event]');
   document.getElementById('select-all-events').checked = [...checkboxes].every(c => c.checked);
   updateEventBtnLabel();
+  filterAndRenderWorkers(); // client-side filter — no new fetch
 }
 
 function updateEventBtnLabel() {
@@ -1253,7 +1256,8 @@ async function loadLocations() {
         const opt = document.createElement('option');
         opt.value = loc; opt.textContent = loc; sel.appendChild(opt);
       });
-      if (data.locations.length === 1) { sel.value = data.locations[0]; loadEventOptions(); }
+      // Auto-select if only one location — no auto-fetch, user still clicks Load Workers
+      if (data.locations.length === 1) sel.value = data.locations[0];
     }
   } catch(e) {
     const sel = document.getElementById('location-select');
@@ -1264,34 +1268,26 @@ async function loadLocations() {
   }
 }
 
-async function loadEventOptions() {
-  const location = document.getElementById('location-select').value;
-  const date     = document.getElementById('date-select').value;
-  const panel    = document.getElementById('event-panel');
+// loadEventOptions removed — events now returned alongside workers
+// in getWorkersAndEvents. Filtering is client-side via filterAndRenderWorkers().
+function populateEventPanel(events) {
+  const panel = document.getElementById('event-panel');
   panel.querySelectorAll('[data-event]').forEach(el => el.closest('.multiselect-option').remove());
   selectedEvents.clear();
   updateEventBtnLabel();
-  if (!location || !date) return;
-  try {
-    const url  = `${SCRIPT_URL}?action=getEvents&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    if (data.events && data.events.length) {
-      data.events.forEach(ev => {
-        const label = document.createElement('label');
-        label.className = 'multiselect-option';
-        label.innerHTML = `<input type="checkbox" data-event="${escHtml(ev)}" onchange="onEventCheckbox(this)"> ${escHtml(ev)}`;
-        panel.appendChild(label);
-      });
-    }
-  } catch(e) {}
+  if (!events || !events.length) return;
+  events.forEach(ev => {
+    const label = document.createElement('label');
+    label.className = 'multiselect-option';
+    label.innerHTML = `<input type="checkbox" data-event="${escHtml(ev)}" onchange="onEventCheckbox(this)"> ${escHtml(ev)}`;
+    panel.appendChild(label);
+  });
 }
 
 async function loadWorkers() {
-  const location    = document.getElementById('location-select').value;
-  const date        = document.getElementById('date-select').value;
-  const supervisor  = document.getElementById('supervisor-name').value.trim();
-  const eventFilter = selectedEvents.size > 0 ? [...selectedEvents].join('||') : '';
+  const location   = document.getElementById('location-select').value;
+  const date       = document.getElementById('date-select').value;
+  const supervisor = document.getElementById('supervisor-name').value.trim();
 
   if (!location)   { showToast('Please select a location.', 'error'); return; }
   if (!date)       { showToast('Please select a date.', 'error'); return; }
@@ -1301,13 +1297,16 @@ async function loadWorkers() {
   document.getElementById('stamp-name').textContent = supervisor;
   document.getElementById('supervisor-stamp').style.display = 'flex';
 
+  currentLocation = location; // store for Command Center location filter
+
   const btn = document.getElementById('load-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-inline"></span>Loading…';
-  document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Fetching worker list…</div>';
+  document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Fetching workers and events…</div>';
 
   try {
-    const url  = `${SCRIPT_URL}?action=getWorkers&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}`;
+    // One round trip returns both workers AND events — client-side filtering from here
+    const url  = `${SCRIPT_URL}?action=getWorkersAndEvents&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`;
     const res  = await fetch(url);
     const data = await res.json();
 
@@ -1317,7 +1316,13 @@ async function loadWorkers() {
       return;
     }
 
-    allWorkers = data.workers || [];
+    // Stamp arrayIdx on each worker for stable DOM indexing during client-side filtering
+    allWorkers = (data.workers || []).map((w, i) => ({ ...w, arrayIdx: i }));
+
+    // Populate event filter panel from returned events
+    populateEventPanel(data.events || []);
+
+    // Render all workers (no filter yet)
     renderWorkers_signin(allWorkers);
     updateStats();
 
@@ -1330,6 +1335,16 @@ async function loadWorkers() {
   btn.textContent = 'Load Workers';
 }
 
+// ── Client-side event filter — no new fetch needed ────────────────────────────
+function filterAndRenderWorkers() {
+  if (!allWorkers.length) return;
+  const filtered = selectedEvents.size > 0
+    ? allWorkers.filter(w => selectedEvents.has(w.eventName))
+    : allWorkers;
+  renderWorkers_signin(filtered);
+  updateStats(filtered);
+}
+
 function renderWorkers_signin(workers) {
   if (!workers.length) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this filter.</p></div>';
@@ -1338,10 +1353,11 @@ function renderWorkers_signin(workers) {
   }
 
   const groups = {};
-  workers.forEach((w, idx) => {
+  workers.forEach(w => {
+    // Use arrayIdx (set at load time) as stable DOM identifier — safe during client-side filtering
     const ev = w.eventName || 'Unassigned';
     if (!groups[ev]) groups[ev] = [];
-    groups[ev].push({ ...w, idx });
+    groups[ev].push(w);
   });
   Object.values(groups).forEach(g => g.sort((a, b) => parseTime(a.bookedTime) - parseTime(b.bookedTime)));
 
@@ -1365,15 +1381,17 @@ function renderWorkers_signin(workers) {
 
   workers.forEach(w => {
     if (w.tagId) {
-      const input = document.getElementById(`tag-${w.idx}`);
-      if (input) { input.value = w.tagId; input.classList.add('has-value'); markSaved(w.idx); }
+      const i     = w.arrayIdx;
+      const input = document.getElementById(`tag-${i}`);
+      if (input) { input.value = w.tagId; input.classList.add('has-value'); markSaved(i); }
     }
   });
 }
 
 function renderRow(w) {
+  const i = w.arrayIdx; // stable index into allWorkers[] — safe during filtered renders
   return `
-    <tr id="row-${w.idx}" class="${w.tagId ? 'assigned' : ''}">
+    <tr id="row-${i}" class="${w.tagId ? 'assigned' : ''}">
       <td>
         <div class="worker-name">${escHtml(w.name)}</div>
         <div class="worker-position">${escHtml(w.position || '')}</div>
@@ -1383,19 +1401,19 @@ function renderRow(w) {
       <td>
         <div class="actions-wrap">
           <div class="tag-input-wrap">
-            <span class="status-dot unsaved" id="dot-${w.idx}"></span>
+            <span class="status-dot unsaved" id="dot-${i}"></span>
             <div>
               <input type="text" class="tag-input ${w.tagId ? 'has-value' : ''}"
-                id="tag-${w.idx}" value="${w.tagId || ''}" placeholder="001"
-                maxlength="6" oninput="onTagInput(${w.idx})"
-                onkeydown="if(event.key==='Enter') saveTag(${w.idx})">
-              <div class="conflict-msg" id="conflict-${w.idx}"></div>
+                id="tag-${i}" value="${w.tagId || ''}" placeholder="001"
+                maxlength="6" oninput="onTagInput(${i})"
+                onkeydown="if(event.key==='Enter') saveTag(${i})">
+              <div class="conflict-msg" id="conflict-${i}"></div>
             </div>
-            <button class="btn-action btn-save ${w.tagId ? 'saved' : ''}" id="savebtn-${w.idx}" onclick="saveTag(${w.idx})">
+            <button class="btn-action btn-save ${w.tagId ? 'saved' : ''}" id="savebtn-${i}" onclick="saveTag(${i})">
               ${w.tagId ? 'Saved' : 'Save Tag'}
             </button>
           </div>
-          <button class="btn-action btn-scan-tag ${w.scanLogged ? 'logged' : ''}" id="scanbtn-${w.idx}" onclick="openScanModal(${w.idx})">
+          <button class="btn-action btn-scan-tag ${w.scanLogged ? 'logged' : ''}" id="scanbtn-${i}" onclick="openScanModal(${i})">
             📲 Scan
           </button>
         </div>
@@ -1599,9 +1617,10 @@ async function submitModalScan() {
   logBtn.textContent = 'Log Scan'; logBtn.disabled = false;
 }
 
-function updateStats() {
-  const total    = allWorkers.length;
-  const assigned = allWorkers.filter(w => w.tagId).length;
+function updateStats(workers) {
+  const w        = workers || allWorkers;
+  const total    = w.length;
+  const assigned = w.filter(x => x.tagId).length;
   document.getElementById('stat-total').textContent      = total;
   document.getElementById('stat-assigned').textContent   = assigned;
   document.getElementById('stat-unassigned').textContent = total - assigned;
