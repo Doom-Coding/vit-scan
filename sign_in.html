@@ -1441,10 +1441,10 @@ function renderWorkers_signin(workers) {
   document.getElementById('main-content').innerHTML = html;
   document.getElementById('stats-bar').style.display = 'flex';
 
-  workers.forEach(w => {
+  workers.forEach((w, i) => {
     if (w.tagId) {
-      const input = document.getElementById(`tag-${w.idx}`);
-      if (input) { input.value = w.tagId; input.classList.add('has-value'); markSaved(w.idx); }
+      const input = document.getElementById(`tag-${i}`);
+      if (input) { input.value = w.tagId; input.classList.add('has-value'); markSaved(i); }
     }
   });
 }
@@ -1663,13 +1663,18 @@ async function submitModalScan() {
       document.getElementById('modal-result-icon').textContent  = '✅';
       document.getElementById('modal-result-title').textContent = 'Scan logged!';
       document.getElementById('modal-result-msg').textContent   = `${worker.name} checked in to ${document.getElementById('modal-room').value}.`;
-      const scanBtn = document.getElementById(`scanbtn-${modalWorkerIdx}`);
-      if (scanBtn) { scanBtn.classList.add('logged'); scanBtn.textContent = '✅ Logged'; }
-      allWorkers[modalWorkerIdx].scanLogged = true;
 
       const scannedRoom = document.getElementById('modal-room').value;
-      if (scannedRoom === 'Clock IN')  setRowClockStatus(modalWorkerIdx, 'clocked-in');
-      if (scannedRoom === 'Clock Out') setRowClockStatus(modalWorkerIdx, 'clocked-out');
+      if (scannedRoom === 'Clock IN') {
+        setRowClockStatus(modalWorkerIdx, 'clocked-in');
+        setScanBtn(modalWorkerIdx, 'in');
+      } else if (scannedRoom === 'Clock Out') {
+        setRowClockStatus(modalWorkerIdx, 'clocked-out');
+        setScanBtn(modalWorkerIdx, 'out');
+      } else {
+        setScanBtn(modalWorkerIdx, 'logged');
+      }
+      allWorkers[modalWorkerIdx].scanLogged = true;
     }
   } catch(e) {
     document.getElementById('modal-confirm').style.display = 'none';
@@ -1689,11 +1694,17 @@ async function loadClockStatus(location, date) {
     if (data.error || !data.workers) return;
     const workerMap = {};
     data.workers.forEach(w => { workerMap[w.name.toLowerCase()] = w; });
-    allWorkers.forEach(w => {
+    // Use forEach position (i) — NOT w.idx which is server-side row number
+    allWorkers.forEach((w, i) => {
       const wd = workerMap[w.name.toLowerCase()];
       if (!wd) return;
-      if (wd.clockOut)      setRowClockStatus(w.idx, 'clocked-out');
-      else if (wd.clockIn)  setRowClockStatus(w.idx, 'clocked-in');
+      if (wd.clockOut) {
+        setRowClockStatus(i, 'clocked-out');
+        setScanBtn(i, 'out');
+      } else if (wd.clockIn) {
+        setRowClockStatus(i, 'clocked-in');
+        setScanBtn(i, 'in');
+      }
     });
     resetSiCountdown();
   } catch(e) {}
@@ -1704,6 +1715,15 @@ function setRowClockStatus(idx, cls) {
   if (!row) return;
   row.classList.remove('clocked-in', 'clocked-out');
   if (cls) row.classList.add(cls);
+}
+
+function setScanBtn(idx, state) {
+  const btn = document.getElementById(`scanbtn-${idx}`);
+  if (!btn) return;
+  btn.classList.add('logged');
+  if      (state === 'in')     btn.textContent = '✅ Clocked IN';
+  else if (state === 'out')    btn.textContent = '✅ Clocked Out';
+  else                         btn.textContent = '✅ Scanned';
 }
 
 function updateStats() {
