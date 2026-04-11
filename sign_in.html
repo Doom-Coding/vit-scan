@@ -606,7 +606,8 @@
   @media (max-width: 700px) {
     .controls { flex-direction: column; }
     .control-group select, .control-group input, .multiselect-btn { min-width: 100%; }
-    .worker-table th:nth-child(3), .worker-table td:nth-child(3) { display: none; }
+    .worker-table th:nth-child(3), .worker-table td:nth-child(3),
+    .worker-table th:nth-child(4), .worker-table td:nth-child(4) { display: none; }
     .supervisor-stamp { margin-left: 0; }
     .cc-rooms-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     .cc-workers-table th:nth-child(3), .cc-workers-table td:nth-child(3),
@@ -1432,7 +1433,7 @@ function renderWorkers_signin(workers) {
           <span class="event-count">${rows.length} worker${rows.length !== 1 ? 's' : ''}</span>
         </div>
         <table class="worker-table">
-          <thead><tr><th>Name</th><th>Call Time</th><th>Room / Area</th><th style="width:240px;">Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th style="width:240px;">Actions</th></tr></thead>
           <tbody>${rows.map(w => renderRow(w)).join('')}</tbody>
         </table>
       </div>`;
@@ -1459,6 +1460,7 @@ function renderRow(w) {
       </td>
       <td><span class="worker-time">${escHtml(w.bookedTime || '—')}</span></td>
       <td><span class="worker-room">${escHtml(w.room || '—')}</span></td>
+      <td><span style="font-size:13px;color:#555;white-space:nowrap;">${escHtml(w.phone || '—')}</span></td>
       <td>
         <div class="actions-wrap">
           <div class="tag-input-wrap">
