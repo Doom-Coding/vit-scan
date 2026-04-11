@@ -667,6 +667,7 @@
     <div class="stat">Total booked: <strong id="stat-total">0</strong></div>
     <div class="stat">Tags assigned: <strong id="stat-assigned">0</strong></div>
     <div class="stat">Unassigned: <strong id="stat-unassigned">0</strong></div>
+    <span id="si-countdown" style="font-size:11px;color:#bbb;margin-left:auto;"></span>
     <div class="supervisor-stamp" id="supervisor-stamp" style="display:none;">
       Assigning as <strong id="stamp-name"></strong>
     </div>
@@ -885,6 +886,11 @@ let selectedEvents = new Set();
 let modalWorkerIdx = null;
 let mPinBuffer     = '';
 const M_PIN_LENGTH = 4;
+let siRefreshTimer  = null;
+let siCountdownInt  = null;
+let siCountdownSecs = 60;
+let siLastLocation  = '';
+let siLastDate      = '';
 
 // Command center state
 let ccData          = null;
@@ -943,12 +949,14 @@ function switchTab(tab) {
     ts.classList.add('active');
     tc.classList.remove('active');
     stopAutoRefresh();
+    if (allWorkers.length) startSiRefresh();
   } else {
     si.classList.add('hidden');
     cc.classList.add('visible');
     ts.classList.remove('active');
     tc.classList.add('active');
-    if (!ccData) loadDashboard();
+    stopSiRefresh();
+    loadDashboard();
     startAutoRefresh();
   }
 }
@@ -1039,7 +1047,7 @@ function renderWorkers(workers) {
       <tr class="${flagged}">
         <td><div class="cc-name">${escHtml(w.name)}</div></td>
         <td>${pill}</td>
-        <td style="font-size:12px;color:#555;">${escHtml(w.lastRoom || '—')}</td>
+        <td style="font-size:12px;color:#555;">${escHtml(w.lastRoom === 'No room scan' || !w.lastRoom ? '—' : w.lastRoom)}</td>
         <td>${scanHtml}</td>
         <td style="font-size:12px;color:#555;">${escHtml(w.clockIn || '—')}</td>
         <td><div class="cc-stars" id="stars-${safeId}">${stars}</div></td>
@@ -1215,6 +1223,32 @@ function resetCountdown() {
   }, 1000);
 }
 
+function startSiRefresh() {
+  if (siRefreshTimer) return;
+  siRefreshTimer = setInterval(() => {
+    if (siLastLocation && siLastDate) loadClockStatus(siLastLocation, siLastDate);
+  }, 60000);
+  resetSiCountdown();
+}
+
+function stopSiRefresh() {
+  if (siRefreshTimer) { clearInterval(siRefreshTimer); siRefreshTimer = null; }
+  if (siCountdownInt) { clearInterval(siCountdownInt); siCountdownInt = null; }
+  const el = document.getElementById('si-countdown');
+  if (el) el.textContent = '';
+}
+
+function resetSiCountdown() {
+  siCountdownSecs = 60;
+  if (siCountdownInt) clearInterval(siCountdownInt);
+  siCountdownInt = setInterval(() => {
+    siCountdownSecs--;
+    const el = document.getElementById('si-countdown');
+    if (el) el.textContent = 'Status refreshes in ' + siCountdownSecs + 's';
+    if (siCountdownSecs <= 0) siCountdownSecs = 60;
+  }, 1000);
+}
+
 // ══ SIGN IN ═══════════════════════════════════════════════════════════════════
 function toggleEventPanel() {
   document.getElementById('event-panel').classList.toggle('open');
@@ -1324,7 +1358,11 @@ async function loadWorkers() {
     updateStats();
 
     // Pre-color rows based on today's Clock IN/Out from Scan Log
+    siLastLocation = location;
+    siLastDate     = date;
     loadClockStatus(location, date);
+    stopSiRefresh();
+    startSiRefresh();
 
   } catch(e) {
     showToast('Could not connect. Check your network.', 'error');
@@ -1614,13 +1652,15 @@ async function loadClockStatus(location, date) {
     const res  = await fetch(url);
     const data = await res.json();
     if (data.error || !data.workers) return;
-    const statusMap = {};
-    data.workers.forEach(w => { statusMap[w.name.toLowerCase()] = w.status; });
+    const workerMap = {};
+    data.workers.forEach(w => { workerMap[w.name.toLowerCase()] = w; });
     allWorkers.forEach(w => {
-      const s = statusMap[w.name.toLowerCase()];
-      if (s === 'active' || s === 'on_lunch') setRowClockStatus(w.idx, 'clocked-in');
-      else if (s === 'clocked_out')           setRowClockStatus(w.idx, 'clocked-out');
+      const wd = workerMap[w.name.toLowerCase()];
+      if (!wd) return;
+      if (wd.clockOut)      setRowClockStatus(w.idx, 'clocked-out');
+      else if (wd.clockIn)  setRowClockStatus(w.idx, 'clocked-in');
     });
+    resetSiCountdown();
   } catch(e) {}
 }
 
