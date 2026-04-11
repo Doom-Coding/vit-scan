@@ -227,32 +227,31 @@
   .shift-table tr:last-child td { border-bottom: none; }
   .shift-table tr.incomplete { background: #fffbeb; }
 
-  /* ── Time group / Billing group visual separation ── */
+  /* ── Billing group ── */
   .shift-table td.time-right { border-right: 2px solid #e5e5e5; }
   .shift-table th.time-right { border-right: 2px solid #e5e5e5; }
 
   .shift-table th.billing {
-    background: #eff6ff;
-    color: #1e40af;
-    border-bottom: 1px solid #bfdbfe;
+    background: #f0f0f0;
+    color: #1a1a1a;
+    border-bottom: 1px solid #d5d5d5;
   }
-  .shift-table td.billing {
-    background: #f8fbff;
-    border-bottom: 1px solid #eff6ff;
-  }
-  .shift-table tr.incomplete td.billing { background: #fefce8; }
+  .shift-table th.b-first { border-left: 2px solid #1a1a1a; }
+  .shift-table td.billing  { background: #fafafa; }
+  .shift-table td.b-first  { border-left: 2px solid #1a1a1a; }
+  .shift-table tr.incomplete td.billing { background: #fef9e7; }
   .shift-table tr:last-child td.billing { border-bottom: none; }
 
   .billing-group-header {
-    background: #1e40af;
+    background: #1a1a1a;
     color: #fff;
     text-align: center;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    padding: 5px 0.85rem;
-    border-left: 2px solid #1e3a8a;
+    padding: 4px 12px;
+    border-radius: 0;
   }
 
   .worker-cell { display: flex; align-items: center; gap: 8px; }
@@ -581,16 +580,17 @@ function renderDayGroup(date, dg) {
       <table class="shift-table">
         <thead>
           <tr>
-            <th rowspan="2">Worker</th>
-            <th rowspan="2">Position</th>
-            <th rowspan="2">Clock IN</th>
-            <th rowspan="2">Clock OUT</th>
-            <th rowspan="2" class="right time-right">Actual Hrs</th>
-            <th rowspan="2" class="right">Booked Time</th>
+            <th colspan="6" style="background:#f8f8f8;border-bottom:none;padding:0;"></th>
             <th colspan="3" class="billing-group-header">Billable Hours</th>
           </tr>
           <tr>
-            <th class="right billing">Reg Hrs</th>
+            <th style="text-align:left;">Worker</th>
+            <th style="text-align:left;">Position</th>
+            <th>Clock IN</th>
+            <th>Clock OUT</th>
+            <th class="right">Actual Hrs</th>
+            <th class="right">Booked Time</th>
+            <th class="right billing b-first">Reg Hrs</th>
             <th class="right billing">OT Hrs</th>
             <th class="right billing">Total Hrs</th>
           </tr>
@@ -628,7 +628,7 @@ function renderShiftRow(s) {
       <td class="right">
         <span style="font-size:13px;color:#555;">${escHtml(s.bookedTime || '—')}</span>
       </td>
-      <td class="right billing">
+      <td class="right billing b-first">
         ${s.regularHours != null ? `<span class="hours-val reg">${r2(s.regularHours)}</span>` : '<span class="hours-val dash">—</span>'}
       </td>
       <td class="right billing">
