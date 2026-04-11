@@ -383,7 +383,7 @@
     <h2 class="center">Ready to scan</h2>
     <p class="subtitle center">Tap a worker's NFC tag to continue. The tag opens this page automatically.</p>
 
-    <div class="hint-box">Keep this page open between scans</div>
+    <div class="hint-box">Keep this page open in the background between scans</div>
   </div>
 
   <!-- ── SCREEN 3: PIN verify ── -->
@@ -463,7 +463,7 @@
 
     <!-- Star rating — shown on successful scans only -->
     <div class="stars-section" id="stars-section" style="display:none;">
-      <div class="stars-label">Rate this worker's performance</div>
+      <div class="stars-label">Rate this worker's performance thus far</div>
       <div class="stars-row">
         <button class="star-btn" id="star-1" onclick="setStar(1)">★</button>
         <button class="star-btn" id="star-2" onclick="setStar(2)">★</button>
@@ -475,7 +475,7 @@
       <button class="stars-skip" id="stars-skip" onclick="skipRating()">Skip rating</button>
     </div>
 
-    <button class="btn btn-primary" onclick="nextScan()" style="margin-top:1.25rem;">Scan another tag</button>
+    <button class="btn btn-primary" onclick="nextScan()" style="margin-top:1.25rem;">Leave browser open in the background to scan another tag</button>
   </div>
 
 </div>
@@ -484,17 +484,16 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
 
 const MANAGERS = {
-  'Jasmine': { pin: '8608' }, 'John':    { pin: '8608' },
-  'Peter':   { pin: '8608' }, 'Cynthia': { pin: '8608' },
-  'Jorge':   { pin: '8608' }, 'Geo':     { pin: '8608' },
-  'Chad':    { pin: '8608' },
+  'Peter Meza': { pin: '8608' }, 'Geo AVS':    { pin: '8608' },
+  'Jasmine Biondi':   { pin: '8608' }, 'John AVS': { pin: '8608' },
+  'Jorge Rendon':   { pin: '8608' }, 
+  'Chad AVS':    { pin: '8608' },
 };
 
 const ALL_ROOMS = [
-  'Grand Sierra BR','Caribbean BR','Palms BR','Expo Hall','Offices',
-  'Loading Dock/Bone Yard','Poolside','Breakouts','HOT Rooms','ESS Meetings',
-  'Grand Sierra F-I','Various Locations','Grand Sierra F','Grand Sierra C',
-  'Hibiscus','Clock IN','Clock Out','Lunch IN','Lunch OUT'
+  'Loading Dock/Bone Yard','Curacao Breakouts','Bonaire Breakouts','Antigua Breakouts','Grand Sierra BR','Palms BR',
+  'Hibiscus','Caribbean BR','Boca Breakouts','Poolside',
+  'Clock IN','Lunch OUT','Clock Out'
 ];
 
 const STAR_LABELS = ['','Poor','Fair','Good','Great','Excellent'];
