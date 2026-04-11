@@ -691,8 +691,15 @@
 <div id="command-section">
 
   <div class="cc-refresh-bar">
-    <span id="cc-asof">Select a date and hit Refresh to load.</span>
+    <span id="cc-asof">Select a location and hit Refresh to load.</span>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Location</label>
+        <select id="cc-location-select"
+          style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:200px;appearance:none;-webkit-appearance:none;">
+          <option value="">Select location…</option>
+        </select>
+      </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Date</label>
         <input type="date" id="cc-date-select"
@@ -968,9 +975,14 @@ function switchTab(tab) {
 // ══ COMMAND CENTER ════════════════════════════════════════════════════════════
 async function loadDashboard() {
   document.getElementById('cc-asof').innerHTML = '<span class="cc-spinner"></span>Loading…';
+  const dateVal     = document.getElementById('cc-date-select').value;
+  const locationVal = document.getElementById('cc-location-select').value;
+  if (!locationVal) {
+    document.getElementById('cc-asof').textContent = 'Select a location first.';
+    return;
+  }
   try {
-    const dateVal = document.getElementById('cc-date-select').value;
-    const url = `${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`;
+    const url = `${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(locationVal)}`;
     const res  = await fetch(url);
     const data = await res.json();
     if (data.error) { document.getElementById('cc-asof').textContent = 'Error: ' + data.error; return; }
@@ -1319,20 +1331,29 @@ async function loadLocations() {
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`);
     const data = await res.json();
-    const sel  = document.getElementById('location-select');
+    const sel    = document.getElementById('location-select');
+    const ccSel  = document.getElementById('cc-location-select');
     if (data.locations && data.locations.length) {
       data.locations.forEach(loc => {
         const opt = document.createElement('option');
         opt.value = loc; opt.textContent = loc; sel.appendChild(opt);
+        const opt2 = opt.cloneNode(true);
+        ccSel.appendChild(opt2);
       });
-      if (data.locations.length === 1) { sel.value = data.locations[0]; loadEventOptions(); }
+      if (data.locations.length === 1) {
+        sel.value   = data.locations[0];
+        ccSel.value = data.locations[0];
+        loadEventOptions();
+      }
     }
   } catch(e) {
-    const sel = document.getElementById('location-select');
-    const opt = document.createElement('option');
-    opt.value = 'FL - Caribe Royale Orlando - 4006';
-    opt.textContent = 'FL - Caribe Royale Orlando - 4006';
-    sel.appendChild(opt);
+    const sel   = document.getElementById('location-select');
+    const ccSel = document.getElementById('cc-location-select');
+    const loc   = 'FL - Caribe Royale Orlando - 4006';
+    [sel, ccSel].forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = loc; opt.textContent = loc; s.appendChild(opt);
+    });
   }
 }
 
@@ -1696,7 +1717,7 @@ async function loadClockStatus(location, date) {
     if (data.error || !data.workers) return;
     const workerMap = {};
     data.workers.forEach(w => { workerMap[w.name.toLowerCase()] = w; });
-   // Use forEach position (i) — NOT w.idx which is server-side row number
+    // Use forEach position (i) — NOT w.idx which is server-side row number
     allWorkers.forEach((w, i) => {
       const wd = workerMap[w.name.toLowerCase()];
       if (!wd) return;
