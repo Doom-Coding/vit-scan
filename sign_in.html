@@ -985,24 +985,23 @@ function renderDashboard(data) {
 function renderRooms(rooms) {
   const grid = document.getElementById('cc-rooms');
   if (!rooms || !rooms.length) {
-    grid.innerHTML = '<div style="color:#aaa;font-size:13px;padding:1rem 0;">No rooms scheduled for this date.</div>';
+    grid.innerHTML = '<div style="color:#aaa;font-size:13px;padding:1rem 0;">No active room scans yet for this date.</div>';
     return;
   }
   grid.innerHTML = rooms.map((room, idx) => {
-    const ratio    = room.scheduled > 0 ? Math.min(room.present / room.scheduled, 1) : 0;
-    const pct      = Math.round(ratio * 100);
-    const barColor = ratio >= 0.8 ? '#16a34a' : ratio >= 0.5 ? '#d97706' : '#dc2626';
+    const count     = room.present || 0;
+    const dotColor  = count > 0 ? '#16a34a' : '#e5e5e5';
     return `
       <div class="cc-room-card" onclick="openRoomModal(${idx})">
         <div class="cc-room-name">${escHtml(room.name)}</div>
         <div class="cc-room-count">
-          <span class="big">${room.present}</span>
-          <span class="of">/ ${room.scheduled}</span>
+          <span class="big" style="color:${count > 0 ? '#1a1a1a' : '#ccc'}">${count}</span>
+          <span class="of">active</span>
         </div>
-        <div class="cc-progress">
-          <div class="cc-progress-fill" style="width:${pct}%;background:${barColor}"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
+          <span style="font-size:11px;color:#aaa;">${count > 0 ? count + ' worker' + (count !== 1 ? 's' : '') + ' in room' : 'No active workers'}</span>
         </div>
-        <div style="font-size:11px;color:#aaa;">${pct}% staffed</div>
       </div>`;
   }).join('');
 }
@@ -1158,15 +1157,15 @@ function openRoomModal(idx) {
   if (!room) return;
 
   document.getElementById('modal-room-name').textContent = room.name;
-  document.getElementById('modal-room-sub').textContent  = room.present + ' present · ' + room.scheduled + ' scheduled';
+  document.getElementById('modal-room-sub').textContent  = room.present + ' active worker' + (room.present !== 1 ? 's' : '');
 
   const pct   = room.scheduled > 0 ? Math.round(room.present / room.scheduled * 100) : 0;
   const color = pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626';
 
   document.getElementById('modal-room-stats').innerHTML = `
-    <div class="cc-modal-stat"><div class="val" style="color:${color}">${room.present}</div><div class="lbl">Present</div></div>
-    <div class="cc-modal-stat"><div class="val">${room.scheduled}</div><div class="lbl">Scheduled</div></div>
-    <div class="cc-modal-stat"><div class="val" style="color:${color}">${pct}%</div><div class="lbl">Coverage</div></div>`;
+    <div class="cc-modal-stat"><div class="val" style="color:#16a34a">${room.present}</div><div class="lbl">Active</div></div>
+    <div class="cc-modal-stat"><div class="val">${room.workers ? room.workers.filter(w => w.minsSince >= 120).length : 0}</div><div class="lbl">Overdue Scan</div></div>
+    <div class="cc-modal-stat"><div class="val">${room.workers ? Math.max(...room.workers.map(w => w.minsSince || 0), 0) : 0}m</div><div class="lbl">Longest Since Scan</div></div>`;
 
   const body = document.getElementById('modal-room-body');
   if (!room.workers || !room.workers.length) {
@@ -1665,4 +1664,3 @@ function showToast(msg, type='') {
 </script>
 </body>
 </html>
-
