@@ -388,10 +388,10 @@
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNQfJvcLXH_lT-eQAixg3yEHeH1dYPNpL5yNynLclaRUFuNv6bUrwrgeVKybQGrlnjOA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtL1OVygXIzSGT6P_RB2c6r8H4qiuioujdWIYO55Xkn2_hhCHIZdpYs2xAGyIjPwf2HA/exec';
 
 let reportData  = [];
-let dayGroups   = {}; // date → { shifts, complete }
+let dayGroups   = {};
 
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
@@ -463,7 +463,6 @@ function renderReport(shifts, event) {
     return;
   }
 
-  // Group shifts by date
   dayGroups = {};
   shifts.forEach(s => {
     if (!dayGroups[s.date]) dayGroups[s.date] = { shifts: [], totalReg: 0, totalOT: 0, totalHrs: 0 };
@@ -473,12 +472,10 @@ function renderReport(shifts, event) {
     if (s.totalHours != null)   dayGroups[s.date].totalHrs += s.totalHours;
   });
 
-  // Mark each day complete/pending
   Object.entries(dayGroups).forEach(([date, dg]) => {
     dg.complete = dg.shifts.every(s => !s.flags || !s.flags.includes('incomplete'));
   });
 
-  // Summary
   const uniqueWorkers = new Set(shifts.map(s => s.workerName)).size;
   let sumReg = 0, sumOT = 0, sumTotal = 0;
   Object.values(dayGroups).forEach(dg => { sumReg += dg.totalReg; sumOT += dg.totalOT; sumTotal += dg.totalHrs; });
@@ -493,7 +490,6 @@ function renderReport(shifts, event) {
   document.getElementById('summary-bar').classList.add('visible');
   document.getElementById('export-all-btn').classList.add('visible');
 
-  // Render day groups sorted by date
   let html = '';
   Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, dg]) => {
     html += renderDayGroup(date, dg, event);
@@ -517,10 +513,8 @@ function renderDayGroup(date, dg, event) {
     ? `<button class="btn-day-dl ready" onclick="exportDayCSV('${date}')">Download CSV</button>`
     : `<button class="btn-day-dl locked" disabled title="Waiting for all workers to clock out">Download CSV</button>`;
 
-  // Sort shifts by worker name
   const sorted = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
-
-  const rows = sorted.map(s => renderShiftRow(s)).join('');
+  const rows   = sorted.map(s => renderShiftRow(s)).join('');
 
   return `
     <div class="day-group">
@@ -604,7 +598,6 @@ function renderShiftRow(s) {
     </tr>`;
 }
 
-// ── Export single day CSV ─────────────────────────────────────────────────────
 function exportDayCSV(date) {
   const dg = dayGroups[date];
   if (!dg) return;
@@ -634,7 +627,6 @@ function exportDayCSV(date) {
   );
 }
 
-// ── Export all days CSV ───────────────────────────────────────────────────────
 function exportAllCSV() {
   if (!reportData.length) return;
 
