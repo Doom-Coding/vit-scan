@@ -1730,7 +1730,7 @@ function setScanBtn(idx, state) {
 
 function updateStats() {
   const total    = allWorkers.length;
-  const assigned = allWorkers.filter(w => w.tagId).length;
+  const assigned = new Set(allWorkers.filter(w => w.tagId).map(w => w.tagId)).size;
   document.getElementById('stat-total').textContent      = total;
   document.getElementById('stat-assigned').textContent   = assigned;
   document.getElementById('stat-unassigned').textContent = total - assigned;
