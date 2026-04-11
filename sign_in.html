@@ -202,8 +202,8 @@
   .worker-table tr:last-child td { border-bottom: none; }
   .worker-table tr.assigned      { background: #f0fdf4; }
   .worker-table tr.conflict-row  { background: #fff7ed; }
-  .worker-table tr.clocked-in    { background: #dcfce7 !important; }
-  .worker-table tr.clocked-out   { background: #fee2e2 !important; }
+  .worker-table tr.clocked-in    { background: #dcfce7; }
+  .worker-table tr.clocked-out   { background: #fee2e2; }
   .worker-table tr.clocked-in td,
   .worker-table tr.clocked-out td { transition: background 0.4s ease; }
 
@@ -1379,8 +1379,9 @@ function renderWorkers_signin(workers) {
 }
 
 function renderRow(w) {
+  const i = w.arrayIdx;
   return `
-    <tr id="row-${w.idx}" class="${w.tagId ? 'assigned' : ''}">
+    <tr id="row-${i}">
       <td>
         <div class="worker-name">${escHtml(w.name)}</div>
         <div class="worker-position">${escHtml(w.position || '')}</div>
@@ -1483,7 +1484,7 @@ async function saveTagForce(idx, tagId, worker, supervisor) {
     }
     allWorkers[idx].tagId = tagId;
     conflictEl.style.display = 'none';
-    document.getElementById(`row-${idx}`).classList.remove('conflict-row');
+    document.getElementById(`row-${idx}`).classList.remove('conflict-row', 'assigned');
     document.getElementById(`tag-${idx}`).classList.remove('conflict');
     finalizeSave(idx, tagId, worker.name);
     showToast(`Tag ${tagId} → ${worker.name} (overridden)`, 'success');
@@ -1494,7 +1495,7 @@ async function saveTagForce(idx, tagId, worker, supervisor) {
 
 function finalizeSave(idx, tagId, workerName) {
   markSaved(idx);
-  document.getElementById(`row-${idx}`).className = 'assigned';
+  // row color controlled by clock status only — tag save does not change row color
   document.getElementById(`tag-${idx}`).classList.remove('conflict');
   document.getElementById(`tag-${idx}`).classList.add('has-value');
   document.getElementById(`savebtn-${idx}`).onclick = () => saveTag(idx);
