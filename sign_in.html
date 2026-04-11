@@ -500,6 +500,9 @@
   .cc-alert-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
   .cc-alert-type.scan-type  { color: #2563eb; }
   .cc-alert-type.lunch-type { color: #d97706; }
+  .cc-alert-type.late-type  { color: #dc2626; }
+  .cc-alert-item.lunch      { background: #fffbeb; }
+  .cc-alert-item.never-in   { background: #fef2f2; }
   .cc-alert-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
   .cc-alert-desc { font-size: 12px; color: #555; line-height: 1.5; margin-top: 4px; }
 
@@ -1137,16 +1140,48 @@ function renderAlerts(alerts) {
   }
 
   body.innerHTML = visible.map(a => {
-    const isLunch = a.type === 'lunch_overdue';
-    const key     = alertKey(a);
-    const desc    = isLunch
-      ? `On lunch since <strong>${a.lunchOut || '—'}</strong> — ${a.mins} minutes elapsed.`
-      : `Clocked in at <strong>${a.clockIn || '—'}</strong> — no room scan in <strong>${a.mins} minutes</strong>. Last seen: <strong>${escHtml(a.room)}</strong>.`;
+    const isLunch      = a.type === 'lunch_overdue';
+    const isNoScan     = a.type === 'no_scan';
+    const isNeverIn    = a.type === 'never_clocked_in';
+    const isLateIn     = a.type === 'late_clock_in';
+    const key          = alertKey(a);
+
+    let typeLabel, typeClass, itemClass, desc;
+
+    if (isLunch) {
+      typeLabel = 'Lunch Overdue';
+      typeClass = 'lunch-type';
+      itemClass = 'lunch';
+      desc      = `On lunch since <strong>${a.lunchOut || '—'}</strong> — ${a.mins} minutes elapsed.`;
+    } else if (isNoScan) {
+      typeLabel = 'No Scan';
+      typeClass = 'scan-type';
+      itemClass = '';
+      desc      = a.clockIn
+        ? `Clocked in at <strong>${a.clockIn}</strong> — no room scan in <strong>${a.mins} minutes</strong>. Last seen: <strong>${escHtml(a.room || 'No room')}</strong>.`
+        : `No room scan recorded.`;
+    } else if (isNeverIn) {
+      typeLabel = 'Not Clocked In';
+      typeClass = 'late-type';
+      itemClass = 'never-in';
+      desc      = `Scheduled call time <strong>${a.callTime || '—'}</strong> — still not clocked in after <strong>${a.mins} minutes</strong>.`;
+    } else if (isLateIn) {
+      typeLabel = 'Late Clock In';
+      typeClass = 'late-type';
+      itemClass = '';
+      desc      = `Call time was <strong>${a.callTime || '—'}</strong>, clocked in <strong>${a.lateBy} minutes late</strong> at <strong>${a.clockIn}</strong>.`;
+    } else {
+      typeLabel = a.type;
+      typeClass = 'scan-type';
+      itemClass = '';
+      desc      = '';
+    }
+
     return `
-      <div class="cc-alert-item ${isLunch ? 'lunch' : ''}">
+      <div class="cc-alert-item ${itemClass}">
         <div class="cc-alert-bar">
           <div>
-            <div class="cc-alert-type ${isLunch ? 'lunch-type' : 'scan-type'}">${isLunch ? 'Lunch Overdue' : 'No Scan'}</div>
+            <div class="cc-alert-type ${typeClass}">${typeLabel}</div>
             <div class="cc-alert-name">${escHtml(a.name)}</div>
           </div>
           <button class="cc-dismiss" onclick="dismissAlert('${key.replace(/'/g,"\\'")}')">×</button>
