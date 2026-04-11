@@ -1696,10 +1696,16 @@ async function loadClockStatus(location, date) {
     if (data.error || !data.workers) return;
     const workerMap = {};
     data.workers.forEach(w => { workerMap[w.name.toLowerCase()] = w; });
-    // Use forEach position (i) — NOT w.idx which is server-side row number
+   // Use forEach position (i) — NOT w.idx which is server-side row number
     allWorkers.forEach((w, i) => {
       const wd = workerMap[w.name.toLowerCase()];
       if (!wd) return;
+      const callMins    = parseTime(w.bookedTime);
+      const clockInMins = wd.clockIn ? (parseInt(wd.clockIn.split(':')[0]) * 60 + parseInt(wd.clockIn.split(':')[1])) : null;
+      const clockInMatchesShift = clockInMins !== null && callMins !== 9999
+        ? Math.abs(clockInMins - callMins) <= 180 || (callMins > 1320 && clockInMins < 180)
+        : true;
+      if (!clockInMatchesShift) return;
       if (wd.clockOut) {
         setRowClockStatus(i, 'clocked-out');
         setScanBtn(i, 'out');
