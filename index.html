@@ -381,7 +381,7 @@
 
     <div class="big-icon">📲</div>
     <h2 class="center">Ready to scan</h2>
-    <p class="subtitle center">Return to your main screen to scan tags. The tag opens this page automatically.</p>
+    <p class="subtitle center">Tap a worker's NFC tag to continue. The tag opens this page automatically.</p>
 
     <div class="hint-box">Keep this page open in the background between scans</div>
   </div>
@@ -742,7 +742,7 @@ async function submitRating(stars) {
 
   try {
     // Pass TAG_ID as workerName — Apps Script resolves to actual name via Assignments tab
-    const url = `${SCRIPT_URL}?action=submitRating&tagId=${encodeURIComponent(TAG_ID)}&rating=${stars}`;
+    const url = `${SCRIPT_URL}?action=submitRating&workerName=${encodeURIComponent(TAG_ID)}&tagId=${encodeURIComponent(TAG_ID)}&rating=${stars}`;
     await fetch(url);
   } catch(e) {
     // Fail silently — rating is optional, never blocks scan flow
