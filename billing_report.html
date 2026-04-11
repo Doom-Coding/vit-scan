@@ -396,13 +396,22 @@ let dayGroups   = {};
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
   const prior = new Date(today);
-  prior.setDate(prior.getDate() - 30);
-  document.getElementById('date-to').value   = fmt(today);
-  document.getElementById('date-from').value = fmt(prior);
+  prior.setDate(prior.getDate() - 1);
+  const priorStr = fmt(prior);
+  document.getElementById('date-to').value   = priorStr;
+  document.getElementById('date-from').value = priorStr;
   loadEvents();
 });
 
 function fmt(d) { return d.toISOString().split('T')[0]; }
+
+// ── Parse MM/DD/YYYY safely (fixes Invalid Date bug) ─────────────────────────
+function parseDateStr(str) {
+  if (!str) return new Date('invalid');
+  const p = str.split('/');
+  if (p.length !== 3) return new Date('invalid');
+  return new Date(parseInt(p[2]), parseInt(p[0]) - 1, parseInt(p[1]), 12, 0, 0);
+}
 
 async function loadEvents() {
   try {
@@ -465,20 +474,26 @@ function renderReport(shifts, event) {
 
   dayGroups = {};
   shifts.forEach(s => {
-    if (!dayGroups[s.date]) dayGroups[s.date] = { shifts: [], totalReg: 0, totalOT: 0, totalHrs: 0 };
+    if (!dayGroups[s.date]) dayGroups[s.date] = { shifts: [], totalActual: 0, totalReg: 0, totalOT: 0, totalHrs: 0 };
     dayGroups[s.date].shifts.push(s);
-    if (s.regularHours != null) dayGroups[s.date].totalReg += s.regularHours;
-    if (s.otHours != null)      dayGroups[s.date].totalOT  += s.otHours;
-    if (s.totalHours != null)   dayGroups[s.date].totalHrs += s.totalHours;
+    if (s.actualHours  != null) dayGroups[s.date].totalActual += s.actualHours;
+    if (s.regularHours != null) dayGroups[s.date].totalReg    += s.regularHours;
+    if (s.otHours      != null) dayGroups[s.date].totalOT     += s.otHours;
+    if (s.totalHours   != null) dayGroups[s.date].totalHrs    += s.totalHours;
   });
 
   Object.entries(dayGroups).forEach(([date, dg]) => {
-    dg.complete = dg.shifts.every(s => !s.flags || !s.flags.includes('incomplete'));
+    dg.complete = dg.shifts.every(s => !s.incomplete);
   });
 
   const uniqueWorkers = new Set(shifts.map(s => s.workerName)).size;
-  let sumReg = 0, sumOT = 0, sumTotal = 0;
-  Object.values(dayGroups).forEach(dg => { sumReg += dg.totalReg; sumOT += dg.totalOT; sumTotal += dg.totalHrs; });
+  let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
+  Object.values(dayGroups).forEach(dg => {
+    sumActual += dg.totalActual;
+    sumReg    += dg.totalReg;
+    sumOT     += dg.totalOT;
+    sumTotal  += dg.totalHrs;
+  });
 
   document.getElementById('sum-days').textContent    = Object.keys(dayGroups).length;
   document.getElementById('sum-workers').textContent = uniqueWorkers;
@@ -492,18 +507,18 @@ function renderReport(shifts, event) {
 
   let html = '';
   Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, dg]) => {
-    html += renderDayGroup(date, dg, event);
+    html += renderDayGroup(date, dg);
   });
 
   document.getElementById('main-content').innerHTML = html;
 }
 
-function renderDayGroup(date, dg, event) {
-  const dateObj  = new Date(date + 'T12:00:00');
+function renderDayGroup(date, dg) {
+  const dateObj  = parseDateStr(date);
   const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
   const dateStr  = dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
   const complete = dg.complete;
-  const missing  = dg.shifts.filter(s => s.flags && s.flags.includes('incomplete')).length;
+  const missing  = dg.shifts.filter(s => s.incomplete).length;
 
   const statusHtml = complete
     ? `<span class="status-badge status-complete">✓ Complete</span>`
@@ -526,6 +541,7 @@ function renderDayGroup(date, dg, event) {
         <div class="day-vdivider"></div>
         <div class="day-stats">
           <div class="day-stat"><span class="lbl">Workers</span><span class="val">${dg.shifts.length}</span></div>
+          <div class="day-stat"><span class="lbl">Actual</span><span class="val">${r2(dg.totalActual)}</span></div>
           <div class="day-stat"><span class="lbl">Regular</span><span class="val">${r2(dg.totalReg)}</span></div>
           <div class="day-stat"><span class="lbl">OT</span><span class="val ot-val">${r2(dg.totalOT)}</span></div>
           <div class="day-stat"><span class="lbl">Total</span><span class="val">${r2(dg.totalHrs)}</span></div>
@@ -542,10 +558,11 @@ function renderDayGroup(date, dg, event) {
             <th>Position</th>
             <th>Clock IN</th>
             <th>Clock OUT</th>
-            <th class="right">Regular</th>
-            <th class="right">OT</th>
-            <th class="right">Total</th>
-            <th>Flags</th>
+            <th class="right">Actual Hrs</th>
+            <th class="right">Booked Time</th>
+            <th class="right">Reg Hrs</th>
+            <th class="right">OT Hrs</th>
+            <th class="right">Total Hrs</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -554,11 +571,8 @@ function renderDayGroup(date, dg, event) {
 }
 
 function renderShiftRow(s) {
-  const isOvernight  = s.flags && s.flags.includes('overnight');
-  const isMinimum    = s.flags && s.flags.includes('minimum');
-  const isBumped     = s.flags && s.flags.includes('bumped');
-  const isIncomplete = s.flags && s.flags.includes('incomplete');
-  const rowClass     = isIncomplete ? 'incomplete' : (isOvernight ? 'overnight' : '');
+  const isIncomplete = s.incomplete;
+  const rowClass     = isIncomplete ? 'incomplete' : '';
   const initials     = s.workerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return `
@@ -566,9 +580,7 @@ function renderShiftRow(s) {
       <td>
         <div class="worker-cell">
           <div class="worker-avatar">${escHtml(initials)}</div>
-          <div>
-            <div class="worker-name-val">${escHtml(s.workerName)}</div>
-          </div>
+          <div><div class="worker-name-val">${escHtml(s.workerName)}</div></div>
         </div>
       </td>
       <td style="font-size:12px;color:#888;">${escHtml(s.position || '—')}</td>
@@ -581,86 +593,177 @@ function renderShiftRow(s) {
         ${s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : ''}
       </td>
       <td class="right">
+        ${s.actualHours  != null ? `<span class="hours-val" style="color:#555;">${r2(s.actualHours)}</span>`  : '<span class="hours-val dash">—</span>'}
+      </td>
+      <td class="right">
+        <span style="font-size:13px;color:#555;">${escHtml(s.bookedTime || '—')}</span>
+      </td>
+      <td class="right">
         ${s.regularHours != null ? `<span class="hours-val reg">${r2(s.regularHours)}</span>` : '<span class="hours-val dash">—</span>'}
       </td>
       <td class="right">
-        ${s.otHours != null ? `<span class="hours-val ot">${r2(s.otHours)}</span>` : '<span class="hours-val dash">—</span>'}
+        ${s.otHours      != null ? `<span class="hours-val ot">${r2(s.otHours)}</span>`       : '<span class="hours-val dash">—</span>'}
       </td>
       <td class="right">
-        ${s.totalHours != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>` : '<span class="hours-val dash">—</span>'}
-      </td>
-      <td>
-        ${isMinimum    ? '<span class="flag flag-minimum">MIN</span>'         : ''}
-        ${isBumped     ? '<span class="flag flag-bumped">10HR</span>'         : ''}
-        ${isOvernight  ? '<span class="flag flag-overnight">OVERNIGHT</span>' : ''}
-        ${isIncomplete ? '<span class="flag flag-missing">MISSING</span>'     : ''}
+        ${s.totalHours   != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>`   : '<span class="hours-val dash">—</span>'}
       </td>
     </tr>`;
 }
 
+// ── Export single day CSV ─────────────────────────────────────────────────────
 function exportDayCSV(date) {
   const dg = dayGroups[date];
   if (!dg) return;
 
-  const event   = document.getElementById('event-select').value || 'all-events';
-  const dateObj = new Date(date + 'T12:00:00');
-  const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+  const event    = document.getElementById('event-select').value || 'All Events';
+  const dateObj  = parseDateStr(date);
+  const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  const now      = new Date().toLocaleString('en-US');
 
-  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT', 'Regular Hours', 'OT Hours', 'Total Hours', 'Event', 'Flags'];
-  const rows    = dg.shifts.sort((a,b) => a.workerName.localeCompare(b.workerName)).map(s => [
+  const sorted = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
+
+  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT',
+                   'Actual Hrs', 'Booked Time', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'];
+
+  const dataRows = sorted.map(s => [
     s.workerName,
-    s.position || '',
+    s.position     || '',
     s.date,
     dayName,
-    s.clockIn  || '',
-    s.clockOut || '',
+    s.clockIn      || '',
+    s.clockOut     || '',
+    s.actualHours  != null ? r2(s.actualHours)  : '',
+    s.bookedTime   || '',
     s.regularHours != null ? r2(s.regularHours) : '',
-    s.otHours != null      ? r2(s.otHours)      : '',
-    s.totalHours != null   ? r2(s.totalHours)   : '',
-    s.eventName || '',
-    (s.flags || []).join(', ')
+    s.otHours      != null ? r2(s.otHours)      : '',
+    s.totalHours   != null ? r2(s.totalHours)   : ''
   ]);
 
-  downloadCSV(
-    [headers, ...rows],
-    `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`
-  );
+  const totalsRow = [
+    'TOTALS', '', date, dayName, '', '',
+    r2(dg.totalActual), '',
+    r2(dg.totalReg),
+    r2(dg.totalOT),
+    r2(dg.totalHrs)
+  ];
+
+  const rows = [
+    ['VIT Time & Attendance Report'],
+    ['Event:', event],
+    ['Date:', `${dayName}, ${date}`],
+    ['Workers:', dg.shifts.length],
+    ['Generated:', now],
+    [],
+    headers,
+    ...dataRows,
+    [],
+    totalsRow
+  ];
+
+  downloadCSV(rows, `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
 }
 
+// ── Export all days CSV ───────────────────────────────────────────────────────
 function exportAllCSV() {
   if (!reportData.length) return;
 
-  const event   = document.getElementById('event-select').value || 'all-events';
-  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT', 'Regular Hours', 'OT Hours', 'Total Hours', 'Event', 'Flags'];
-
-  const rows = [...reportData].sort((a,b) => {
-    const dc = a.date.localeCompare(b.date);
-    return dc !== 0 ? dc : a.workerName.localeCompare(b.workerName);
-  }).map(s => {
-    const d   = new Date(s.date + 'T12:00:00');
-    const day = d.toLocaleDateString('en-US', { weekday: 'short' });
-    return [
-      s.workerName,
-      s.position || '',
-      s.date,
-      day,
-      s.clockIn  || '',
-      s.clockOut || '',
-      s.regularHours != null ? r2(s.regularHours) : '',
-      s.otHours != null      ? r2(s.otHours)      : '',
-      s.totalHours != null   ? r2(s.totalHours)   : '',
-      s.eventName || '',
-      (s.flags || []).join(', ')
-    ];
-  });
-
+  const event    = document.getElementById('event-select').value || 'All Events';
   const dateFrom = document.getElementById('date-from').value;
   const dateTo   = document.getElementById('date-to').value;
-  downloadCSV([headers, ...rows], `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
+  const now      = new Date().toLocaleString('en-US');
+
+  // Summary block
+  const uniqueWorkers = new Set(reportData.map(s => s.workerName)).size;
+  let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
+  Object.values(dayGroups).forEach(dg => {
+    sumActual += dg.totalActual;
+    sumReg    += dg.totalReg;
+    sumOT     += dg.totalOT;
+    sumTotal  += dg.totalHrs;
+  });
+
+  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT',
+                   'Actual Hrs', 'Booked Time', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'];
+
+  // Build data rows grouped by date with a subtotal after each day
+  const sorted = [...reportData].sort((a, b) => {
+    const dc = a.date.localeCompare(b.date);
+    return dc !== 0 ? dc : a.workerName.localeCompare(b.workerName);
+  });
+
+  const detailRows = [];
+  let currentDate = null;
+  sorted.forEach(s => {
+    if (s.date !== currentDate) {
+      if (currentDate !== null) {
+        // Subtotal row for previous day
+        const dg = dayGroups[currentDate];
+        const prevDateObj = parseDateStr(currentDate);
+        detailRows.push([
+          `— ${prevDateObj.toLocaleDateString('en-US', { weekday: 'short' })} ${currentDate} SUBTOTAL`,
+          '', '', '', '', '',
+          r2(dg.totalActual), '',
+          r2(dg.totalReg),
+          r2(dg.totalOT),
+          r2(dg.totalHrs)
+        ]);
+        detailRows.push([]);
+      }
+      currentDate = s.date;
+    }
+    const dateObj = parseDateStr(s.date);
+    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+    detailRows.push([
+      s.workerName,
+      s.position     || '',
+      s.date,
+      dayName,
+      s.clockIn      || '',
+      s.clockOut     || '',
+      s.actualHours  != null ? r2(s.actualHours)  : '',
+      s.bookedTime   || '',
+      s.regularHours != null ? r2(s.regularHours) : '',
+      s.otHours      != null ? r2(s.otHours)      : '',
+      s.totalHours   != null ? r2(s.totalHours)   : ''
+    ]);
+  });
+
+  // Final day subtotal
+  if (currentDate) {
+    const dg = dayGroups[currentDate];
+    const lastDateObj = parseDateStr(currentDate);
+    detailRows.push([
+      `— ${lastDateObj.toLocaleDateString('en-US', { weekday: 'short' })} ${currentDate} SUBTOTAL`,
+      '', '', '', '', '',
+      r2(dg.totalActual), '',
+      r2(dg.totalReg),
+      r2(dg.totalOT),
+      r2(dg.totalHrs)
+    ]);
+  }
+
+  const rows = [
+    ['VIT Time & Attendance Report'],
+    ['Event:', event],
+    ['Date Range:', `${dateFrom} to ${dateTo}`],
+    ['Generated:', now],
+    [],
+    ['SUMMARY'],
+    ['Total Days', 'Total Workers', 'Total Shifts', 'Total Actual Hrs', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'],
+    [Object.keys(dayGroups).length, uniqueWorkers, reportData.length, r2(sumActual), r2(sumReg), r2(sumOT), r2(sumTotal)],
+    [],
+    ['DAILY DETAIL'],
+    headers,
+    ...detailRows,
+    [],
+    ['GRAND TOTAL', '', '', '', '', '', r2(sumActual), '', r2(sumReg), r2(sumOT), r2(sumTotal)]
+  ];
+
+  downloadCSV(rows, `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
 }
 
 function downloadCSV(rowsArray, filename) {
-  const csv  = rowsArray.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const csv  = rowsArray.map(r => (r || []).map(v => `"${String(v == null ? '' : v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
