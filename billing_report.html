@@ -1,632 +1,1131 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIT · Event Intelligence</title>
+<title>VIT · Billing Report</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f0ee; min-height: 100vh; color: #1a1a1a; }
-  header { background: #1a1a1a; color: #fff; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 300; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f7f7f5;
+    min-height: 100vh;
+    color: #1a1a1a;
+  }
+
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
   .header-left { display: flex; align-items: center; gap: 1rem; }
-  .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.6; }
+  .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.5; }
   .header-title { font-size: 15px; font-weight: 600; }
-  .header-meta { font-size: 12px; opacity: 0.5; }
-  .tab-bar { display: flex; background: #fff; border-bottom: 1px solid #e5e5e5; position: sticky; top: 57px; z-index: 200; }
-  .tab-btn { padding: 0.85rem 1.5rem; font-size: 13px; font-weight: 600; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; color: #888; transition: all 0.15s; font-family: inherit; display: flex; align-items: center; gap: 6px; }
-  .tab-btn.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
-  .tab-btn:hover:not(.active) { color: #555; }
-  .tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 99px; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; }
-  #signin-section { display: block; }
-  #signin-section.hidden { display: none; }
-  #command-section { display: none; background: #f0f0ee; }
-  #command-section.visible { display: block; }
-  .controls { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+  .header-right { display: flex; align-items: center; gap: 0.75rem; }
+
+  .btn-export-all {
+    padding: 0.4rem 1rem;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: none;
+  }
+
+  .btn-export-all:hover { background: rgba(255,255,255,0.1); }
+  .btn-export-all.visible { display: block; }
+
+  .controls {
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
   .control-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
-  .control-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
-  .control-group label .optional { font-weight: 400; text-transform: none; letter-spacing: 0; color: #bbb; margin-left: 4px; }
-  .control-group select, .control-group input[type="date"], .control-group input[type="text"] { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; appearance: none; -webkit-appearance: none; min-width: 180px; cursor: pointer; }
-  .control-group input[type="text"] { cursor: text; min-width: 160px; }
-  .control-group select:focus, .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  .multiselect-btn { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; min-width: 200px; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; transition: border-color 0.15s; }
-  .multiselect-btn.active { border-color: #1a1a1a; background: #fff; }
-  .multiselect-btn .arrow { font-size: 10px; opacity: 0.5; }
-  .multiselect-panel { position: absolute; top: calc(100% + 4px); left: 0; min-width: 240px; background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 201; display: none; overflow: hidden; }
-  .multiselect-panel.open { display: block; }
-  .multiselect-option { display: flex; align-items: center; gap: 10px; padding: 0.6rem 0.85rem; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
-  .multiselect-option:last-child { border-bottom: none; }
-  .multiselect-option:hover { background: #f8f8f8; }
-  .multiselect-option input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: #1a1a1a; }
-  .multiselect-option.select-all { font-weight: 600; background: #f8f8f8; border-bottom: 2px solid #e5e5e5; }
-  .btn-load { padding: 0.5rem 1.25rem; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; align-self: flex-end; white-space: nowrap; }
+
+  .control-group label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+  }
+
+  .control-group select,
+  .control-group input[type="date"] {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa;
+    color: #1a1a1a;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 180px;
+    cursor: pointer;
+  }
+
+  .control-group select:focus,
+  .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+
+  /* ── Multi-select dropdown ── */
+  .multiselect-btn {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+    color: #1a1a1a;
+    min-width: 220px;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+  }
+
+  .multiselect-btn:focus { outline: none; }
+
+  .multiselect-wrapper {
+    display: flex;
+    align-items: stretch;
+    min-width: 220px;
+  }
+
+  .multiselect-clear {
+    padding: 0 0.6rem;
+    border: 1px solid #ddd;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    background: #fafafa;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .multiselect-clear:hover { color: #1a1a1a; background: #f0f0f0; }
+
+  .multiselect-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 260px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 200;
+    display: none;
+    overflow: hidden;
+  }
+
+  .multiselect-dropdown.open { display: block; }
+
+  .multiselect-search {
+    padding: 0.6rem 0.75rem;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    background: #fafafa;
+    color: #1a1a1a;
+  }
+
+  .multiselect-actions {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .multiselect-action-btn {
+    flex: 1;
+    padding: 0.4rem;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background 0.1s, color 0.1s;
+  }
+
+  .multiselect-action-btn:hover { background: #f5f5f5; color: #1a1a1a; }
+  .multiselect-action-btn:first-child { border-right: 1px solid #f0f0f0; }
+
+  .multiselect-list {
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .multiselect-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+
+  .multiselect-item:hover { background: #f5f5f5; }
+
+  .multiselect-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: #1a1a1a;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .multiselect-item.all-option {
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+    color: #555;
+  }
+
+  .ms-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .btn-load {
+    padding: 0.5rem 1.25rem;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    align-self: flex-end;
+  }
+
   .btn-load:hover { opacity: 0.8; }
   .btn-load:disabled { opacity: 0.4; cursor: default; }
-  .stats-bar { padding: 0.75rem 1.5rem; display: flex; gap: 1.5rem; font-size: 13px; color: #666; border-bottom: 1px solid #e5e5e5; background: #fff; flex-wrap: wrap; align-items: center; }
-  .stat { display: flex; gap: 6px; align-items: center; }
-  .stat strong { color: #1a1a1a; font-weight: 600; }
-  .supervisor-stamp { margin-left: auto; font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; }
-  .supervisor-stamp strong { color: #1a1a1a; }
-  .main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
-  .event-group { margin-bottom: 2rem; }
-  .event-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-  .event-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: #1a1a1a; color: #fff; padding: 4px 10px; border-radius: 4px; }
-  .event-count { font-size: 12px; color: #888; }
-  .worker-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e5e5; }
-  .worker-table th { background: #f8f8f8; padding: 0.6rem 1rem; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; border-bottom: 1px solid #e5e5e5; }
-  .worker-table td { padding: 0.65rem 1rem; font-size: 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-  .worker-table tr:last-child td { border-bottom: none; }
-  .worker-table tr.conflict-row { background: #fff7ed; }
-  .worker-table tr.clocked-in { background: #dcfce7; }
-  .worker-table tr.clocked-out { background: #fee2e2; }
-  .worker-table tr.clocked-in td, .worker-table tr.clocked-out td { transition: background 0.4s ease; }
-  .worker-name { font-weight: 600; color: #1a1a1a; }
-  .worker-position { font-size: 12px; color: #888; margin-top: 2px; }
-  .worker-time { font-size: 13px; color: #555; white-space: nowrap; }
-  .worker-room { font-size: 13px; color: #555; }
-  .actions-wrap { display: flex; gap: 6px; align-items: flex-start; }
-  .tag-input-wrap { display: flex; gap: 6px; align-items: flex-start; }
-  .tag-input { width: 72px; padding: 0.4rem 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center; background: #fafafa; transition: border-color 0.15s; }
-  .tag-input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  .tag-input.has-value { border-color: #166534; background: #f0fdf4; color: #166534; }
-  .tag-input.conflict { border-color: #c2410c; background: #fff7ed; color: #c2410c; }
-  .btn-action { padding: 0.38rem 0.7rem; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, background 0.15s; white-space: nowrap; }
-  .btn-save { background: #1a1a1a; color: #fff; }
-  .btn-save:hover { opacity: 0.8; }
-  .btn-save.saved { background: #166534; }
-  .btn-save.conflict { background: #c2410c; }
-  .btn-save.saving { opacity: 0.5; cursor: default; }
-  .btn-save:disabled { opacity: 0.3; cursor: default; }
-  .btn-scan-tag { background: #f0f0f0; color: #1a1a1a; }
-  .btn-scan-tag:hover { background: #e5e5e5; }
-  .btn-scan-tag.logged { background: #dbeafe; color: #1e40af; }
-  .conflict-msg { font-size: 11px; color: #c2410c; margin-top: 4px; display: none; line-height: 1.3; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; margin-top: 9px; }
-  .status-dot.saved { background: #22c55e; }
-  .status-dot.unsaved { background: #e5e5e5; }
-  .status-dot.saving { background: #f59e0b; animation: pulse 1s infinite; }
-  .status-dot.conflict { background: #f97316; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal-card { background: #fff; border-radius: 16px; padding: 1.75rem; width: 100%; max-width: 360px; transform: translateY(12px); transition: transform 0.2s; max-height: 90vh; overflow-y: auto; }
-  .modal-overlay.open .modal-card { transform: translateY(0); }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
-  .modal-title { font-size: 16px; font-weight: 600; }
-  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; padding: 2px 6px; border-radius: 6px; line-height: 1; }
-  .modal-close:hover { background: #f0f0f0; color: #1a1a1a; }
-  .worker-badge { background: #f8f8f8; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.75rem; }
-  .worker-badge .avatar { width: 38px; height: 38px; border-radius: 50%; background: #1a1a1a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
-  .worker-badge .wname { font-weight: 600; font-size: 15px; }
-  .worker-badge .wtag { font-size: 12px; color: #888; margin-top: 2px; }
-  .modal-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 5px; display: block; }
-  .modal-select { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; appearance: none; -webkit-appearance: none; margin-bottom: 1rem; }
-  .modal-select:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  .modal-divider { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
-  .pin-label { font-size: 13px; color: #555; text-align: center; margin-bottom: 0.75rem; }
-  .pin-dots { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
-  .pin-dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid #ccc; background: transparent; transition: background 0.15s, border-color 0.15s; }
-  .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; }
-  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .numpad button { padding: 0.85rem 0; border: 1px solid #e5e5e5; border-radius: 10px; font-size: 18px; font-weight: 500; background: #fafafa; cursor: pointer; color: #1a1a1a; transition: background 0.1s; }
-  .numpad button:active { background: #e5e5e5; }
-  .numpad button.del { font-size: 14px; color: #888; }
-  .numpad button.empty { visibility: hidden; }
-  .modal-error { background: #fee2e2; color: #991b1b; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 13px; margin-bottom: 0.75rem; display: none; }
-  .modal-result { text-align: center; padding: 1rem 0; }
-  .modal-result .result-icon { font-size: 40px; margin-bottom: 0.5rem; }
-  .modal-result h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.4rem; }
-  .modal-result p { font-size: 13px; color: #888; }
-  .btn-modal-primary { width: 100%; padding: 0.75rem; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 1rem; transition: opacity 0.15s; font-family: inherit; }
-  .btn-modal-primary:hover { opacity: 0.8; }
-  .alert-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 700; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .alert-popup-overlay.open { opacity: 1; pointer-events: all; }
-  .alert-popup-card { background: #fff; border-radius: 16px; padding: 1.75rem; width: 100%; max-width: 380px; transform: translateY(10px); transition: transform 0.2s; border-top: 5px solid #f59e0b; }
-  .alert-popup-overlay.open .alert-popup-card { transform: translateY(0); }
-  .alert-popup-card.overtime { border-top-color: #dc2626; }
-  .alert-popup-icon { font-size: 36px; text-align: center; margin-bottom: 0.75rem; }
-  .alert-popup-title { font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #1a1a1a; }
-  .alert-popup-msg { font-size: 14px; color: #555; text-align: center; line-height: 1.6; margin-bottom: 1.25rem; white-space: pre-line; }
-  .alert-popup-actions { display: flex; gap: 8px; }
-  .alert-popup-btn { flex: 1; padding: 0.65rem; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
-  .alert-popup-btn.dismiss { background: #f0f0f0; color: #1a1a1a; }
-  .alert-popup-btn.dismiss:hover { opacity: 0.8; }
-  .alert-popup-btn.confirm { background: #1a1a1a; color: #fff; }
-  .alert-popup-btn.confirm:hover { opacity: 0.8; }
-  .cc-refresh-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1.5rem; background: #fff; border-bottom: 1px solid #e5e5e5; font-size: 12px; color: #aaa; flex-wrap: wrap; gap: 0.5rem; }
-  .cc-refresh-btn { padding: 4px 12px; background: #1a1a1a; color: #fff; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
-  .cc-refresh-btn:hover { opacity: 0.8; }
-  .cc-wrap { max-width: 1400px; margin: 0 auto; padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
-  .cc-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 10px; }
-  .cc-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
-  .cc-stat { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 14px 16px; }
-  .cc-stat .val { font-size: 28px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; margin-bottom: 5px; color: #1a1a1a; }
-  .cc-stat .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
-  .cc-stat.green { background: #f0fdf4; border-color: #bbf7d0; }
-  .cc-stat.green .val { color: #16a34a; }
-  .cc-stat.amber { background: #fffbeb; border-color: #fde68a; }
-  .cc-stat.amber .val { color: #d97706; }
-  .cc-stat.blue { background: #eff6ff; border-color: #bfdbfe; }
-  .cc-stat.blue .val { color: #2563eb; }
-  .cc-rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-  .cc-room-card { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
-  .cc-room-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); transform: translateY(-1px); }
-  .cc-room-card:active { transform: scale(0.98); }
-  .cc-room-name { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
-  .cc-room-count { display: flex; align-items: baseline; gap: 3px; margin-bottom: 8px; }
-  .cc-room-count .big { font-size: 28px; font-weight: 800; color: #1a1a1a; line-height: 1; }
-  .cc-room-count .of { font-size: 13px; color: #aaa; }
-  .cc-bottom { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
-  .cc-workers { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 14px; overflow: hidden; }
-  .cc-workers-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #e5e5e5; gap: 10px; flex-wrap: wrap; }
-  .cc-workers-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
-  .cc-search { padding: 7px 12px; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 12px; outline: none; background: #fafafa; min-width: 160px; font-family: inherit; }
-  .cc-search:focus { border-color: #1a1a1a; background: #fff; }
-  .cc-workers-table { width: 100%; border-collapse: collapse; }
-  .cc-workers-table th { padding: 8px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; background: #f8f8f8; border-bottom: 1px solid #e5e5e5; }
-  .cc-workers-table td { padding: 10px 14px; font-size: 12px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
-  .cc-workers-table tr:last-child td { border-bottom: none; }
-  .cc-workers-table tr.flagged { background: #fffcfc; }
-  .cc-name { font-weight: 600; color: #1a1a1a; font-size: 13px; }
-  .cc-status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
-  .cc-status-pill .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-  .pill-active { background: #f0fdf4; color: #15803d; }
-  .pill-active .dot { background: #16a34a; }
-  .pill-lunch { background: #fffbeb; color: #b45309; }
-  .pill-lunch .dot { background: #d97706; }
-  .pill-out { background: #f8fafc; color: #64748b; }
-  .pill-out .dot { background: #94a3b8; }
-  .pill-notseen { background: #f1f5f9; color: #94a3b8; }
-  .pill-notseen .dot { background: #cbd5e1; }
-  .cc-scan-late { color: #dc2626; font-weight: 600; }
-  .cc-stars { display: inline-flex; gap: 2px; }
-  .cc-star { font-size: 16px; cursor: pointer; line-height: 1; transition: transform 0.1s; color: #e2e8f0; background: none; border: none; padding: 0; font-family: inherit; }
-  .cc-star.filled { color: #f59e0b; }
-  .cc-star:hover { transform: scale(1.2); }
-  .cc-submit-ratings { margin: 12px 16px; padding: 10px; width: calc(100% - 32px); background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; font-family: inherit; }
-  .cc-submit-ratings:hover { opacity: 0.8; }
-  .cc-submit-ratings:disabled { opacity: 0.35; cursor: default; }
-  .cc-alerts { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 14px; overflow: hidden; }
-  .cc-alerts-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #e5e5e5; }
-  .cc-alerts-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
-  .cc-alert-count { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
-  .cc-alert-count.has-alerts { background: #fef2f2; color: #dc2626; }
-  .cc-alert-count.clear { background: #f0fdf4; color: #16a34a; }
-  .cc-alerts-body { max-height: 500px; overflow-y: auto; }
-  .cc-alert-item { padding: 14px 16px; border-bottom: 1px solid #e5e5e5; }
-  .cc-alert-item:last-child { border-bottom: none; }
-  .cc-alert-item.lunch { background: #fffbeb; }
-  .cc-alert-item.never-in { background: #fef2f2; }
-  .cc-alert-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
-  .cc-alert-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
-  .cc-alert-type.scan-type { color: #2563eb; }
-  .cc-alert-type.lunch-type { color: #d97706; }
-  .cc-alert-type.late-type { color: #dc2626; }
-  .cc-alert-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
-  .cc-alert-desc { font-size: 12px; color: #555; line-height: 1.5; margin-top: 4px; }
-  .cc-dismiss { background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .cc-dismiss:hover { background: #f5f5f5; color: #1a1a1a; }
-  .cc-all-clear { padding: 40px 20px; text-align: center; color: #aaa; font-size: 13px; }
-  .cc-room-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 600; align-items: center; justify-content: center; padding: 20px; }
-  .cc-room-modal-overlay.open { display: flex; }
-  .cc-room-modal { background: #fff; border-radius: 16px; width: 100%; max-width: 540px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(0,0,0,0.2); overflow: hidden; }
-  .cc-room-modal-header { padding: 18px 20px; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: flex-start; }
-  .cc-room-modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
-  .cc-room-modal-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
-  .cc-room-modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #aaa; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .cc-room-modal-close:hover { background: #f5f5f5; color: #1a1a1a; }
-  .cc-room-modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px 20px; border-bottom: 1px solid #e5e5e5; }
-  .cc-modal-stat { background: #f8fafc; border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px 12px; }
-  .cc-modal-stat .val { font-size: 22px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-  .cc-modal-stat .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; }
-  .cc-room-modal-body { overflow-y: auto; flex: 1; }
-  .cc-modal-worker-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #f5f5f5; gap: 10px; }
-  .cc-modal-worker-row:last-child { border-bottom: none; }
-  .cc-modal-worker-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
-  .cc-modal-worker-meta { font-size: 11px; color: #aaa; margin-top: 2px; }
-  .empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
-  .empty-state .icon { font-size: 40px; margin-bottom: 1rem; }
-  .empty-state h3 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; color: #1a1a1a; }
-  .empty-state p { font-size: 14px; }
-  .loading { text-align: center; padding: 4rem; color: #888; font-size: 14px; }
-  .spinner-inline { display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
-  .cc-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
+
+  .summary-bar {
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 0.75rem 1.5rem;
+    display: none;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .summary-bar.visible { display: flex; }
+
+  .summary-stat { display: flex; flex-direction: column; gap: 2px; }
+  .summary-stat .label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
+  .summary-stat .value { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .summary-stat .value.ot { color: #c2410c; }
+
+  .summary-divider { width: 1px; height: 32px; background: #e5e5e5; }
+
+  .event-label-bar { font-size: 12px; color: #888; margin-left: auto; }
+  .event-label-bar strong { color: #1a1a1a; }
+
+  .policy-key {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.5rem;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 11px;
+    color: #888;
+    align-items: center;
+  }
+
+  .policy-key span { display: flex; align-items: center; gap: 4px; }
+
+  .main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+
+  .day-group { margin-bottom: 2rem; }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #1a1a1a;
+    color: #fff;
+    padding: 0.85rem 1rem;
+    border-radius: 10px 10px 0 0;
+    flex-wrap: wrap;
+  }
+
+  .day-date-block { display: flex; flex-direction: column; min-width: 90px; }
+  .day-date-primary { font-size: 16px; font-weight: 700; }
+  .day-date-name    { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+
+  .day-vdivider { width: 1px; height: 36px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
+
+  .day-stats { display: flex; gap: 1.5rem; flex: 1; flex-wrap: wrap; }
+  .day-stat  { display: flex; flex-direction: column; gap: 1px; }
+  .day-stat .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
+  .day-stat .val { font-size: 14px; font-weight: 700; }
+  .day-stat .val.ot-val { color: #fca5a5; }
+
+  .day-actions { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+
+  .status-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .status-complete { background: #22c55e; color: #fff; }
+  .status-pending  { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+
+  .btn-day-dl {
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+
+  .btn-day-dl.ready  { background: #fff; color: #1a1a1a; cursor: pointer; }
+  .btn-day-dl.ready:hover { opacity: 0.85; }
+  .btn-day-dl.locked { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); cursor: not-allowed; }
+
+  .shift-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+  }
+
+  .shift-table th {
+    background: #f8f8f8;
+    padding: 0.5rem 0.85rem;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #aaa;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .shift-table th.left,
+  .shift-table td.left  { text-align: left; }
+  .shift-table th.right,
+  .shift-table td.right { text-align: center; }
+
+  .shift-table td {
+    padding: 0.65rem 0.85rem;
+    font-size: 13px;
+    border-bottom: 1px solid #f5f5f5;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .shift-table tr:last-child td { border-bottom: none; }
+  .shift-table tr.incomplete { background: #fffbeb; }
+
+  .shift-table td.time-right { border-right: 2px solid #e5e5e5; }
+  .shift-table th.time-right { border-right: 2px solid #e5e5e5; }
+
+  .shift-table th.billing {
+    background: #f0f0f0;
+    color: #1a1a1a;
+    border-bottom: 1px solid #d5d5d5;
+  }
+  .shift-table th.b-first { border-left: 2px solid #1a1a1a; }
+  .shift-table td.billing  { background: #fafafa; }
+  .shift-table td.b-first  { border-left: 2px solid #1a1a1a; }
+  .shift-table tr.incomplete td.billing { background: #fef9e7; }
+  .shift-table tr:last-child td.billing { border-bottom: none; }
+
+  .billing-group-header {
+    background: #1a1a1a;
+    color: #fff;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 0;
+  }
+
+  .worker-cell { display: flex; align-items: center; gap: 8px; }
+
+  .worker-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .worker-name-val { font-weight: 600; }
+  .worker-pos-val  { font-size: 11px; color: #aaa; margin-top: 1px; }
+
+  .time-cell { white-space: nowrap; }
+  .time-val  { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .time-date { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+  .hours-val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hours-val.ot   { color: #c2410c; }
+  .hours-val.reg  { color: #166534; }
+  .hours-val.tot  { color: #1a1a1a; }
+  .hours-val.dash { color: #ccc; font-weight: 400; }
+
+  .flag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 3px;
+    vertical-align: middle;
+  }
+
+  .flag-overnight { background: #fee2e2; color: #991b1b; }
+  .flag-minimum   { background: #fef3c7; color: #92400e; }
+  .flag-bumped    { background: #dbeafe; color: #1e40af; }
+  .flag-missing   { background: #f3f4f6; color: #6b7280; }
+
+  .empty-state { text-align: center; padding: 5rem 2rem; color: #888; }
+  .empty-state .icon { font-size: 44px; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; }
+  .empty-state p  { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
+
+  .loading { text-align: center; padding: 5rem; color: #888; font-size: 14px; }
+
+  .spinner-inline {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid #ddd;
+    border-top-color: #1a1a1a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
   @keyframes spin { to { transform: rotate(360deg); } }
-  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1a1a1a; color: #fff; padding: 0.75rem 1.25rem; border-radius: 10px; font-size: 14px; font-weight: 500; opacity: 0; transform: translateY(10px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; max-width: 320px; }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  .toast.success { background: #166534; }
-  .toast.error { background: #991b1b; }
-  .toast.warning { background: #92400e; }
-  @media (max-width: 900px) { .cc-bottom { grid-template-columns: 1fr; } }
+
   @media (max-width: 700px) {
     .controls { flex-direction: column; }
-    .control-group select, .control-group input, .multiselect-btn { min-width: 100%; }
-    .worker-table th:nth-child(3), .worker-table td:nth-child(3), .worker-table th:nth-child(4), .worker-table td:nth-child(4) { display: none; }
-    .supervisor-stamp { margin-left: 0; }
-    .cc-rooms-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    .cc-workers-table th:nth-child(3), .cc-workers-table td:nth-child(3), .cc-workers-table th:nth-child(4), .cc-workers-table td:nth-child(4) { display: none; }
+    .control-group select,
+    .control-group input,
+    .multiselect-btn { min-width: 100%; }
+    .multiselect-wrapper { width: 100%; }
+    .shift-table th:nth-child(2),
+    .shift-table td:nth-child(2) { display: none; }
+    .day-stats { gap: 0.75rem; }
+    .day-actions { width: 100%; justify-content: flex-end; }
+  }
+
+  @media print {
+    header, .controls, .policy-key, .btn-export-all, .btn-day-dl, .day-actions { display: none !important; }
+    .summary-bar { border: none; }
+    body { background: #fff; }
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="header-left"><span class="logo">VIT</span><span class="header-title">Event Intelligence</span></div>
-  <span class="header-meta" id="header-date"></span>
-</header>
-<div class="tab-bar">
-  <button class="tab-btn active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
-  <button class="tab-btn" id="tab-command" onclick="switchTab('command')">Command Center <span class="tab-badge" id="alert-badge" style="display:none">0</span></button>
-</div>
-<div id="signin-section">
-  <div class="controls">
-    <div class="control-group"><label>Location</label><select id="location-select" onchange="loadEventOptions()"><option value="">Select location…</option></select></div>
-    <div class="control-group"><label>Date</label><input type="date" id="date-select" onchange="loadEventOptions()"></div>
-    <div class="control-group" id="event-control-group">
-      <label>Events <span class="optional">(optional filter)</span></label>
-      <button type="button" class="multiselect-btn" id="event-multiselect-btn" onclick="toggleEventPanel()"><span id="event-btn-label">All events</span><span class="arrow">▼</span></button>
-      <div class="multiselect-panel" id="event-panel"><label class="multiselect-option select-all"><input type="checkbox" id="select-all-events" onchange="toggleAllEvents(this)"> Select all</label></div>
-    </div>
-    <div class="control-group"><label>Your name</label><input type="text" id="supervisor-name" placeholder="Supervisor name" autocomplete="name"></div>
-    <button class="btn-load" id="load-btn" onclick="loadWorkers()">Load Workers</button>
-  </div>
-  <div class="stats-bar" id="stats-bar" style="display:none;">
-    <div class="stat">Total booked: <strong id="stat-total">0</strong></div>
-    <div class="stat">Tags assigned: <strong id="stat-assigned">0</strong></div>
-    <div class="stat">Unassigned: <strong id="stat-unassigned">0</strong></div>
-    <span id="si-countdown" style="font-size:11px;color:#bbb;margin-left:auto;"></span>
-    <div class="supervisor-stamp" id="supervisor-stamp" style="display:none;">Assigning as <strong id="stamp-name"></strong></div>
-  </div>
-  <div class="main" id="main-content"><div class="empty-state"><div class="icon">📋</div><h3>Select a location and date</h3><p>Workers will appear grouped by event, sorted by call time.</p></div></div>
-</div>
-<div id="command-section">
-  <div class="cc-refresh-bar">
-    <span id="cc-asof">Select a location and hit Refresh to load.</span>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Location</label><select id="cc-location-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:200px;appearance:none;-webkit-appearance:none;"><option value="">Select location…</option></select></div>
-      <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Date</label><input type="date" id="cc-date-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:130px;"></div>
-      <span id="cc-countdown" style="font-size:11px;color:#aaa;"></span>
-      <button class="cc-refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
-    </div>
-  </div>
-  <div class="cc-wrap">
-    <div class="cc-summary">
-      <div class="cc-stat"><div class="val" id="cc-scheduled">—</div><div class="lbl">Scheduled Today</div></div>
-      <div class="cc-stat blue"><div class="val" id="cc-clockedin">—</div><div class="lbl">Clocked In</div></div>
-      <div class="cc-stat green"><div class="val" id="cc-active">—</div><div class="lbl">Active</div></div>
-      <div class="cc-stat amber"><div class="val" id="cc-lunch">—</div><div class="lbl">On Lunch</div></div>
-      <div class="cc-stat"><div class="val" id="cc-out">—</div><div class="lbl">Clocked Out</div></div>
-    </div>
-    <div><div class="cc-section-label">Room Status — tap to view workers</div><div class="cc-rooms-grid" id="cc-rooms"><div style="color:#aaa;font-size:13px;padding:1rem 0;">Hit Refresh to load room data.</div></div></div>
-    <div class="cc-bottom">
-      <div class="cc-workers">
-        <div class="cc-workers-header"><span class="cc-workers-title">Workers</span><input class="cc-search" id="cc-worker-search" placeholder="Search name or room…" oninput="filterWorkers()"></div>
-        <div style="overflow-x:auto;"><table class="cc-workers-table"><thead><tr><th>Worker</th><th>Status</th><th>Room</th><th>Last Scan</th><th>Clock In</th><th>Rating</th></tr></thead><tbody id="cc-worker-rows"><tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">Load the dashboard to see workers.</td></tr></tbody></table></div>
-        <button class="cc-submit-ratings" id="submit-ratings-btn" onclick="submitAllRatings()" disabled>Submit All Ratings (0 rated)</button>
-      </div>
-      <div class="cc-alerts">
-        <div class="cc-alerts-header"><span class="cc-alerts-title">Alert Log</span><span class="cc-alert-count clear" id="cc-alert-count">0 open</span></div>
-        <div class="cc-alerts-body" id="cc-alert-body"><div class="cc-all-clear">No alerts yet.</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="cc-room-modal-overlay" id="cc-room-modal" onclick="closeRoomModal(event)">
-  <div class="cc-room-modal">
-    <div class="cc-room-modal-header"><div><div class="cc-room-modal-title" id="modal-room-name">Room</div><div class="cc-room-modal-sub" id="modal-room-sub"></div></div><button class="cc-room-modal-close" onclick="closeRoomModal()">×</button></div>
-    <div class="cc-room-modal-stats" id="modal-room-stats"></div>
-    <div class="cc-room-modal-body" id="modal-room-body"></div>
-  </div>
-</div>
-<div class="modal-overlay" id="scan-modal" onclick="handleModalOverlayClick(event)">
-  <div class="modal-card">
-    <div class="modal-header"><span class="modal-title">Log Scan</span><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="worker-badge"><div class="avatar" id="modal-avatar"></div><div><div class="wname" id="modal-worker-name"></div><div class="wtag" id="modal-worker-tag"></div></div></div>
-    <div id="modal-setup">
-      <label class="modal-label">Manager</label><select class="modal-select" id="modal-manager"><option value="">Select manager…</option></select>
-      <label class="modal-label">Room</label><select class="modal-select" id="modal-room"><option value="">Select room…</option></select>
-      <label class="modal-label">Phase</label>
-      <select class="modal-select" id="modal-phase"><option value="">Select phase…</option><option>Load In</option><option>Set Build</option><option>Rehearsal</option><option>Show Day</option><option>Strike</option></select>
-      <hr class="modal-divider">
-      <div class="pin-label">Enter manager PIN</div>
-      <div class="modal-error" id="modal-pin-error"></div>
-      <div class="pin-dots"><div class="pin-dot" id="mdot-0"></div><div class="pin-dot" id="mdot-1"></div><div class="pin-dot" id="mdot-2"></div><div class="pin-dot" id="mdot-3"></div></div>
-      <div class="numpad">
-        <button onclick="mpinKey('1')">1</button><button onclick="mpinKey('2')">2</button><button onclick="mpinKey('3')">3</button>
-        <button onclick="mpinKey('4')">4</button><button onclick="mpinKey('5')">5</button><button onclick="mpinKey('6')">6</button>
-        <button onclick="mpinKey('7')">7</button><button onclick="mpinKey('8')">8</button><button onclick="mpinKey('9')">9</button>
-        <button class="empty"></button><button onclick="mpinKey('0')">0</button><button class="del" onclick="mpinBackspace()">⌫</button>
-      </div>
-    </div>
-    <div id="modal-confirm" style="display:none;">
-      <div style="font-size:13px;color:#555;margin-bottom:1rem;">Confirm the details below then log the scan.</div>
-      <div style="background:#f8f8f8;border-radius:10px;padding:0.75rem 1rem;font-size:13px;margin-bottom:1rem;">
-        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span style="color:#888;">Manager</span><strong id="confirm-mgr"></strong></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span style="color:#888;">Room</span><strong id="confirm-rm"></strong></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span style="color:#888;">Phase</span><strong id="confirm-ph"></strong></div>
-        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#888;">Event</span><strong id="confirm-ev"></strong></div>
-      </div>
-      <button class="btn-modal-primary" id="modal-log-btn" onclick="submitModalScan()">Log Scan</button>
-      <button class="btn-modal-primary" style="background:#f0f0f0;color:#1a1a1a;margin-top:8px;" onclick="showModalSetup()">Back</button>
-    </div>
-    <div id="modal-result" style="display:none;">
-      <div class="modal-result"><div class="result-icon" id="modal-result-icon"></div><h3 id="modal-result-title"></h3><p id="modal-result-msg"></p></div>
-      <button class="btn-modal-primary" onclick="closeModal()">Done</button>
-    </div>
-  </div>
-</div>
-<div class="alert-popup-overlay" id="alert-popup" onclick="handleAlertPopupOverlayClick(event)">
-  <div class="alert-popup-card" id="alert-popup-card">
-    <div class="alert-popup-icon" id="alert-popup-icon">⚠️</div>
-    <div class="alert-popup-title" id="alert-popup-title"></div>
-    <div class="alert-popup-msg" id="alert-popup-msg"></div>
-    <div class="alert-popup-actions">
-      <button class="alert-popup-btn dismiss" onclick="closeAlertPopup()">Dismiss</button>
-      <button class="alert-popup-btn confirm" onclick="closeAlertPopup()">Acknowledged</button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-<script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
-const LABOR_SHEET_ID='1-ZZCVxUOe99c7C0I7nqai9a56uOOMmySjH76bhjk9ZE';
-const MANAGERS={'Peter Meza':{pin:'8608'},'Geo AVS':{pin:'8608'},'Jasmine Biondi':{pin:'8608'},'John AVS':{pin:'8608'},'Jorge Rendon':{pin:'8608'},'Chad AVS':{pin:'8608'}};
-const ALL_ROOMS=['Loading Dock/Bone Yard','Curacao Breakouts','Bonaire Breakouts','Antigua Breakouts','Grand Sierra BR','Palms BR','Hibiscus','Caribbean BR','Boca Breakouts','Poolside','Clock IN','Lunch OUT','Clock Out'];
-let allWorkers=[],selectedEvents=new Set(),modalWorkerIdx=null,mPinBuffer='';
-const M_PIN_LENGTH=4;
-let siRefreshTimer=null,siCountdownInt=null,siCountdownSecs=60,siLastLocation='',siLastDate='',siAlertsFired=new Set();
-let alertQueue=[],alertPopupOpen=false;
-let ccData=null,ccRatings={},ccDismissed=new Set(),ccRefreshTimer=null,ccCountdownInt=null,ccCountdownSecs=60;
 
-window.addEventListener('DOMContentLoaded',()=>{
-  const today=new Date(),iso=today.toISOString().split('T')[0];
-  document.getElementById('date-select').value=iso;
-  document.getElementById('cc-date-select').value=iso;
-  document.getElementById('header-date').textContent=today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  const saved=sessionStorage.getItem('vit_supervisor');
-  if(saved) document.getElementById('supervisor-name').value=saved;
-  const mgrSel=document.getElementById('modal-manager'),roomSel=document.getElementById('modal-room');
-  Object.keys(MANAGERS).forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;mgrSel.appendChild(opt);});
-  ALL_ROOMS.forEach(r=>{const opt=document.createElement('option');opt.value=r;opt.textContent=r;roomSel.appendChild(opt);});
+<header>
+  <div class="header-left">
+    <span class="logo">VIT</span>
+    <span class="header-title">Time &amp; Attendance Report</span>
+  </div>
+  <div class="header-right">
+    <button class="btn-export-all" id="export-all-btn" onclick="exportAllCSV()">Export All Days</button>
+  </div>
+</header>
+
+<div class="controls">
+
+  <!-- ── Event multi-select ── -->
+  <div class="control-group" id="event-control-group">
+    <label>Event / Site</label>
+    <div class="multiselect-wrapper">
+      <button class="multiselect-btn" id="event-ms-btn" type="button" onclick="toggleEventDropdown(event)">Loading events…</button>
+      <button class="multiselect-clear" id="event-ms-clear" type="button" onclick="clearEventSelection()" title="Clear selection">×</button>
+    </div>
+    <div class="multiselect-dropdown" id="event-ms-dropdown">
+      <input class="multiselect-search" type="text" placeholder="Search events…" id="event-ms-search" oninput="filterEventList(this.value)">
+      <div class="multiselect-actions">
+        <button class="multiselect-action-btn" type="button" onclick="selectAllEvents()">Select All</button>
+        <button class="multiselect-action-btn" type="button" onclick="clearEventSelection()">Clear All</button>
+      </div>
+      <div class="multiselect-list" id="event-ms-list"></div>
+    </div>
+  </div>
+
+  <!-- ── Location single-select ── -->
+  <div class="control-group">
+    <label>Location</label>
+    <select id="location-select">
+      <option value="">Loading locations…</option>
+    </select>
+  </div>
+
+  <div class="control-group">
+    <label>From</label>
+    <input type="date" id="date-from">
+  </div>
+  <div class="control-group">
+    <label>To</label>
+    <input type="date" id="date-to">
+  </div>
+  <button class="btn-load" id="load-btn" onclick="loadReport()">Generate Report</button>
+</div>
+
+<div class="policy-key">
+  <strong style="color:#1a1a1a;margin-right:4px;">OT Policy:</strong>
+  <span><span class="flag flag-minimum">MIN</span> ≤ 5 hrs → 5 reg · 5–6 hrs → 5 reg + 1 OT</span>
+  <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 regular</span>
+  <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 = OT</span>
+  <span style="color:#aaa;">· &gt;10 hrs excess = OT · 1.5× multiplier · OT rounded up to whole hr</span>
+</div>
+
+<div class="summary-bar" id="summary-bar">
+  <div class="summary-stat">
+    <span class="label">Days</span>
+    <span class="value" id="sum-days">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">Workers</span>
+    <span class="value" id="sum-workers">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">Total Shifts</span>
+    <span class="value" id="sum-shifts">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">Regular Hrs</span>
+    <span class="value" id="sum-reg">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">OT Hrs</span>
+    <span class="value ot" id="sum-ot">0</span>
+  </div>
+  <div class="summary-divider"></div>
+  <div class="summary-stat">
+    <span class="label">Total Hrs</span>
+    <span class="value" id="sum-total">0</span>
+  </div>
+  <div class="event-label-bar" id="event-label-bar"></div>
+</div>
+
+<div class="main" id="main-content">
+  <div class="empty-state">
+    <div class="icon">📊</div>
+    <h3>Select an event and date range</h3>
+    <p>Clock IN and Clock OUT scans will be paired and hours calculated per your OT policy. Each day shows a Download button once all workers have clocked out.</p>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
+
+let reportData    = [];
+let dayGroups     = {};
+let allEvents     = [];       // full list loaded from server
+let selectedEvents = new Set(); // currently checked events
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date();
+  const prior = new Date(today);
+  prior.setDate(prior.getDate() - 1);
+  const priorStr = fmt(prior);
+  document.getElementById('date-to').value   = priorStr;
+  document.getElementById('date-from').value = priorStr;
+  loadEvents();
   loadLocations();
-  document.addEventListener('click',e=>{const panel=document.getElementById('event-panel'),btn=document.getElementById('event-multiselect-btn');if(!panel.contains(e.target)&&!btn.contains(e.target)){panel.classList.remove('open');btn.classList.remove('active');}});
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', e => {
+    const grp = document.getElementById('event-control-group');
+    if (!grp.contains(e.target)) closeEventDropdown();
+  });
 });
 
-function switchTab(tab){
-  const si=document.getElementById('signin-section'),cc=document.getElementById('command-section'),ts=document.getElementById('tab-signin'),tc=document.getElementById('tab-command');
-  if(tab==='signin'){si.classList.remove('hidden');cc.classList.remove('visible');ts.classList.add('active');tc.classList.remove('active');stopAutoRefresh();if(allWorkers.length)startSiRefresh();}
-  else{si.classList.add('hidden');cc.classList.add('visible');ts.classList.remove('active');tc.classList.add('active');stopSiRefresh();loadDashboard();startAutoRefresh();}
+function fmt(d) { return d.toISOString().split('T')[0]; }
+
+function parseDateStr(str) {
+  if (!str) return new Date('invalid');
+  const p = str.split('/');
+  if (p.length !== 3) return new Date('invalid');
+  return new Date(parseInt(p[2]), parseInt(p[0]) - 1, parseInt(p[1]), 12, 0, 0);
 }
 
-function queueAlertPopup(title,msg,type){alertQueue.push({title,msg,type});if(!alertPopupOpen)showNextAlert();}
-function showNextAlert(){if(!alertQueue.length){alertPopupOpen=false;return;}alertPopupOpen=true;const{title,msg,type}=alertQueue.shift();const card=document.getElementById('alert-popup-card');card.className='alert-popup-card'+(type==='overtime'?' overtime':'');document.getElementById('alert-popup-icon').textContent=type==='overtime'?'🔴':'⚠️';document.getElementById('alert-popup-title').textContent=title;document.getElementById('alert-popup-msg').textContent=msg;document.getElementById('alert-popup').classList.add('open');}
-function closeAlertPopup(){document.getElementById('alert-popup').classList.remove('open');setTimeout(()=>showNextAlert(),300);}
-function handleAlertPopupOverlayClick(e){if(e.target===document.getElementById('alert-popup'))closeAlertPopup();}
-
-async function loadDashboard(){
-  document.getElementById('cc-asof').innerHTML='<span class="cc-spinner"></span>Loading…';
-  const dateVal=document.getElementById('cc-date-select').value,locationVal=document.getElementById('cc-location-select').value;
-  if(!locationVal){document.getElementById('cc-asof').textContent='Select a location first.';return;}
-  try{const res=await fetch(`${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(locationVal)}`);const data=await res.json();if(data.error){document.getElementById('cc-asof').textContent='Error: '+data.error;return;}ccData=data;renderDashboard(data);}
-  catch(err){document.getElementById('cc-asof').textContent='Connection error — '+err.message;}
+// OT: always ceil to next whole hour
+function roundOT(n) {
+  if (n == null) return null;
+  return Math.ceil(n);
 }
 
-function renderDashboard(data){
-  document.getElementById('cc-scheduled').textContent=data.summary.scheduled;document.getElementById('cc-clockedin').textContent=data.summary.clockedIn;document.getElementById('cc-active').textContent=data.summary.active;document.getElementById('cc-lunch').textContent=data.summary.onLunch;document.getElementById('cc-out').textContent=data.summary.clockedOut;document.getElementById('cc-asof').textContent='As of '+(data.asOf||'—');
-  renderRooms(data.rooms);renderWorkers(data.workers);renderAlerts(data.alerts);resetCountdown();
+// ── Event multi-select logic ──────────────────────────────────────────────────
+async function loadEvents() {
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getEventList`);
+    const data = await res.json();
+    allEvents = (data.events && data.events.length) ? data.events : [];
+    buildEventList(allEvents);
+    updateEventBtn();
+  } catch(e) {
+    allEvents = [];
+    buildEventList([]);
+    updateEventBtn();
+  }
 }
 
-function renderRooms(rooms){
-  const grid=document.getElementById('cc-rooms');
-  if(!rooms||!rooms.length){grid.innerHTML='<div style="color:#aaa;font-size:13px;padding:1rem 0;">No active room scans yet for this date.</div>';return;}
-  grid.innerHTML=rooms.map((room,idx)=>{const count=room.present||0,dot=count>0?'#16a34a':'#e5e5e5';return `<div class="cc-room-card" onclick="openRoomModal(${idx})"><div class="cc-room-name">${escHtml(room.name)}</div><div class="cc-room-count"><span class="big" style="color:${count>0?'#1a1a1a':'#ccc'}">${count}</span><span class="of">active</span></div><div style="display:flex;align-items:center;gap:6px;margin-top:4px;"><div style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0;"></div><span style="font-size:11px;color:#aaa;">${count>0?count+' worker'+(count!==1?'s':'')+' in room':'No active workers'}</span></div></div>`;}).join('');
+function buildEventList(events) {
+  const list = document.getElementById('event-ms-list');
+  list.innerHTML = '';
+
+  // "All events" option at top
+  const allItem = document.createElement('label');
+  allItem.className = 'multiselect-item all-option';
+  allItem.innerHTML = `<input type="checkbox" id="ms-all-chk"> All events`;
+  allItem.querySelector('input').addEventListener('change', e => {
+    if (e.target.checked) selectAllEvents(); else clearEventSelection();
+  });
+  list.appendChild(allItem);
+
+  events.forEach(ev => {
+    const item = document.createElement('label');
+    item.className = 'multiselect-item';
+    item.dataset.value = ev;
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.value = ev;
+    chk.checked = selectedEvents.has(ev);
+    chk.addEventListener('change', () => {
+      if (chk.checked) selectedEvents.add(ev); else selectedEvents.delete(ev);
+      updateEventBtn();
+      updateAllCheckbox();
+    });
+    item.appendChild(chk);
+    item.appendChild(document.createTextNode(ev));
+    list.appendChild(item);
+  });
+
+  updateAllCheckbox();
 }
 
-function renderWorkers(workers){
-  if(!workers)return;
-  const tbody=document.getElementById('cc-worker-rows'),search=(document.getElementById('cc-worker-search').value||'').toLowerCase();
-  const filtered=workers.filter(w=>!search||w.name.toLowerCase().includes(search)||(w.lastRoom||'').toLowerCase().includes(search)).sort((a,b)=>a.name.localeCompare(b.name));
-  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">No workers match.</td></tr>';updateSubmitButton();return;}
-  tbody.innerHTML=filtered.map(w=>{
-    const flagged=w.alert?'flagged':'',pill=statusPill(w.status);
-    const scanHtml=w.minsSince&&w.minsSince>=120?`<span class="cc-scan-late">${escHtml(w.lastScan)} (${w.minsSince}m ago)</span>`:`<span style="color:#555;">${escHtml(w.lastScan||'—')}</span>`;
-    const safeId=w.name.replace(/[^a-zA-Z0-9]/g,'-'),cur=ccRatings[w.name]||0;
-    const stars=[1,2,3,4,5].map(n=>`<button class="cc-star ${n<=cur?'filled':''}" onclick="setRating('${w.name.replace(/'/g,"\\'")}',${n})" onmouseover="hoverStars('${safeId}',${n})" onmouseout="unhoverStars('${safeId}',${cur})">★</button>`).join('');
-    return `<tr class="${flagged}"><td><div class="cc-name">${escHtml(w.name)}</div></td><td>${pill}</td><td style="font-size:12px;color:#555;">${escHtml(w.lastRoom==='No room scan'||!w.lastRoom?'—':w.lastRoom)}</td><td>${scanHtml}</td><td style="font-size:12px;color:#555;">${escHtml(w.clockIn||'—')}</td><td><div class="cc-stars" id="stars-${safeId}">${stars}</div></td></tr>`;
-  }).join('');
-  updateSubmitButton();
+function filterEventList(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#event-ms-list .multiselect-item:not(.all-option)').forEach(item => {
+    item.style.display = item.dataset.value.toLowerCase().includes(q) ? '' : 'none';
+  });
 }
 
-function filterWorkers(){if(ccData)renderWorkers(ccData.workers);}
-function statusPill(status){const map={active:['pill-active','Active'],on_lunch:['pill-lunch','On Lunch'],clocked_out:['pill-out','Clocked Out'],not_in:['pill-notseen','Not In']};const[cls,label]=map[status]||['pill-notseen','Unknown'];return `<span class="cc-status-pill ${cls}"><span class="dot"></span>${label}</span>`;}
-function setRating(n,s){ccRatings[n]=(ccRatings[n]===s)?0:s;if(ccData)renderWorkers(ccData.workers);}
-function hoverStars(id,n){const c=document.getElementById('stars-'+id);if(!c)return;c.querySelectorAll('.cc-star').forEach((s,i)=>s.classList.toggle('filled',i<n));}
-function unhoverStars(id,cur){const c=document.getElementById('stars-'+id);if(!c)return;c.querySelectorAll('.cc-star').forEach((s,i)=>s.classList.toggle('filled',i<cur));}
-function updateSubmitButton(){const btn=document.getElementById('submit-ratings-btn'),count=Object.values(ccRatings).filter(v=>v>0).length;btn.textContent=`Submit All Ratings (${count} rated)`;btn.disabled=count===0;}
-
-async function submitAllRatings(){
-  const btn=document.getElementById('submit-ratings-btn'),entries=Object.entries(ccRatings).filter(([,v])=>v>0);
-  if(!entries.length)return;btn.disabled=true;btn.textContent='Submitting…';let success=0;
-  for(const[wn,rating]of entries){try{const res=await fetch(`${SCRIPT_URL}?action=submitRating&workerName=${encodeURIComponent(wn)}&rating=${rating}`);if((await res.text())==='OK')success++;}catch(e){}}
-  showToast(`${success} rating${success!==1?'s':''} submitted`,'success');btn.textContent=`✓ ${success} submitted`;
-  setTimeout(()=>{ccRatings={};if(ccData)renderWorkers(ccData.workers);},2500);
+function toggleEventDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('event-ms-dropdown');
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) document.getElementById('event-ms-search').focus();
 }
 
-function renderAlerts(alerts){
-  const body=document.getElementById('cc-alert-body'),count=document.getElementById('cc-alert-count'),badge=document.getElementById('alert-badge');
-  const visible=(alerts||[]).filter(a=>!ccDismissed.has(alertKey(a)));
-  badge.style.display=visible.length>0?'inline-flex':'none';badge.textContent=visible.length;count.textContent=visible.length+' open';count.className='cc-alert-count '+(visible.length>0?'has-alerts':'clear');
-  if(!visible.length){body.innerHTML=`<div class="cc-all-clear"><div style="width:36px;height:36px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px;">All clear</div><div>No active alerts</div></div>`;return;}
-  body.innerHTML=visible.map(a=>{
-    const key=alertKey(a);let typeLabel,typeClass,itemClass,desc;
-    if(a.type==='lunch_overdue'){typeLabel='Lunch Overdue';typeClass='lunch-type';itemClass='lunch';desc=`On lunch since <strong>${a.lunchOut||'—'}</strong> — ${a.mins} minutes elapsed.`;}
-    else if(a.type==='no_scan'){typeLabel='No Scan';typeClass='scan-type';itemClass='';desc=a.clockIn?`Clocked in at <strong>${a.clockIn}</strong> — no room scan in <strong>${a.mins} minutes</strong>. Last seen: <strong>${escHtml(a.room||'No room')}</strong>.`:`No room scan recorded.`;}
-    else if(a.type==='never_clocked_in'){typeLabel='Not Clocked In';typeClass='late-type';itemClass='never-in';desc=`Scheduled call time <strong>${a.callTime||'—'}</strong> — still not clocked in after <strong>${a.mins} minutes</strong>.`;}
-    else if(a.type==='late_clock_in'){typeLabel='Late Clock In';typeClass='late-type';itemClass='';desc=`Call time was <strong>${a.callTime||'—'}</strong>, clocked in <strong>${a.lateBy} minutes late</strong> at <strong>${a.clockIn}</strong>.`;}
-    else{typeLabel=a.type;typeClass='scan-type';itemClass='';desc='';}
-    return `<div class="cc-alert-item ${itemClass}"><div class="cc-alert-bar"><div><div class="cc-alert-type ${typeClass}">${typeLabel}</div><div class="cc-alert-name">${escHtml(a.name)}</div></div><button class="cc-dismiss" onclick="dismissAlert('${key.replace(/'/g,"\\'")}')">×</button></div><div class="cc-alert-desc">${desc}</div></div>`;
-  }).join('');
+function closeEventDropdown() {
+  document.getElementById('event-ms-dropdown').classList.remove('open');
 }
 
-function alertKey(a){return a.type+'|'+a.name;}
-function dismissAlert(key){ccDismissed.add(key);if(ccData)renderAlerts(ccData.alerts);}
-
-function openRoomModal(idx){
-  if(!ccData||!ccData.rooms)return;const room=ccData.rooms[idx];if(!room)return;
-  document.getElementById('modal-room-name').textContent=room.name;document.getElementById('modal-room-sub').textContent=room.present+' active worker'+(room.present!==1?'s':'');
-  document.getElementById('modal-room-stats').innerHTML=`<div class="cc-modal-stat"><div class="val" style="color:#16a34a">${room.present}</div><div class="lbl">Active</div></div><div class="cc-modal-stat"><div class="val">${room.workers?room.workers.filter(w=>w.minsSince>=120).length:0}</div><div class="lbl">Overdue Scan</div></div><div class="cc-modal-stat"><div class="val">${room.workers?Math.max(...room.workers.map(w=>w.minsSince||0),0):0}m</div><div class="lbl">Longest Since Scan</div></div>`;
-  const body=document.getElementById('modal-room-body');
-  if(!room.workers||!room.workers.length){body.innerHTML='<div style="padding:30px;text-align:center;color:#aaa;font-size:13px;">No workers currently active in this room.</div>';}
-  else{body.innerHTML=room.workers.map(w=>`<div class="cc-modal-worker-row"><div><div class="cc-modal-worker-name">${escHtml(w.name)}</div><div class="cc-modal-worker-meta">In at ${escHtml(w.clockIn||'—')} · Last scan ${escHtml(w.lastScan||'—')}${w.minsSince>=120?` <span style="color:#dc2626;font-weight:600;">(${w.minsSince}m ago)</span>`:''}</div></div>${statusPill(w.status)}</div>`).join('');}
-  document.getElementById('cc-room-modal').classList.add('open');
+function selectAllEvents() {
+  allEvents.forEach(ev => selectedEvents.add(ev));
+  document.querySelectorAll('#event-ms-list .multiselect-item:not(.all-option) input').forEach(c => c.checked = true);
+  updateEventBtn();
+  updateAllCheckbox();
 }
 
-function closeRoomModal(e){if(e&&e.target!==document.getElementById('cc-room-modal'))return;document.getElementById('cc-room-modal').classList.remove('open');}
-function startAutoRefresh(){if(ccRefreshTimer)return;ccRefreshTimer=setInterval(()=>loadDashboard(),60000);resetCountdown();}
-function stopAutoRefresh(){if(ccRefreshTimer){clearInterval(ccRefreshTimer);ccRefreshTimer=null;}if(ccCountdownInt){clearInterval(ccCountdownInt);ccCountdownInt=null;}const el=document.getElementById('cc-countdown');if(el)el.textContent='';}
-function resetCountdown(){ccCountdownSecs=60;if(ccCountdownInt)clearInterval(ccCountdownInt);ccCountdownInt=setInterval(()=>{ccCountdownSecs--;const el=document.getElementById('cc-countdown');if(el)el.textContent='Refreshes in '+ccCountdownSecs+'s';if(ccCountdownSecs<=0)ccCountdownSecs=60;},1000);}
-function startSiRefresh(){if(siRefreshTimer)return;siRefreshTimer=setInterval(()=>{if(siLastLocation&&siLastDate)loadClockStatus(siLastLocation,siLastDate);},60000);resetSiCountdown();}
-function stopSiRefresh(){if(siRefreshTimer){clearInterval(siRefreshTimer);siRefreshTimer=null;}if(siCountdownInt){clearInterval(siCountdownInt);siCountdownInt=null;}const el=document.getElementById('si-countdown');if(el)el.textContent='';}
-function resetSiCountdown(){siCountdownSecs=60;if(siCountdownInt)clearInterval(siCountdownInt);siCountdownInt=setInterval(()=>{siCountdownSecs--;const el=document.getElementById('si-countdown');if(el)el.textContent='Status refreshes in '+siCountdownSecs+'s';if(siCountdownSecs<=0)siCountdownSecs=60;},1000);}
-
-function toggleEventPanel(){document.getElementById('event-panel').classList.toggle('open');document.getElementById('event-multiselect-btn').classList.toggle('active');}
-function toggleAllEvents(cb){document.querySelectorAll('#event-panel input[data-event]').forEach(c=>{c.checked=cb.checked;if(cb.checked)selectedEvents.add(c.dataset.event);else selectedEvents.delete(c.dataset.event);});updateEventBtnLabel();}
-function onEventCheckbox(cb){if(cb.checked)selectedEvents.add(cb.dataset.event);else selectedEvents.delete(cb.dataset.event);const checkboxes=document.querySelectorAll('#event-panel input[data-event]');document.getElementById('select-all-events').checked=[...checkboxes].every(c=>c.checked);updateEventBtnLabel();}
-function updateEventBtnLabel(){const label=document.getElementById('event-btn-label');if(selectedEvents.size===0)label.textContent='All events';else if(selectedEvents.size===1)label.textContent=[...selectedEvents][0];else label.textContent=`${selectedEvents.size} events selected`;}
-
-async function loadLocations(){
-  try{const res=await fetch(`${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`);const data=await res.json();const sel=document.getElementById('location-select'),ccSel=document.getElementById('cc-location-select');
-  if(data.locations&&data.locations.length){data.locations.forEach(loc=>{const opt=document.createElement('option');opt.value=loc;opt.textContent=loc;sel.appendChild(opt);const opt2=opt.cloneNode(true);ccSel.appendChild(opt2);});if(data.locations.length===1){sel.value=data.locations[0];ccSel.value=data.locations[0];loadEventOptions();}}}
-  catch(e){const loc='FL - Caribe Royale Orlando - 4006';[document.getElementById('location-select'),document.getElementById('cc-location-select')].forEach(s=>{const opt=document.createElement('option');opt.value=loc;opt.textContent=loc;s.appendChild(opt);});}
+function clearEventSelection() {
+  selectedEvents.clear();
+  document.querySelectorAll('#event-ms-list input[type="checkbox"]').forEach(c => c.checked = false);
+  updateEventBtn();
 }
 
-async function loadEventOptions(){
-  const location=document.getElementById('location-select').value,date=document.getElementById('date-select').value,panel=document.getElementById('event-panel');
-  panel.querySelectorAll('[data-event]').forEach(el=>el.closest('.multiselect-option').remove());selectedEvents.clear();updateEventBtnLabel();if(!location||!date)return;
-  try{const res=await fetch(`${SCRIPT_URL}?action=getEvents&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`);const data=await res.json();
-  if(data.events&&data.events.length){data.events.forEach(ev=>{const label=document.createElement('label');label.className='multiselect-option';label.innerHTML=`<input type="checkbox" data-event="${escHtml(ev)}" onchange="onEventCheckbox(this)"> ${escHtml(ev)}`;panel.appendChild(label);});}}catch(e){}
+function updateAllCheckbox() {
+  const allChk = document.getElementById('ms-all-chk');
+  if (!allChk) return;
+  allChk.checked = allEvents.length > 0 && selectedEvents.size === allEvents.length;
+  allChk.indeterminate = selectedEvents.size > 0 && selectedEvents.size < allEvents.length;
 }
 
-async function loadWorkers(){
-  const location=document.getElementById('location-select').value,date=document.getElementById('date-select').value,supervisor=document.getElementById('supervisor-name').value.trim(),eventFilter=selectedEvents.size>0?[...selectedEvents].join('||'):'';
-  if(!location){showToast('Please select a location.','error');return;}if(!date){showToast('Please select a date.','error');return;}if(!supervisor){showToast('Please enter your name.','error');return;}
-  sessionStorage.setItem('vit_supervisor',supervisor);document.getElementById('stamp-name').textContent=supervisor;document.getElementById('supervisor-stamp').style.display='flex';
-  const btn=document.getElementById('load-btn');btn.disabled=true;btn.innerHTML='<span class="spinner-inline"></span>Loading…';document.getElementById('main-content').innerHTML='<div class="loading"><span class="spinner-inline"></span>Fetching worker list…</div>';
-  try{const res=await fetch(`${SCRIPT_URL}?action=getWorkers&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}`);const data=await res.json();
-  if(data.error){showToast(data.error,'error');document.getElementById('main-content').innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><h3>Error loading workers</h3><p>${data.error}</p></div>`;return;}
-  allWorkers=data.workers||[];siAlertsFired=new Set();renderWorkers_signin(allWorkers);updateStats();siLastLocation=location;siLastDate=date;loadClockStatus(location,date);stopSiRefresh();startSiRefresh();}
-  catch(e){showToast('Could not connect. Check your network.','error');document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Try again.</p></div>';}
-  btn.disabled=false;btn.textContent='Load Workers';
+function updateEventBtn() {
+  const btn = document.getElementById('event-ms-btn');
+  if (selectedEvents.size === 0) {
+    btn.textContent = 'All events';
+  } else if (selectedEvents.size === 1) {
+    btn.textContent = [...selectedEvents][0];
+  } else if (selectedEvents.size === allEvents.length && allEvents.length > 0) {
+    btn.textContent = 'All events';
+  } else {
+    btn.innerHTML = `${selectedEvents.size} events selected <span class="ms-badge">${selectedEvents.size}</span>`;
+  }
 }
 
-function renderWorkers_signin(workers){
-  if(!workers.length){document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this filter.</p></div>';document.getElementById('stats-bar').style.display='none';return;}
-  const groups={};workers.forEach((w,idx)=>{const ev=w.eventName||'Unassigned';if(!groups[ev])groups[ev]=[];groups[ev].push({...w,idx});});
-  Object.values(groups).forEach(g=>g.sort((a,b)=>parseTime(a.bookedTime)-parseTime(b.bookedTime)));
-  let html='';Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).forEach(([event,rows])=>{html+=`<div class="event-group"><div class="event-header"><span class="event-label">${escHtml(event)}</span><span class="event-count">${rows.length} worker${rows.length!==1?'s':''}</span></div><table class="worker-table"><thead><tr><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th style="width:240px;">Actions</th></tr></thead><tbody>${rows.map(w=>renderRow(w)).join('')}</tbody></table></div>`;});
-  document.getElementById('main-content').innerHTML=html;document.getElementById('stats-bar').style.display='flex';
-  workers.forEach((w,i)=>{if(w.tagId){const input=document.getElementById(`tag-${i}`);if(input){input.value=w.tagId;input.classList.add('has-value');markSaved(i);}}});
+// ── Location dropdown ─────────────────────────────────────────────────────────
+async function loadLocations() {
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getLocationList`);
+    const data = await res.json();
+    const sel  = document.getElementById('location-select');
+    sel.innerHTML = '<option value="">All locations</option>';
+    if (data.locations && data.locations.length) {
+      data.locations.forEach(loc => {
+        const opt = document.createElement('option');
+        opt.value = loc; opt.textContent = loc;
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) {
+    document.getElementById('location-select').innerHTML = '<option value="">All locations</option>';
+  }
 }
 
-function renderRow(w){const i=w.idx;return `<tr id="row-${i}"><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td><span style="font-size:13px;color:#555;white-space:nowrap;">${escHtml(w.phone||'—')}</span></td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
+// ── Load report ───────────────────────────────────────────────────────────────
+async function loadReport() {
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+  const location = document.getElementById('location-select').value;
 
-function onTagInput(idx){const input=document.getElementById(`tag-${idx}`),dot=document.getElementById(`dot-${idx}`),btn=document.getElementById(`savebtn-${idx}`),msg=document.getElementById(`conflict-${idx}`);input.classList.remove('has-value','conflict');input.classList.toggle('has-value',input.value.length>0);dot.className='status-dot unsaved';btn.textContent='Save Tag';btn.classList.remove('saved','conflict');btn.onclick=()=>saveTag(idx);msg.style.display='none';}
+  if (!dateFrom || !dateTo) { alert('Please select a date range.'); return; }
 
-async function saveTag(idx){
-  const input=document.getElementById(`tag-${idx}`),btn=document.getElementById(`savebtn-${idx}`),dot=document.getElementById(`dot-${idx}`),conflictEl=document.getElementById(`conflict-${idx}`);
-  const tagVal=input.value.trim(),supervisor=document.getElementById('supervisor-name').value.trim()||sessionStorage.getItem('vit_supervisor')||'Supervisor';
-  if(!tagVal){showToast('Enter a tag number first.','error');return;}const tagId=tagVal.padStart(3,'0');input.value=tagId;const worker=allWorkers[idx];if(!worker)return;
-  btn.textContent='Saving…';btn.classList.add('saving');btn.disabled=true;dot.className='status-dot saving';conflictEl.style.display='none';
-  try{const url=`${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName||'')}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=false`;const text=await(await fetch(url)).text();
-  if(text.startsWith('CONFLICT:')){const existing=text.replace('CONFLICT:','').trim();input.classList.add('conflict');dot.className='status-dot conflict';btn.textContent='Override';btn.classList.remove('saving');btn.classList.add('conflict');btn.disabled=false;conflictEl.textContent=`Already assigned to ${existing} — click Override to reassign`;conflictEl.style.display='block';document.getElementById(`row-${idx}`).classList.add('conflict-row');showToast(`Tag ${tagId} already assigned to ${existing}`,'warning');btn.onclick=()=>saveTagForce(idx,tagId,worker,supervisor);return;}
-  if(text.includes('ERROR')){showToast(text,'error');btn.textContent='Save Tag';btn.classList.remove('saving');btn.disabled=false;dot.className='status-dot unsaved';return;}
-  allWorkers[idx].tagId=tagId;finalizeSave(idx,tagId,worker.name);}
-  catch(e){showToast('Save failed.','error');btn.textContent='Save Tag';btn.classList.remove('saving');btn.disabled=false;dot.className='status-dot unsaved';}
-}
+  // Build event filter: empty string = all, otherwise pipe-separated list
+  const eventFilter = selectedEvents.size > 0 && selectedEvents.size < allEvents.length
+    ? [...selectedEvents].join('|')
+    : '';
 
-async function saveTagForce(idx,tagId,worker,supervisor){
-  const btn=document.getElementById(`savebtn-${idx}`),dot=document.getElementById(`dot-${idx}`),conflictEl=document.getElementById(`conflict-${idx}`);
-  btn.textContent='Saving…';btn.classList.remove('conflict');btn.classList.add('saving');btn.disabled=true;dot.className='status-dot saving';
-  try{const url=`${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName||'')}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=true`;const text=await(await fetch(url)).text();
-  if(text.includes('ERROR')){showToast(text,'error');btn.textContent='Retry';btn.classList.remove('saving');btn.disabled=false;dot.className='status-dot unsaved';return;}
-  allWorkers[idx].tagId=tagId;conflictEl.style.display='none';document.getElementById(`row-${idx}`).classList.remove('conflict-row','assigned');document.getElementById(`tag-${idx}`).classList.remove('conflict');finalizeSave(idx,tagId,worker.name);showToast(`Tag ${tagId} → ${worker.name} (overridden)`,'success');}
-  catch(e){showToast('Save failed.','error');btn.textContent='Retry';btn.classList.remove('saving');btn.disabled=false;dot.className='status-dot unsaved';}
-}
+  const btn = document.getElementById('load-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-inline"></span>Calculating…';
+  document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Processing scan data…</div>';
+  document.getElementById('summary-bar').classList.remove('visible');
+  document.getElementById('export-all-btn').classList.remove('visible');
 
-function finalizeSave(idx,tagId,workerName){markSaved(idx);document.getElementById(`tag-${idx}`).classList.remove('conflict');document.getElementById(`tag-${idx}`).classList.add('has-value');document.getElementById(`savebtn-${idx}`).onclick=()=>saveTag(idx);showToast(`Tag ${tagId} → ${workerName}`,'success');updateStats();}
-function markSaved(idx){const btn=document.getElementById(`savebtn-${idx}`),dot=document.getElementById(`dot-${idx}`);if(btn){btn.textContent='Saved';btn.classList.add('saved');btn.classList.remove('saving','conflict');btn.disabled=false;}if(dot)dot.className='status-dot saved';}
+  try {
+    const url = `${SCRIPT_URL}?action=getBillingData`
+      + `&eventFilter=${encodeURIComponent(eventFilter)}`
+      + `&locationFilter=${encodeURIComponent(location)}`
+      + `&dateFrom=${encodeURIComponent(dateFrom)}`
+      + `&dateTo=${encodeURIComponent(dateTo)}`;
 
-function openScanModal(idx){
-  const worker=allWorkers[idx];if(!worker)return;if(!worker.tagId){showToast('Assign a tag number first.','warning');return;}
-  modalWorkerIdx=idx;mPinBuffer='';const initials=worker.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-  document.getElementById('modal-avatar').textContent=initials;document.getElementById('modal-worker-name').textContent=worker.name;document.getElementById('modal-worker-tag').textContent=`Tag ${worker.tagId} · ${worker.eventName||'General'}`;
-  showModalSetup();updateMPinDots();document.getElementById('modal-pin-error').style.display='none';document.getElementById('scan-modal').classList.add('open');
-}
+    const res  = await fetch(url);
+    const data = await res.json();
 
-function closeModal(){document.getElementById('scan-modal').classList.remove('open');modalWorkerIdx=null;mPinBuffer='';}
-function handleModalOverlayClick(e){if(e.target===document.getElementById('scan-modal'))closeModal();}
-function showModalSetup(){document.getElementById('modal-setup').style.display='block';document.getElementById('modal-confirm').style.display='none';document.getElementById('modal-result').style.display='none';mPinBuffer='';updateMPinDots();document.getElementById('modal-pin-error').style.display='none';}
-function mpinKey(digit){if(mPinBuffer.length>=M_PIN_LENGTH)return;mPinBuffer+=digit;updateMPinDots();if(mPinBuffer.length===M_PIN_LENGTH)verifyModalPin();}
-function mpinBackspace(){mPinBuffer=mPinBuffer.slice(0,-1);updateMPinDots();}
-function updateMPinDots(){for(let i=0;i<M_PIN_LENGTH;i++)document.getElementById(`mdot-${i}`).classList.toggle('filled',i<mPinBuffer.length);}
+    if (data.error) {
+      document.getElementById('main-content').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Error</h3><p>${data.error}</p></div>`;
+      return;
+    }
 
-function verifyModalPin(){
-  const managerName=document.getElementById('modal-manager').value,room=document.getElementById('modal-room').value,phase=document.getElementById('modal-phase').value;
-  if(!managerName){showModalError('Please select a manager.');mPinBuffer='';updateMPinDots();return;}if(!room){showModalError('Please select a room.');mPinBuffer='';updateMPinDots();return;}if(!phase){showModalError('Please select a phase.');mPinBuffer='';updateMPinDots();return;}
-  const mgr=MANAGERS[managerName];if(!mgr||mgr.pin!==mPinBuffer){showModalError('Incorrect PIN.');mPinBuffer='';updateMPinDots();return;}
-  const worker=allWorkers[modalWorkerIdx];document.getElementById('confirm-mgr').textContent=managerName;document.getElementById('confirm-rm').textContent=room;document.getElementById('confirm-ph').textContent=phase;document.getElementById('confirm-ev').textContent=worker.eventName||'General';
-  document.getElementById('modal-setup').style.display='none';document.getElementById('modal-confirm').style.display='block';
-}
+    reportData = data.shifts || [];
 
-function showModalError(msg){const err=document.getElementById('modal-pin-error');err.textContent=msg;err.style.display='block';}
-
-async function submitModalScan(){
-  const worker=allWorkers[modalWorkerIdx];if(!worker)return;const logBtn=document.getElementById('modal-log-btn');logBtn.textContent='Logging…';logBtn.disabled=true;
-  try{const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(document.getElementById('modal-manager').value)}&room=${encodeURIComponent(document.getElementById('modal-room').value)}&phase=${encodeURIComponent(document.getElementById('modal-phase').value)}&event=${encodeURIComponent(worker.eventName||'General')}`;const text=await(await fetch(url)).text();
-  document.getElementById('modal-confirm').style.display='none';document.getElementById('modal-result').style.display='block';
-  if(text.includes('DUPLICATE')){document.getElementById('modal-result-icon').textContent='⚠️';document.getElementById('modal-result-title').textContent='Already scanned';document.getElementById('modal-result-msg').textContent='Scanned in the last 60 seconds.';}
-  else if(text.includes('ERROR')){document.getElementById('modal-result-icon').textContent='❌';document.getElementById('modal-result-title').textContent='Could not log';document.getElementById('modal-result-msg').textContent=text;}
-  else{document.getElementById('modal-result-icon').textContent='✅';document.getElementById('modal-result-title').textContent='Scan logged!';document.getElementById('modal-result-msg').textContent=`${worker.name} checked in to ${document.getElementById('modal-room').value}.`;
-  const scannedRoom=document.getElementById('modal-room').value;if(scannedRoom==='Clock IN'){setRowClockStatus(modalWorkerIdx,'clocked-in');setScanBtn(modalWorkerIdx,'in');}else if(scannedRoom==='Clock Out'){setRowClockStatus(modalWorkerIdx,'clocked-out');setScanBtn(modalWorkerIdx,'out');}else{setScanBtn(modalWorkerIdx,'logged');}allWorkers[modalWorkerIdx].scanLogged=true;}}
-  catch(e){document.getElementById('modal-confirm').style.display='none';document.getElementById('modal-result').style.display='block';document.getElementById('modal-result-icon').textContent='❌';document.getElementById('modal-result-title').textContent='Connection error';document.getElementById('modal-result-msg').textContent='Could not reach server.';}
-  logBtn.textContent='Log Scan';logBtn.disabled=false;
-}
-
-async function loadClockStatus(location,date){
-  try{
-    const res=await fetch(`${SCRIPT_URL}?action=getClockInStatus&date=${encodeURIComponent(date)}`);const data=await res.json();
-    if(data.error||!data.tags)return;
-    const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
-    allWorkers.forEach((w,i)=>{
-      if(!w.tagId)return;const tag=String(w.tagId).padStart(3,'0'),entry=data.tags[tag];if(!entry)return;
-      const bookedStart=parseTime(w.bookedTime),bookedEnd=parseEndTime(w.bookedTime);
-      const matchingClockIn=entry.clockIns.find(t=>{const m=parseTime(t);return m!==9999&&m>=bookedStart-180&&m<=bookedStart+180;});
-      if(!matchingClockIn)return;
-      const clockInMins=parseTime(matchingClockIn);
-      if(bookedStart!==9999&&clockInMins<bookedStart-15){
-        const minsEarly=bookedStart-clockInMins,key=`early|${w.name}`;
-        if(!siAlertsFired.has(key)){siAlertsFired.add(key);queueAlertPopup('Early Clock-In',`${w.name} clocked in ${minsEarly} minute${minsEarly!==1?'s':''} early.\nBooked time: ${w.bookedTime}\nActual clock-in: ${matchingClockIn}`,'early');}
-      }
-      const matchingClockOut=entry.clockOuts.find(t=>{const m=parseTime(t);return m!==9999&&m>clockInMins;});
-      if(matchingClockOut){setRowClockStatus(i,'clocked-out');setScanBtn(i,'out');}
-      else{
-        setRowClockStatus(i,'clocked-in');setScanBtn(i,'in');
-        if(bookedEnd!==9999&&nowMins>bookedEnd){
-          const minsOver=nowMins-bookedEnd,key=`overtime|${w.name}`;
-          if(!siAlertsFired.has(key)){siAlertsFired.add(key);queueAlertPopup('Still Clocked In — Past End Time',`${w.name} is still clocked in with no Clock Out recorded.\nScheduled end: ${w.bookedTime.split('-').pop().trim()}\n${minsOver} minute${minsOver!==1?'s':''} past scheduled end.`,'overtime');}
-        }
+    reportData.forEach(s => {
+      if (s.otHours != null) {
+        s.otHours    = roundOT(s.otHours);
+        s.totalHours = (s.regularHours || 0) + s.otHours;
       }
     });
-    resetSiCountdown();
-  }catch(e){console.error('loadClockStatus error:',e);}
+
+    renderReport(reportData, eventFilter, location);
+
+  } catch(e) {
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generate Report';
+  closeEventDropdown();
 }
 
-function setRowClockStatus(idx,cls){const row=document.getElementById(`row-${idx}`);if(!row)return;row.classList.remove('clocked-in','clocked-out');if(cls)row.classList.add(cls);}
-function setScanBtn(idx,state){const btn=document.getElementById(`scanbtn-${idx}`);if(!btn)return;btn.classList.add('logged');if(state==='in')btn.textContent='✅ Clocked IN';else if(state==='out')btn.textContent='✅ Clocked Out';else btn.textContent='✅ Scanned';}
-function updateStats(){const total=allWorkers.length,assigned=new Set(allWorkers.filter(w=>w.tagId).map(w=>w.tagId)).size;document.getElementById('stat-total').textContent=total;document.getElementById('stat-assigned').textContent=assigned;document.getElementById('stat-unassigned').textContent=total-assigned;document.getElementById('stats-bar').style.display=total?'flex':'none';}
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderReport(shifts, eventFilter, location) {
+  if (!shifts.length) {
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No data found</h3><p>No Clock IN or Clock OUT scans found for this selection.</p></div>';
+    return;
+  }
 
-function parseTime(str){if(!str)return 9999;const m=str.match(/^(\d+)(?::(\d+))?\s*(am|pm)?/i);if(!m)return 9999;let h=parseInt(m[1]);const min=parseInt(m[2]||0),ampm=(m[3]||'').toLowerCase();if(ampm==='pm'&&h!==12)h+=12;if(ampm==='am'&&h===12)h=0;return h*60+min;}
-function parseEndTime(str){if(!str)return 9999;const parts=str.split('-');if(parts.length<2)return 9999;return parseTime(parts[parts.length-1].trim());}
-function escHtml(str){if(!str)return '';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className='toast';},3500);}
+  dayGroups = {};
+  shifts.forEach(s => {
+    if (!dayGroups[s.date]) dayGroups[s.date] = { shifts: [], totalActual: 0, totalReg: 0, totalOT: 0, totalHrs: 0 };
+    dayGroups[s.date].shifts.push(s);
+    if (s.actualHours  != null) dayGroups[s.date].totalActual += s.actualHours;
+    if (s.regularHours != null) dayGroups[s.date].totalReg    += s.regularHours;
+    if (s.otHours      != null) dayGroups[s.date].totalOT     += s.otHours;
+    if (s.totalHours   != null) dayGroups[s.date].totalHrs    += s.totalHours;
+  });
+
+  Object.entries(dayGroups).forEach(([date, dg]) => {
+    dg.complete = dg.shifts.every(s => !s.incomplete);
+  });
+
+  const uniqueWorkers = new Set(shifts.map(s => s.workerName)).size;
+  let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
+  Object.values(dayGroups).forEach(dg => {
+    sumActual += dg.totalActual;
+    sumReg    += dg.totalReg;
+    sumOT     += dg.totalOT;
+    sumTotal  += dg.totalHrs;
+  });
+
+  document.getElementById('sum-days').textContent    = Object.keys(dayGroups).length;
+  document.getElementById('sum-workers').textContent = uniqueWorkers;
+  document.getElementById('sum-shifts').textContent  = shifts.length;
+  document.getElementById('sum-reg').textContent     = r2(sumReg);
+  document.getElementById('sum-ot').textContent      = r2(sumOT);
+  document.getElementById('sum-total').textContent   = r2(sumTotal);
+
+  let labelHtml = '';
+  if (eventFilter) {
+    const evList = eventFilter.split('|');
+    labelHtml = evList.length === 1
+      ? `Event: <strong>${escHtml(evList[0])}</strong>`
+      : `Events: <strong>${evList.length} selected</strong>`;
+  } else {
+    labelHtml = `<strong>All events</strong>`;
+  }
+  if (location) labelHtml += ` &nbsp;·&nbsp; Location: <strong>${escHtml(location)}</strong>`;
+  document.getElementById('event-label-bar').innerHTML = labelHtml;
+
+  document.getElementById('summary-bar').classList.add('visible');
+  document.getElementById('export-all-btn').classList.add('visible');
+
+  let html = '';
+  Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, dg]) => {
+    html += renderDayGroup(date, dg);
+  });
+
+  document.getElementById('main-content').innerHTML = html;
+}
+
+function renderDayGroup(date, dg) {
+  const dateObj  = parseDateStr(date);
+  const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  const dateStr  = dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
+  const complete = dg.complete;
+  const missing  = dg.shifts.filter(s => s.incomplete).length;
+
+  const statusHtml = complete
+    ? `<span class="status-badge status-complete">✓ Complete</span>`
+    : `<span class="status-badge status-pending">${missing} pending clock out</span>`;
+
+  const dlBtn = complete
+    ? `<button class="btn-day-dl ready" onclick="exportDayCSV('${date}')">Download CSV</button>`
+    : `<button class="btn-day-dl locked" disabled title="Waiting for all workers to clock out">Download CSV</button>`;
+
+  const sorted = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
+  const rows   = sorted.map(s => renderShiftRow(s)).join('');
+
+  return `
+    <div class="day-group">
+      <div class="day-header">
+        <div class="day-date-block">
+          <span class="day-date-primary">${dateStr}</span>
+          <span class="day-date-name">${dayName}</span>
+        </div>
+        <div class="day-vdivider"></div>
+        <div class="day-stats">
+          <div class="day-stat"><span class="lbl">Workers</span><span class="val">${dg.shifts.length}</span></div>
+          <div class="day-stat"><span class="lbl">Actual</span><span class="val">${r2(dg.totalActual)}</span></div>
+          <div class="day-stat"><span class="lbl">Regular</span><span class="val">${r2(dg.totalReg)}</span></div>
+          <div class="day-stat"><span class="lbl">OT</span><span class="val ot-val">${r2(dg.totalOT)}</span></div>
+          <div class="day-stat"><span class="lbl">Total</span><span class="val">${r2(dg.totalHrs)}</span></div>
+        </div>
+        <div class="day-actions">
+          ${statusHtml}
+          ${dlBtn}
+        </div>
+      </div>
+      <table class="shift-table">
+        <thead>
+          <tr>
+            <th colspan="6" style="background:#f8f8f8;border-bottom:none;padding:0;"></th>
+            <th colspan="3" class="billing-group-header">Billable Hours</th>
+          </tr>
+          <tr>
+            <th class="left">Worker</th>
+            <th class="left">Position</th>
+            <th>Clock IN</th>
+            <th>Clock OUT</th>
+            <th>Actual Hrs</th>
+            <th>Booked Time</th>
+            <th class="billing b-first">Reg Hrs</th>
+            <th class="billing">OT Hrs</th>
+            <th class="billing">Total Hrs</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderShiftRow(s) {
+  const isIncomplete = s.incomplete;
+  const rowClass     = isIncomplete ? 'incomplete' : '';
+  const initials     = s.workerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+  return `
+    <tr class="${rowClass}">
+      <td style="text-align:left;">
+        <div class="worker-cell">
+          <div class="worker-avatar">${escHtml(initials)}</div>
+          <div><div class="worker-name-val">${escHtml(s.workerName)}</div></div>
+        </div>
+      </td>
+      <td style="font-size:12px;color:#888;text-align:left;">${escHtml(s.position || '—')}</td>
+      <td class="time-cell">
+        <div class="time-val">${escHtml(s.clockIn || '—')}</div>
+        ${s.clockInDate && s.clockInDate !== s.date ? `<div class="time-date">${escHtml(s.clockInDate)}</div>` : ''}
+      </td>
+      <td class="time-cell">
+        <div class="time-val">${escHtml(s.clockOut || '—')}</div>
+        ${s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : ''}
+      </td>
+      <td class="time-right">
+        ${s.actualHours  != null ? `<span class="hours-val" style="color:#555;">${r2(s.actualHours)}</span>`  : '<span class="hours-val dash">—</span>'}
+      </td>
+      <td>
+        <span style="font-size:13px;color:#555;">${escHtml(s.bookedTime || '—')}</span>
+      </td>
+      <td class="billing b-first">
+        ${s.regularHours != null ? `<span class="hours-val reg">${r2(s.regularHours)}</span>` : '<span class="hours-val dash">—</span>'}
+      </td>
+      <td class="billing">
+        ${s.otHours      != null ? `<span class="hours-val ot">${r2(s.otHours)}</span>`       : '<span class="hours-val dash">—</span>'}
+      </td>
+      <td class="billing">
+        ${s.totalHours   != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>`   : '<span class="hours-val dash">—</span>'}
+      </td>
+    </tr>`;
+}
+
+// ── Export single day CSV ─────────────────────────────────────────────────────
+function exportDayCSV(date) {
+  const dg = dayGroups[date];
+  if (!dg) return;
+
+  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length
+    ? 'All Events'
+    : [...selectedEvents].join(', ');
+  const location = document.getElementById('location-select').value || 'All Locations';
+  const dateObj  = parseDateStr(date);
+  const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+  const now      = new Date().toLocaleString('en-US');
+
+  const sorted = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
+
+  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT',
+                   'Actual Hrs', 'Booked Time', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'];
+
+  const dataRows = sorted.map(s => [
+    s.workerName,
+    s.position     || '',
+    s.date,
+    dayName,
+    s.clockIn      || '',
+    s.clockOut     || '',
+    s.actualHours  != null ? r2(s.actualHours)  : '',
+    s.bookedTime   || '',
+    s.regularHours != null ? r2(s.regularHours) : '',
+    s.otHours      != null ? r2(s.otHours)      : '',
+    s.totalHours   != null ? r2(s.totalHours)   : ''
+  ]);
+
+  const totalsRow = [
+    'TOTALS', '', date, dayName, '', '',
+    r2(dg.totalActual), '',
+    r2(dg.totalReg),
+    r2(dg.totalOT),
+    r2(dg.totalHrs)
+  ];
+
+  const rows = [
+    ['VIT Time & Attendance Report'],
+    ['Event:', eventLabel],
+    ['Location:', location],
+    ['Date:', `${dayName}, ${date}`],
+    ['Workers:', dg.shifts.length],
+    ['Generated:', now],
+    [],
+    headers,
+    ...dataRows,
+    [],
+    totalsRow
+  ];
+
+  downloadCSV(rows, `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
+}
+
+// ── Export all days CSV ───────────────────────────────────────────────────────
+function exportAllCSV() {
+  if (!reportData.length) return;
+
+  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length
+    ? 'All Events'
+    : [...selectedEvents].join(', ');
+  const location = document.getElementById('location-select').value || 'All Locations';
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo   = document.getElementById('date-to').value;
+  const now      = new Date().toLocaleString('en-US');
+
+  const uniqueWorkers = new Set(reportData.map(s => s.workerName)).size;
+  let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
+  Object.values(dayGroups).forEach(dg => {
+    sumActual += dg.totalActual;
+    sumReg    += dg.totalReg;
+    sumOT     += dg.totalOT;
+    sumTotal  += dg.totalHrs;
+  });
+
+  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT',
+                   'Actual Hrs', 'Booked Time', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'];
+
+  const sorted = [...reportData].sort((a, b) => {
+    const dc = a.date.localeCompare(b.date);
+    return dc !== 0 ? dc : a.workerName.localeCompare(b.workerName);
+  });
+
+  const detailRows = [];
+  let currentDate = null;
+  sorted.forEach(s => {
+    if (s.date !== currentDate) {
+      if (currentDate !== null) {
+        const dg = dayGroups[currentDate];
+        const prevDateObj = parseDateStr(currentDate);
+        detailRows.push([
+          `— ${prevDateObj.toLocaleDateString('en-US', { weekday: 'short' })} ${currentDate} SUBTOTAL`,
+          '', '', '', '', '',
+          r2(dg.totalActual), '',
+          r2(dg.totalReg),
+          r2(dg.totalOT),
+          r2(dg.totalHrs)
+        ]);
+        detailRows.push([]);
+      }
+      currentDate = s.date;
+    }
+    const dateObj = parseDateStr(s.date);
+    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+    detailRows.push([
+      s.workerName,
+      s.position     || '',
+      s.date,
+      dayName,
+      s.clockIn      || '',
+      s.clockOut     || '',
+      s.actualHours  != null ? r2(s.actualHours)  : '',
+      s.bookedTime   || '',
+      s.regularHours != null ? r2(s.regularHours) : '',
+      s.otHours      != null ? r2(s.otHours)      : '',
+      s.totalHours   != null ? r2(s.totalHours)   : ''
+    ]);
+  });
+
+  if (currentDate) {
+    const dg = dayGroups[currentDate];
+    const lastDateObj = parseDateStr(currentDate);
+    detailRows.push([
+      `— ${lastDateObj.toLocaleDateString('en-US', { weekday: 'short' })} ${currentDate} SUBTOTAL`,
+      '', '', '', '', '',
+      r2(dg.totalActual), '',
+      r2(dg.totalReg),
+      r2(dg.totalOT),
+      r2(dg.totalHrs)
+    ]);
+  }
+
+  const rows = [
+    ['VIT Time & Attendance Report'],
+    ['Event:', eventLabel],
+    ['Location:', location],
+    ['Date Range:', `${dateFrom} to ${dateTo}`],
+    ['Generated:', now],
+    [],
+    ['SUMMARY'],
+    ['Total Days', 'Total Workers', 'Total Shifts', 'Total Actual Hrs', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'],
+    [Object.keys(dayGroups).length, uniqueWorkers, reportData.length, r2(sumActual), r2(sumReg), r2(sumOT), r2(sumTotal)],
+    [],
+    ['DAILY DETAIL'],
+    headers,
+    ...detailRows,
+    [],
+    ['GRAND TOTAL', '', '', '', '', '', r2(sumActual), '', r2(sumReg), r2(sumOT), r2(sumTotal)]
+  ];
+
+  downloadCSV(rows, `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
+}
+
+function downloadCSV(rowsArray, filename) {
+  const csv  = rowsArray.map(r => (r || []).map(v => `"${String(v == null ? '' : v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function r2(n) { return Math.round(n * 100) / 100; }
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>
