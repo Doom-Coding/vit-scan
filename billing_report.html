@@ -57,7 +57,7 @@
     flex-wrap: wrap;
   }
 
-  .control-group { display: flex; flex-direction: column; gap: 4px; }
+  .control-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
 
   .control-group label {
     font-size: 11px;
@@ -83,6 +83,147 @@
 
   .control-group select:focus,
   .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+
+  /* ── Multi-select dropdown ── */
+  .multiselect-btn {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+    color: #1a1a1a;
+    min-width: 220px;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+  }
+
+  .multiselect-btn:focus { outline: none; }
+
+  .multiselect-wrapper {
+    display: flex;
+    align-items: stretch;
+    min-width: 220px;
+  }
+
+  .multiselect-clear {
+    padding: 0 0.6rem;
+    border: 1px solid #ddd;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    background: #fafafa;
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .multiselect-clear:hover { color: #1a1a1a; background: #f0f0f0; }
+
+  .multiselect-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 260px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 200;
+    display: none;
+    overflow: hidden;
+  }
+
+  .multiselect-dropdown.open { display: block; }
+
+  .multiselect-search {
+    padding: 0.6rem 0.75rem;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    background: #fafafa;
+    color: #1a1a1a;
+  }
+
+  .multiselect-actions {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .multiselect-action-btn {
+    flex: 1;
+    padding: 0.4rem;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background 0.1s, color 0.1s;
+  }
+
+  .multiselect-action-btn:hover { background: #f5f5f5; color: #1a1a1a; }
+  .multiselect-action-btn:first-child { border-right: 1px solid #f0f0f0; }
+
+  .multiselect-list {
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .multiselect-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+
+  .multiselect-item:hover { background: #f5f5f5; }
+
+  .multiselect-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: #1a1a1a;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .multiselect-item.all-option {
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+    color: #555;
+  }
+
+  .ms-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
 
   .btn-load {
     padding: 0.5rem 1.25rem;
@@ -138,7 +279,6 @@
 
   .main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 
-  /* ── Day group ── */
   .day-group { margin-bottom: 2rem; }
 
   .day-header {
@@ -191,7 +331,6 @@
   .btn-day-dl.ready:hover { opacity: 0.85; }
   .btn-day-dl.locked { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); cursor: not-allowed; }
 
-  /* ── Shift table ── */
   .shift-table {
     width: 100%;
     border-collapse: collapse;
@@ -227,7 +366,6 @@
   .shift-table tr:last-child td { border-bottom: none; }
   .shift-table tr.incomplete { background: #fffbeb; }
 
-  /* ── Billing group ── */
   .shift-table td.time-right { border-right: 2px solid #e5e5e5; }
   .shift-table th.time-right { border-right: 2px solid #e5e5e5; }
 
@@ -320,7 +458,9 @@
   @media (max-width: 700px) {
     .controls { flex-direction: column; }
     .control-group select,
-    .control-group input { min-width: 100%; }
+    .control-group input,
+    .multiselect-btn { min-width: 100%; }
+    .multiselect-wrapper { width: 100%; }
     .shift-table th:nth-child(2),
     .shift-table td:nth-child(2) { display: none; }
     .day-stats { gap: 0.75rem; }
@@ -347,12 +487,32 @@
 </header>
 
 <div class="controls">
-  <div class="control-group">
+
+  <!-- ── Event multi-select ── -->
+  <div class="control-group" id="event-control-group">
     <label>Event / Site</label>
-    <select id="event-select">
-      <option value="">Loading events…</option>
+    <div class="multiselect-wrapper">
+      <button class="multiselect-btn" id="event-ms-btn" type="button" onclick="toggleEventDropdown(event)">Loading events…</button>
+      <button class="multiselect-clear" id="event-ms-clear" type="button" onclick="clearEventSelection()" title="Clear selection">×</button>
+    </div>
+    <div class="multiselect-dropdown" id="event-ms-dropdown">
+      <input class="multiselect-search" type="text" placeholder="Search events…" id="event-ms-search" oninput="filterEventList(this.value)">
+      <div class="multiselect-actions">
+        <button class="multiselect-action-btn" type="button" onclick="selectAllEvents()">Select All</button>
+        <button class="multiselect-action-btn" type="button" onclick="clearEventSelection()">Clear All</button>
+      </div>
+      <div class="multiselect-list" id="event-ms-list"></div>
+    </div>
+  </div>
+
+  <!-- ── Location single-select ── -->
+  <div class="control-group">
+    <label>Location</label>
+    <select id="location-select">
+      <option value="">Loading locations…</option>
     </select>
   </div>
+
   <div class="control-group">
     <label>From</label>
     <input type="date" id="date-from">
@@ -369,7 +529,7 @@
   <span><span class="flag flag-minimum">MIN</span> ≤ 5 hrs → 5 reg · 5–6 hrs → 5 reg + 1 OT</span>
   <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 regular</span>
   <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 = OT</span>
-  <span style="color:#aaa;">· &gt;10 hrs excess = OT · 1.5× multiplier · OT rounded: ≥0.25 → next whole hr</span>
+  <span style="color:#aaa;">· &gt;10 hrs excess = OT · 1.5× multiplier · OT rounded up to whole hr</span>
 </div>
 
 <div class="summary-bar" id="summary-bar">
@@ -416,9 +576,12 @@
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
 
-let reportData = [];
-let dayGroups  = {};
+let reportData    = [];
+let dayGroups     = {};
+let allEvents     = [];       // full list loaded from server
+let selectedEvents = new Set(); // currently checked events
 
+// ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
   const prior = new Date(today);
@@ -427,11 +590,17 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('date-to').value   = priorStr;
   document.getElementById('date-from').value = priorStr;
   loadEvents();
+  loadLocations();
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', e => {
+    const grp = document.getElementById('event-control-group');
+    if (!grp.contains(e.target)) closeEventDropdown();
+  });
 });
 
 function fmt(d) { return d.toISOString().split('T')[0]; }
 
-// ── Parse MM/DD/YYYY safely ───────────────────────────────────────────────────
 function parseDateStr(str) {
   if (!str) return new Date('invalid');
   const p = str.split('/');
@@ -439,35 +608,143 @@ function parseDateStr(str) {
   return new Date(parseInt(p[2]), parseInt(p[0]) - 1, parseInt(p[1]), 12, 0, 0);
 }
 
-// ── OT rounding: >= 0.1 → round up to next whole hour, else drop ────
+// OT: always ceil to next whole hour
 function roundOT(n) {
   if (n == null) return null;
   return Math.ceil(n);
 }
+
+// ── Event multi-select logic ──────────────────────────────────────────────────
 async function loadEvents() {
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getEventList`);
     const data = await res.json();
-    const sel  = document.getElementById('event-select');
-    sel.innerHTML = '<option value="">All events</option>';
-    if (data.events && data.events.length) {
-      data.events.forEach(ev => {
+    allEvents = (data.events && data.events.length) ? data.events : [];
+    buildEventList(allEvents);
+    updateEventBtn();
+  } catch(e) {
+    allEvents = [];
+    buildEventList([]);
+    updateEventBtn();
+  }
+}
+
+function buildEventList(events) {
+  const list = document.getElementById('event-ms-list');
+  list.innerHTML = '';
+
+  // "All events" option at top
+  const allItem = document.createElement('label');
+  allItem.className = 'multiselect-item all-option';
+  allItem.innerHTML = `<input type="checkbox" id="ms-all-chk"> All events`;
+  allItem.querySelector('input').addEventListener('change', e => {
+    if (e.target.checked) selectAllEvents(); else clearEventSelection();
+  });
+  list.appendChild(allItem);
+
+  events.forEach(ev => {
+    const item = document.createElement('label');
+    item.className = 'multiselect-item';
+    item.dataset.value = ev;
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.value = ev;
+    chk.checked = selectedEvents.has(ev);
+    chk.addEventListener('change', () => {
+      if (chk.checked) selectedEvents.add(ev); else selectedEvents.delete(ev);
+      updateEventBtn();
+      updateAllCheckbox();
+    });
+    item.appendChild(chk);
+    item.appendChild(document.createTextNode(ev));
+    list.appendChild(item);
+  });
+
+  updateAllCheckbox();
+}
+
+function filterEventList(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#event-ms-list .multiselect-item:not(.all-option)').forEach(item => {
+    item.style.display = item.dataset.value.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function toggleEventDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('event-ms-dropdown');
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) document.getElementById('event-ms-search').focus();
+}
+
+function closeEventDropdown() {
+  document.getElementById('event-ms-dropdown').classList.remove('open');
+}
+
+function selectAllEvents() {
+  allEvents.forEach(ev => selectedEvents.add(ev));
+  document.querySelectorAll('#event-ms-list .multiselect-item:not(.all-option) input').forEach(c => c.checked = true);
+  updateEventBtn();
+  updateAllCheckbox();
+}
+
+function clearEventSelection() {
+  selectedEvents.clear();
+  document.querySelectorAll('#event-ms-list input[type="checkbox"]').forEach(c => c.checked = false);
+  updateEventBtn();
+}
+
+function updateAllCheckbox() {
+  const allChk = document.getElementById('ms-all-chk');
+  if (!allChk) return;
+  allChk.checked = allEvents.length > 0 && selectedEvents.size === allEvents.length;
+  allChk.indeterminate = selectedEvents.size > 0 && selectedEvents.size < allEvents.length;
+}
+
+function updateEventBtn() {
+  const btn = document.getElementById('event-ms-btn');
+  if (selectedEvents.size === 0) {
+    btn.textContent = 'All events';
+  } else if (selectedEvents.size === 1) {
+    btn.textContent = [...selectedEvents][0];
+  } else if (selectedEvents.size === allEvents.length && allEvents.length > 0) {
+    btn.textContent = 'All events';
+  } else {
+    btn.innerHTML = `${selectedEvents.size} events selected <span class="ms-badge">${selectedEvents.size}</span>`;
+  }
+}
+
+// ── Location dropdown ─────────────────────────────────────────────────────────
+async function loadLocations() {
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getLocationList`);
+    const data = await res.json();
+    const sel  = document.getElementById('location-select');
+    sel.innerHTML = '<option value="">All locations</option>';
+    if (data.locations && data.locations.length) {
+      data.locations.forEach(loc => {
         const opt = document.createElement('option');
-        opt.value = ev; opt.textContent = ev;
+        opt.value = loc; opt.textContent = loc;
         sel.appendChild(opt);
       });
     }
   } catch(e) {
-    document.getElementById('event-select').innerHTML = '<option value="">All events</option>';
+    document.getElementById('location-select').innerHTML = '<option value="">All locations</option>';
   }
 }
 
+// ── Load report ───────────────────────────────────────────────────────────────
 async function loadReport() {
-  const event    = document.getElementById('event-select').value;
   const dateFrom = document.getElementById('date-from').value;
   const dateTo   = document.getElementById('date-to').value;
+  const location = document.getElementById('location-select').value;
 
   if (!dateFrom || !dateTo) { alert('Please select a date range.'); return; }
+
+  // Build event filter: empty string = all, otherwise pipe-separated list
+  const eventFilter = selectedEvents.size > 0 && selectedEvents.size < allEvents.length
+    ? [...selectedEvents].join('|')
+    : '';
 
   const btn = document.getElementById('load-btn');
   btn.disabled = true;
@@ -477,7 +754,12 @@ async function loadReport() {
   document.getElementById('export-all-btn').classList.remove('visible');
 
   try {
-    const url  = `${SCRIPT_URL}?action=getBillingData&eventFilter=${encodeURIComponent(event)}&dateFrom=${encodeURIComponent(dateFrom)}&dateTo=${encodeURIComponent(dateTo)}`;
+    const url = `${SCRIPT_URL}?action=getBillingData`
+      + `&eventFilter=${encodeURIComponent(eventFilter)}`
+      + `&locationFilter=${encodeURIComponent(location)}`
+      + `&dateFrom=${encodeURIComponent(dateFrom)}`
+      + `&dateTo=${encodeURIComponent(dateTo)}`;
+
     const res  = await fetch(url);
     const data = await res.json();
 
@@ -488,8 +770,6 @@ async function loadReport() {
 
     reportData = data.shifts || [];
 
-    // Apply OT rounding: decimal >= 0.25 rounds up to next whole hour, else drops.
-    // Recalculate totalHours so all downstream totals and CSV exports stay consistent.
     reportData.forEach(s => {
       if (s.otHours != null) {
         s.otHours    = roundOT(s.otHours);
@@ -497,7 +777,7 @@ async function loadReport() {
       }
     });
 
-    renderReport(reportData, event);
+    renderReport(reportData, eventFilter, location);
 
   } catch(e) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
@@ -505,11 +785,13 @@ async function loadReport() {
 
   btn.disabled = false;
   btn.textContent = 'Generate Report';
+  closeEventDropdown();
 }
 
-function renderReport(shifts, event) {
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderReport(shifts, eventFilter, location) {
   if (!shifts.length) {
-    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No data found</h3><p>No Clock IN or Clock OUT scans found for this event and date range.</p></div>';
+    document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No data found</h3><p>No Clock IN or Clock OUT scans found for this selection.</p></div>';
     return;
   }
 
@@ -542,7 +824,19 @@ function renderReport(shifts, event) {
   document.getElementById('sum-reg').textContent     = r2(sumReg);
   document.getElementById('sum-ot').textContent      = r2(sumOT);
   document.getElementById('sum-total').textContent   = r2(sumTotal);
-  document.getElementById('event-label-bar').innerHTML = event ? `Event: <strong>${escHtml(event)}</strong>` : `<strong>All events</strong>`;
+
+  let labelHtml = '';
+  if (eventFilter) {
+    const evList = eventFilter.split('|');
+    labelHtml = evList.length === 1
+      ? `Event: <strong>${escHtml(evList[0])}</strong>`
+      : `Events: <strong>${evList.length} selected</strong>`;
+  } else {
+    labelHtml = `<strong>All events</strong>`;
+  }
+  if (location) labelHtml += ` &nbsp;·&nbsp; Location: <strong>${escHtml(location)}</strong>`;
+  document.getElementById('event-label-bar').innerHTML = labelHtml;
+
   document.getElementById('summary-bar').classList.add('visible');
   document.getElementById('export-all-btn').classList.add('visible');
 
@@ -660,7 +954,10 @@ function exportDayCSV(date) {
   const dg = dayGroups[date];
   if (!dg) return;
 
-  const event    = document.getElementById('event-select').value || 'All Events';
+  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length
+    ? 'All Events'
+    : [...selectedEvents].join(', ');
+  const location = document.getElementById('location-select').value || 'All Locations';
   const dateObj  = parseDateStr(date);
   const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
   const now      = new Date().toLocaleString('en-US');
@@ -694,7 +991,8 @@ function exportDayCSV(date) {
 
   const rows = [
     ['VIT Time & Attendance Report'],
-    ['Event:', event],
+    ['Event:', eventLabel],
+    ['Location:', location],
     ['Date:', `${dayName}, ${date}`],
     ['Workers:', dg.shifts.length],
     ['Generated:', now],
@@ -705,14 +1003,17 @@ function exportDayCSV(date) {
     totalsRow
   ];
 
-  downloadCSV(rows, `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
+  downloadCSV(rows, `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
 }
 
 // ── Export all days CSV ───────────────────────────────────────────────────────
 function exportAllCSV() {
   if (!reportData.length) return;
 
-  const event    = document.getElementById('event-select').value || 'All Events';
+  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length
+    ? 'All Events'
+    : [...selectedEvents].join(', ');
+  const location = document.getElementById('location-select').value || 'All Locations';
   const dateFrom = document.getElementById('date-from').value;
   const dateTo   = document.getElementById('date-to').value;
   const now      = new Date().toLocaleString('en-US');
@@ -785,7 +1086,8 @@ function exportAllCSV() {
 
   const rows = [
     ['VIT Time & Attendance Report'],
-    ['Event:', event],
+    ['Event:', eventLabel],
+    ['Location:', location],
     ['Date Range:', `${dateFrom} to ${dateTo}`],
     ['Generated:', now],
     [],
@@ -800,7 +1102,7 @@ function exportAllCSV() {
     ['GRAND TOTAL', '', '', '', '', '', r2(sumActual), '', r2(sumReg), r2(sumOT), r2(sumTotal)]
   ];
 
-  downloadCSV(rows, `VIT_${event.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
+  downloadCSV(rows, `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
 }
 
 function downloadCSV(rowsArray, filename) {
