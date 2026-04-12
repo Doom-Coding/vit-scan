@@ -512,7 +512,7 @@ async function loadWorkers(){
   const btn=document.getElementById('load-btn');btn.disabled=true;btn.innerHTML='<span class="spinner-inline"></span>Loading…';document.getElementById('main-content').innerHTML='<div class="loading"><span class="spinner-inline"></span>Fetching worker list…</div>';
   try{const res=await fetch(`${SCRIPT_URL}?action=getWorkers&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}`);const data=await res.json();
   if(data.error){showToast(data.error,'error');document.getElementById('main-content').innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><h3>Error loading workers</h3><p>${data.error}</p></div>`;return;}
-  allWorkers=data.workers||[];renderWorkers_signin(allWorkers);updateStats();siLastLocation=location;siLastDate=date;loadClockStatus(location,date);stopSiRefresh();startSiRefresh();}
+  allWorkers=data.workers||[];siAlertsFired=new Set();renderWorkers_signin(allWorkers);updateStats();siLastLocation=location;siLastDate=date;loadClockStatus(location,date);stopSiRefresh();startSiRefresh();}
   catch(e){showToast('Could not connect. Check your network.','error');document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Try again.</p></div>';}
   btn.disabled=false;btn.textContent='Load Workers';
 }
@@ -526,7 +526,7 @@ function renderWorkers_signin(workers){
   workers.forEach((w,i)=>{if(w.tagId){const input=document.getElementById(`tag-${i}`);if(input){input.value=w.tagId;input.classList.add('has-value');markSaved(i);}}});
 }
 
-function renderRow(w){const i=w.idx;return `<tr id="row-${i}"><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td><span style="font-size:13px;color:#555;white-space:nowrap;">${escHtml(w.phone||'—')}</span></td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
+function renderRow(w){const i=w.idx;return `<tr id="row-${i}"><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room" id="room-${i}">${escHtml(w.room||'—')}</span></td><td><span style="font-size:13px;color:#555;white-space:nowrap;">${escHtml(w.phone||'—')}</span></td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
 
 function onTagInput(idx){const input=document.getElementById(`tag-${idx}`),dot=document.getElementById(`dot-${idx}`),btn=document.getElementById(`savebtn-${idx}`),msg=document.getElementById(`conflict-${idx}`);input.classList.remove('has-value','conflict');input.classList.toggle('has-value',input.value.length>0);dot.className='status-dot unsaved';btn.textContent='Save Tag';btn.classList.remove('saved','conflict');btn.onclick=()=>saveTag(idx);msg.style.display='none';}
 
@@ -634,7 +634,7 @@ async function loadClockStatus(location, date) {
       const clockInMins = parseTime(matchingClockIn);
 
       // Alert: clocked in more than 15 minutes early
-      if (bookedStart !== 9999 && clockInMins < bookedStart - 30) {
+      if (bookedStart !== 9999 && clockInMins < bookedStart - 15) {
         const minsEarly = bookedStart - clockInMins;
         const key       = `early|${w.name}`;
         if (!siAlertsFired.has(key)) {
@@ -669,9 +669,13 @@ async function loadClockStatus(location, date) {
       if (matchingClockOut) {
         setRowClockStatus(i, 'clocked-out');
         setScanBtn(i, 'out');
+        // Still show last known room even after clock-out
+        updateRoomCell(i, entry, clockInMins);
       } else {
         setRowClockStatus(i, 'clocked-in');
         setScanBtn(i, 'in');
+        // Show most recent room scan after clock-in
+        updateRoomCell(i, entry, clockInMins);
 
         // Alert: still clocked in past scheduled end (adjusted for overnight)
         const effectiveEndMins = isOvernight ? bookedEnd + 1440 : bookedEnd;
@@ -706,6 +710,30 @@ function getNextDateISO(isoDate) {
 
 function setRowClockStatus(idx,cls){const row=document.getElementById(`row-${idx}`);if(!row)return;row.classList.remove('clocked-in','clocked-out');if(cls)row.classList.add(cls);}
 function setScanBtn(idx,state){const btn=document.getElementById(`scanbtn-${idx}`);if(!btn)return;btn.classList.add('logged');if(state==='in')btn.textContent='✅ Clocked IN';else if(state==='out')btn.textContent='✅ Clocked Out';else btn.textContent='✅ Scanned';}
+
+// Update the Room/Area cell with the most recent room scan after clock-in
+function updateRoomCell(idx, entry, clockInMins) {
+  const el = document.getElementById(`room-${idx}`);
+  if (!el || !entry.roomScans || !entry.roomScans.length) return;
+
+  // Find the last room scan that happened after the matched clock-in.
+  // Scans are in chronological order so reverse-search for the latest.
+  // Handle midnight wraparound: if clockInMins is late-night and scan
+  // time looks like early morning, adjust it forward by 1440.
+  let lastScan = null;
+  for (let s = entry.roomScans.length - 1; s >= 0; s--) {
+    let m = parseTime(entry.roomScans[s].time);
+    if (m === 9999) continue;
+    if (clockInMins > 1260 && m < 180) m += 1440; // overnight wraparound
+    if (m > clockInMins) { lastScan = entry.roomScans[s]; break; }
+  }
+
+  if (!lastScan) return; // no room scan after clock-in yet — leave as-is
+
+  el.innerHTML = `${escHtml(lastScan.room)} <span style="font-size:11px;color:#888;">${lastScan.time}</span>`;
+  el.style.color      = '#1a1a1a';
+  el.style.fontWeight = '600';
+}
 function updateStats(){const total=allWorkers.length,assigned=new Set(allWorkers.filter(w=>w.tagId).map(w=>w.tagId)).size;document.getElementById('stat-total').textContent=total;document.getElementById('stat-assigned').textContent=assigned;document.getElementById('stat-unassigned').textContent=total-assigned;document.getElementById('stats-bar').style.display=total?'flex':'none';}
 
 function parseTime(str){if(!str)return 9999;const m=str.match(/^(\d+)(?::(\d+))?\s*(am|pm)?/i);if(!m)return 9999;let h=parseInt(m[1]);const min=parseInt(m[2]||0),ampm=(m[3]||'').toLowerCase();if(ampm==='pm'&&h!==12)h+=12;if(ampm==='am'&&h===12)h=0;return h*60+min;}
