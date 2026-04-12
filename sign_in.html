@@ -633,20 +633,6 @@ async function loadClockStatus(location, date) {
 
       const clockInMins = parseTime(matchingClockIn);
 
-      // Alert: clocked in more than 15 minutes early
-      if (bookedStart !== 9999 && clockInMins < bookedStart - 15) {
-        const minsEarly = bookedStart - clockInMins;
-        const key       = `early|${w.name}`;
-        if (!siAlertsFired.has(key)) {
-          siAlertsFired.add(key);
-          queueAlertPopup(
-            'Early Clock-In',
-            `${w.name} clocked in ${minsEarly} minute${minsEarly !== 1 ? 's' : ''} early.\nBooked time: ${w.bookedTime}\nActual clock-in: ${matchingClockIn}`,
-            'early'
-          );
-        }
-      }
-
       // Look for same-day clock out after the clock-in
       let matchingClockOut = entry.clockOuts.find(t => {
         const m = parseTime(t);
