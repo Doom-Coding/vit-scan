@@ -1715,7 +1715,8 @@ async function loadClockStatus(location, date) {
     if (data.error || !data.tags) return;
     allWorkers.forEach((w, i) => {
       if (!w.tagId) return;
-      const status = data.tags[w.tagId];
+      const tag    = String(w.tagId).padStart(3, '0');
+      const status = data.tags[tag];
       if (!status) return;
       if (status.clockOut) {
         setRowClockStatus(i, 'clocked-out');
