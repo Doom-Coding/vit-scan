@@ -164,7 +164,7 @@
   <span><span class="flag flag-minimum">MIN</span> ≤ 5 hrs → 5 reg · 5–6 hrs → 5 reg + 1 OT</span>
   <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 regular</span>
   <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 = OT</span>
-  <span><span class="flag flag-grace">15-MIN GRACE</span> clock-in/out within 15 min of booked → billed at booked time</span>
+  <span><span class="flag flag-grace">GRACE</span> clock-in within 15 min · clock-out within 14 min → billed at booked time</span>
   <span style="color:#aaa;">· &gt;10 hrs excess = OT · OT rounded up to whole hr</span>
 </div>
 
@@ -471,7 +471,7 @@ function exportDayCSV(date) {
   downloadCSV([
     ['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],
     ['Date:',`${dayName}, ${date}`],['Workers:',dg.shifts.length],['Generated:',now],
-    ['Grace Window:','Scans within 15 min of booked time billed at booked time'],
+    ['Grace Window:','Clock-in within 15 min / clock-out within 14 min of booked time billed at booked time'],
     [],headers,...dataRows,[],totalsRow
   ], `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
 }
@@ -517,7 +517,7 @@ function exportAllCSV() {
   downloadCSV([
     ['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],
     ['Date Range:',`${dateFrom} to ${dateTo}`],['Generated:',now],
-    ['Grace Window:','Scans within 15 min of booked time billed at booked time'],
+    ['Grace Window:','Clock-in within 15 min / clock-out within 14 min of booked time billed at booked time'],
     [],['SUMMARY'],
     ['Total Days','Total Workers','Total Shifts','Total Actual Hrs','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'],
     [Object.keys(dayGroups).length,uniqueWorkers,reportData.length,r2(sumActual),r2(sumReg),r2(sumOT),r2(sumTotal)],
