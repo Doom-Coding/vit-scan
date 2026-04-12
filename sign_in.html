@@ -1720,23 +1720,17 @@ async function loadClockStatus(location, date) {
       const entry = data.tags[tag];
       if (!entry) return;
 
-      // Convert this row's booked time to minutes so we can find the
-      // clock-in that belongs to this specific shift.
       const bookedMins = parseTime(w.bookedTime);
 
-      // Find the clock-in whose time falls within a 60-min-before to
-      // 3-hour-after window around the booked time.  For workers with
-      // multiple shifts the window naturally selects the right event.
       const matchingClockIn = entry.clockIns.find(t => {
         const m = parseTime(t);
         return m !== 9999 && m >= bookedMins - 60 && m <= bookedMins + 180;
       });
 
-      if (!matchingClockIn) return; // no clock-in near this shift — leave row uncolored
+      if (!matchingClockIn) return;
 
-      // Look for a clock-out that came after this specific clock-in
-      const clockInMins        = parseTime(matchingClockIn);
-      const matchingClockOut   = entry.clockOuts.find(t => {
+      const clockInMins      = parseTime(matchingClockIn);
+      const matchingClockOut = entry.clockOuts.find(t => {
         const m = parseTime(t);
         return m !== 9999 && m > clockInMins;
       });
