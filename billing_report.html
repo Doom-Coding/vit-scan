@@ -6,479 +6,114 @@
 <title>VIT · Billing Report</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f7f7f5;
-    min-height: 100vh;
-    color: #1a1a1a;
-  }
-
-  header {
-    background: #1a1a1a;
-    color: #fff;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; min-height: 100vh; color: #1a1a1a; }
+  header { background: #1a1a1a; color: #fff; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .header-left { display: flex; align-items: center; gap: 1rem; }
   .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.5; }
   .header-title { font-size: 15px; font-weight: 600; }
   .header-right { display: flex; align-items: center; gap: 0.75rem; }
-
-  .btn-export-all {
-    padding: 0.4rem 1rem;
-    background: transparent;
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: none;
-  }
-
+  .btn-export-all { padding: 0.4rem 1rem; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; display: none; }
   .btn-export-all:hover { background: rgba(255,255,255,0.1); }
   .btn-export-all.visible { display: block; }
-
-  .controls {
-    background: #fff;
-    border-bottom: 1px solid #e5e5e5;
-    padding: 1rem 1.5rem;
-    display: flex;
-    gap: 1rem;
-    align-items: flex-end;
-    flex-wrap: wrap;
-  }
-
+  .controls { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
   .control-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
-
-  .control-group label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #888;
-  }
-
-  .control-group select,
-  .control-group input[type="date"] {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fafafa;
-    color: #1a1a1a;
-    appearance: none;
-    -webkit-appearance: none;
-    min-width: 180px;
-    cursor: pointer;
-  }
-
-  .control-group select:focus,
-  .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-
-  /* ── Multi-select dropdown ── */
-  .multiselect-btn {
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
-    color: #1a1a1a;
-    min-width: 220px;
-    cursor: pointer;
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-    width: 100%;
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-  }
-
+  .control-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
+  .control-group select, .control-group input[type="date"] { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; appearance: none; -webkit-appearance: none; min-width: 180px; cursor: pointer; }
+  .control-group select:focus, .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+  .multiselect-btn { padding: 0.5rem 2rem 0.5rem 0.75rem; border: 1px solid #ddd; font-size: 14px; background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 0.6rem center; color: #1a1a1a; min-width: 220px; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; border-right: none; border-radius: 8px 0 0 8px; }
   .multiselect-btn:focus { outline: none; }
-
-  .multiselect-wrapper {
-    display: flex;
-    align-items: stretch;
-    min-width: 220px;
-  }
-
-  .multiselect-clear {
-    padding: 0 0.6rem;
-    border: 1px solid #ddd;
-    border-left: none;
-    border-radius: 0 8px 8px 0;
-    background: #fafafa;
-    color: #aaa;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-    transition: color 0.15s, background 0.15s;
-  }
-
+  .multiselect-wrapper { display: flex; align-items: stretch; min-width: 220px; }
+  .multiselect-clear { padding: 0 0.6rem; border: 1px solid #ddd; border-left: none; border-radius: 0 8px 8px 0; background: #fafafa; color: #aaa; font-size: 16px; cursor: pointer; display: flex; align-items: center; line-height: 1; transition: color 0.15s, background 0.15s; }
   .multiselect-clear:hover { color: #1a1a1a; background: #f0f0f0; }
-
-  .multiselect-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    min-width: 260px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    z-index: 200;
-    display: none;
-    overflow: hidden;
-  }
-
+  .multiselect-dropdown { position: absolute; top: calc(100% + 4px); left: 0; min-width: 260px; background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 200; display: none; overflow: hidden; }
   .multiselect-dropdown.open { display: block; }
-
-  .multiselect-search {
-    padding: 0.6rem 0.75rem;
-    border: none;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 13px;
-    width: 100%;
-    outline: none;
-    background: #fafafa;
-    color: #1a1a1a;
-  }
-
-  .multiselect-actions {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid #f0f0f0;
-  }
-
-  .multiselect-action-btn {
-    flex: 1;
-    padding: 0.4rem;
-    font-size: 11px;
-    font-weight: 600;
-    color: #888;
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: background 0.1s, color 0.1s;
-  }
-
+  .multiselect-search { padding: 0.6rem 0.75rem; border: none; border-bottom: 1px solid #f0f0f0; font-size: 13px; width: 100%; outline: none; background: #fafafa; color: #1a1a1a; }
+  .multiselect-actions { display: flex; gap: 0; border-bottom: 1px solid #f0f0f0; }
+  .multiselect-action-btn { flex: 1; padding: 0.4rem; font-size: 11px; font-weight: 600; color: #888; background: none; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.1s, color 0.1s; }
   .multiselect-action-btn:hover { background: #f5f5f5; color: #1a1a1a; }
   .multiselect-action-btn:first-child { border-right: 1px solid #f0f0f0; }
-
-  .multiselect-list {
-    max-height: 220px;
-    overflow-y: auto;
-  }
-
-  .multiselect-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background 0.1s;
-    user-select: none;
-  }
-
+  .multiselect-list { max-height: 220px; overflow-y: auto; }
+  .multiselect-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.75rem; font-size: 13px; cursor: pointer; transition: background 0.1s; user-select: none; }
   .multiselect-item:hover { background: #f5f5f5; }
-
-  .multiselect-item input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
-    accent-color: #1a1a1a;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  .multiselect-item.all-option {
-    border-bottom: 1px solid #f0f0f0;
-    font-weight: 600;
-    color: #555;
-  }
-
-  .ms-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 10px;
-    padding: 1px 6px;
-    margin-left: 4px;
-    vertical-align: middle;
-  }
-
-  .btn-load {
-    padding: 0.5rem 1.25rem;
-    background: #1a1a1a;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.15s;
-    align-self: flex-end;
-  }
-
+  .multiselect-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: #1a1a1a; cursor: pointer; flex-shrink: 0; }
+  .multiselect-item.all-option { border-bottom: 1px solid #f0f0f0; font-weight: 600; color: #555; }
+  .ms-badge { display: inline-flex; align-items: center; justify-content: center; background: #1a1a1a; color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; margin-left: 4px; vertical-align: middle; }
+  .btn-load { padding: 0.5rem 1.25rem; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; align-self: flex-end; }
   .btn-load:hover { opacity: 0.8; }
   .btn-load:disabled { opacity: 0.4; cursor: default; }
-
-  .summary-bar {
-    background: #fff;
-    border-bottom: 1px solid #e5e5e5;
-    padding: 0.75rem 1.5rem;
-    display: none;
-    gap: 2rem;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
+  .summary-bar { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 0.75rem 1.5rem; display: none; gap: 2rem; flex-wrap: wrap; align-items: center; }
   .summary-bar.visible { display: flex; }
-
   .summary-stat { display: flex; flex-direction: column; gap: 2px; }
   .summary-stat .label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
   .summary-stat .value { font-size: 18px; font-weight: 700; color: #1a1a1a; }
   .summary-stat .value.ot { color: #c2410c; }
-
   .summary-divider { width: 1px; height: 32px; background: #e5e5e5; }
-
   .event-label-bar { font-size: 12px; color: #888; margin-left: auto; }
   .event-label-bar strong { color: #1a1a1a; }
-
-  .policy-key {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding: 0.75rem 1.5rem;
-    background: #fff;
-    border-bottom: 1px solid #e5e5e5;
-    font-size: 11px;
-    color: #888;
-    align-items: center;
-  }
-
+  .policy-key { display: flex; gap: 1rem; flex-wrap: wrap; padding: 0.75rem 1.5rem; background: #fff; border-bottom: 1px solid #e5e5e5; font-size: 11px; color: #888; align-items: center; }
   .policy-key span { display: flex; align-items: center; gap: 4px; }
-
   .main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
-
   .day-group { margin-bottom: 2rem; }
-
-  .day-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: #1a1a1a;
-    color: #fff;
-    padding: 0.85rem 1rem;
-    border-radius: 10px 10px 0 0;
-    flex-wrap: wrap;
-  }
-
+  .day-header { display: flex; align-items: center; gap: 1rem; background: #1a1a1a; color: #fff; padding: 0.85rem 1rem; border-radius: 10px 10px 0 0; flex-wrap: wrap; }
   .day-date-block { display: flex; flex-direction: column; min-width: 90px; }
   .day-date-primary { font-size: 16px; font-weight: 700; }
-  .day-date-name    { font-size: 11px; opacity: 0.5; margin-top: 2px; }
-
+  .day-date-name { font-size: 11px; opacity: 0.5; margin-top: 2px; }
   .day-vdivider { width: 1px; height: 36px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
-
   .day-stats { display: flex; gap: 1.5rem; flex: 1; flex-wrap: wrap; }
-  .day-stat  { display: flex; flex-direction: column; gap: 1px; }
+  .day-stat { display: flex; flex-direction: column; gap: 1px; }
   .day-stat .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
   .day-stat .val { font-size: 14px; font-weight: 700; }
   .day-stat .val.ot-val { color: #fca5a5; }
-
   .day-actions { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
-
-  .status-badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
-    white-space: nowrap;
-  }
-
+  .status-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
   .status-complete { background: #22c55e; color: #fff; }
-  .status-pending  { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
-
-  .btn-day-dl {
-    padding: 0.4rem 0.9rem;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    border: none;
-    white-space: nowrap;
-    transition: opacity 0.15s;
-  }
-
-  .btn-day-dl.ready  { background: #fff; color: #1a1a1a; cursor: pointer; }
+  .status-pending { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+  .btn-day-dl { padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; white-space: nowrap; transition: opacity 0.15s; }
+  .btn-day-dl.ready { background: #fff; color: #1a1a1a; cursor: pointer; }
   .btn-day-dl.ready:hover { opacity: 0.85; }
   .btn-day-dl.locked { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); cursor: not-allowed; }
-
-  .shift-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-top: none;
-    border-radius: 0 0 10px 10px;
-    overflow: hidden;
-  }
-
-  .shift-table th {
-    background: #f8f8f8;
-    padding: 0.5rem 0.85rem;
-    text-align: center;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #aaa;
-    border-bottom: 1px solid #e5e5e5;
-  }
-
-  .shift-table th.left,
-  .shift-table td.left  { text-align: left; }
-  .shift-table th.right,
-  .shift-table td.right { text-align: center; }
-
-  .shift-table td {
-    padding: 0.65rem 0.85rem;
-    font-size: 13px;
-    border-bottom: 1px solid #f5f5f5;
-    vertical-align: middle;
-    text-align: center;
-  }
-
+  .shift-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+  .shift-table th { background: #f8f8f8; padding: 0.5rem 0.85rem; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; border-bottom: 1px solid #e5e5e5; }
+  .shift-table th.left, .shift-table td.left { text-align: left; }
+  .shift-table td { padding: 0.65rem 0.85rem; font-size: 13px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; text-align: center; }
   .shift-table tr:last-child td { border-bottom: none; }
   .shift-table tr.incomplete { background: #fffbeb; }
-
   .shift-table td.time-right { border-right: 2px solid #e5e5e5; }
   .shift-table th.time-right { border-right: 2px solid #e5e5e5; }
-
-  .shift-table th.billing {
-    background: #f0f0f0;
-    color: #1a1a1a;
-    border-bottom: 1px solid #d5d5d5;
-  }
+  .shift-table th.billing { background: #f0f0f0; color: #1a1a1a; border-bottom: 1px solid #d5d5d5; }
   .shift-table th.b-first { border-left: 2px solid #1a1a1a; }
-  .shift-table td.billing  { background: #fafafa; }
-  .shift-table td.b-first  { border-left: 2px solid #1a1a1a; }
+  .shift-table td.billing { background: #fafafa; }
+  .shift-table td.b-first { border-left: 2px solid #1a1a1a; }
   .shift-table tr.incomplete td.billing { background: #fef9e7; }
   .shift-table tr:last-child td.billing { border-bottom: none; }
-
-  .billing-group-header {
-    background: #1a1a1a;
-    color: #fff;
-    text-align: center;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 4px 12px;
-    border-radius: 0;
-  }
-
+  .billing-group-header { background: #1a1a1a; color: #fff; text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 12px; }
   .worker-cell { display: flex; align-items: center; gap: 8px; }
-
-  .worker-avatar {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    background: #f0f0f0;
-    color: #555;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
+  .worker-avatar { width: 26px; height: 26px; border-radius: 50%; background: #f0f0f0; color: #555; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
   .worker-name-val { font-weight: 600; }
-  .worker-pos-val  { font-size: 11px; color: #aaa; margin-top: 1px; }
-
   .time-cell { white-space: nowrap; }
-  .time-val  { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .time-val { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .time-date { font-size: 10px; color: #aaa; margin-top: 1px; }
-
   .hours-val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .hours-val.ot   { color: #c2410c; }
-  .hours-val.reg  { color: #166534; }
-  .hours-val.tot  { color: #1a1a1a; }
+  .hours-val.ot { color: #c2410c; }
+  .hours-val.reg { color: #166534; }
+  .hours-val.tot { color: #1a1a1a; }
   .hours-val.dash { color: #ccc; font-weight: 400; }
-
-  .flag {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-right: 3px;
-    vertical-align: middle;
-  }
-
+  .flag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-right: 3px; vertical-align: middle; }
   .flag-overnight { background: #fee2e2; color: #991b1b; }
-  .flag-minimum   { background: #fef3c7; color: #92400e; }
-  .flag-bumped    { background: #dbeafe; color: #1e40af; }
-  .flag-missing   { background: #f3f4f6; color: #6b7280; }
-
+  .flag-minimum { background: #fef3c7; color: #92400e; }
+  .flag-bumped { background: #dbeafe; color: #1e40af; }
   .empty-state { text-align: center; padding: 5rem 2rem; color: #888; }
   .empty-state .icon { font-size: 44px; margin-bottom: 1rem; }
   .empty-state h3 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; }
-  .empty-state p  { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
-
+  .empty-state p { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
   .loading { text-align: center; padding: 5rem; color: #888; font-size: 14px; }
-
-  .spinner-inline {
-    display: inline-block;
-    width: 16px; height: 16px;
-    border: 2px solid #ddd;
-    border-top-color: #1a1a1a;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
-  }
-
+  .spinner-inline { display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 700px) {
-    .controls { flex-direction: column; }
-    .control-group select,
-    .control-group input,
-    .multiselect-btn { min-width: 100%; }
-    .multiselect-wrapper { width: 100%; }
-    .shift-table th:nth-child(2),
-    .shift-table td:nth-child(2) { display: none; }
-    .day-stats { gap: 0.75rem; }
-    .day-actions { width: 100%; justify-content: flex-end; }
-  }
-
-  @media print {
-    header, .controls, .policy-key, .btn-export-all, .btn-day-dl, .day-actions { display: none !important; }
-    .summary-bar { border: none; }
-    body { background: #fff; }
-  }
+  @media (max-width: 700px) { .controls { flex-direction: column; } .control-group select, .control-group input, .multiselect-btn { min-width: 100%; } .multiselect-wrapper { width: 100%; } .shift-table th:nth-child(2), .shift-table td:nth-child(2) { display: none; } .day-stats { gap: 0.75rem; } .day-actions { width: 100%; justify-content: flex-end; } }
+  @media print { header, .controls, .policy-key, .btn-export-all, .btn-day-dl, .day-actions { display: none !important; } .summary-bar { border: none; } body { background: #fff; } }
 </style>
 </head>
 <body>
-
 <header>
   <div class="header-left">
     <span class="logo">VIT</span>
@@ -490,13 +125,11 @@
 </header>
 
 <div class="controls">
-
-  <!-- ── Event multi-select ── -->
   <div class="control-group" id="event-control-group">
     <label>Event / Site</label>
     <div class="multiselect-wrapper">
       <button class="multiselect-btn" id="event-ms-btn" type="button" onclick="toggleEventDropdown(event)">Loading events…</button>
-      <button class="multiselect-clear" id="event-ms-clear" type="button" onclick="clearEventSelection()" title="Clear selection">×</button>
+      <button class="multiselect-clear" type="button" onclick="clearEventSelection()" title="Clear selection">×</button>
     </div>
     <div class="multiselect-dropdown" id="event-ms-dropdown">
       <input class="multiselect-search" type="text" placeholder="Search events…" id="event-ms-search" oninput="filterEventList(this.value)">
@@ -507,15 +140,10 @@
       <div class="multiselect-list" id="event-ms-list"></div>
     </div>
   </div>
-
-  <!-- ── Location single-select ── -->
   <div class="control-group">
     <label>Location</label>
-    <select id="location-select">
-      <option value="">Loading locations…</option>
-    </select>
+    <select id="location-select"><option value="">Loading locations…</option></select>
   </div>
-
   <div class="control-group">
     <label>From</label>
     <input type="date" id="date-from">
@@ -536,35 +164,17 @@
 </div>
 
 <div class="summary-bar" id="summary-bar">
-  <div class="summary-stat">
-    <span class="label">Days</span>
-    <span class="value" id="sum-days">0</span>
-  </div>
+  <div class="summary-stat"><span class="label">Days</span><span class="value" id="sum-days">0</span></div>
   <div class="summary-divider"></div>
-  <div class="summary-stat">
-    <span class="label">Workers</span>
-    <span class="value" id="sum-workers">0</span>
-  </div>
+  <div class="summary-stat"><span class="label">Workers</span><span class="value" id="sum-workers">0</span></div>
   <div class="summary-divider"></div>
-  <div class="summary-stat">
-    <span class="label">Total Shifts</span>
-    <span class="value" id="sum-shifts">0</span>
-  </div>
+  <div class="summary-stat"><span class="label">Scheduled</span><span class="value" id="sum-shifts">0</span></div>
   <div class="summary-divider"></div>
-  <div class="summary-stat">
-    <span class="label">Regular Hrs</span>
-    <span class="value" id="sum-reg">0</span>
-  </div>
+  <div class="summary-stat"><span class="label">Regular Hrs</span><span class="value" id="sum-reg">0</span></div>
   <div class="summary-divider"></div>
-  <div class="summary-stat">
-    <span class="label">OT Hrs</span>
-    <span class="value ot" id="sum-ot">0</span>
-  </div>
+  <div class="summary-stat"><span class="label">OT Hrs</span><span class="value ot" id="sum-ot">0</span></div>
   <div class="summary-divider"></div>
-  <div class="summary-stat">
-    <span class="label">Total Hrs</span>
-    <span class="value" id="sum-total">0</span>
-  </div>
+  <div class="summary-stat"><span class="label">Total Hrs</span><span class="value" id="sum-total">0</span></div>
   <div class="event-label-bar" id="event-label-bar"></div>
 </div>
 
@@ -578,27 +188,18 @@
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
+let reportData = [], dayGroups = {}, allEvents = [], selectedEvents = new Set();
 
-let reportData    = [];
-let dayGroups     = {};
-let allEvents     = [];       // full list loaded from server
-let selectedEvents = new Set(); // currently checked events
-
-// ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  const today = new Date();
-  const prior = new Date(today);
+  const today = new Date(), prior = new Date(today);
   prior.setDate(prior.getDate() - 1);
   const priorStr = fmt(prior);
-  document.getElementById('date-to').value   = priorStr;
+  document.getElementById('date-to').value = priorStr;
   document.getElementById('date-from').value = priorStr;
   loadEvents();
   loadLocations();
-
-  // Close dropdown when clicking outside
   document.addEventListener('click', e => {
-    const grp = document.getElementById('event-control-group');
-    if (!grp.contains(e.target)) closeEventDropdown();
+    if (!document.getElementById('event-control-group').contains(e.target)) closeEventDropdown();
   });
 });
 
@@ -611,58 +212,35 @@ function parseDateStr(str) {
   return new Date(parseInt(p[2]), parseInt(p[0]) - 1, parseInt(p[1]), 12, 0, 0);
 }
 
-// OT: always ceil to next whole hour
-function roundOT(n) {
-  if (n == null) return null;
-  return Math.ceil(n);
-}
+function roundOT(n) { if (n == null) return null; return Math.ceil(n); }
 
-// ── Event multi-select logic ──────────────────────────────────────────────────
 async function loadEvents() {
   try {
-    const res  = await fetch(`${SCRIPT_URL}?action=getEventList`);
+    const res = await fetch(`${SCRIPT_URL}?action=getEventList`);
     const data = await res.json();
     allEvents = (data.events && data.events.length) ? data.events : [];
-    buildEventList(allEvents);
-    updateEventBtn();
-  } catch(e) {
-    allEvents = [];
-    buildEventList([]);
-    updateEventBtn();
-  }
+    buildEventList(allEvents); updateEventBtn();
+  } catch(e) { allEvents = []; buildEventList([]); updateEventBtn(); }
 }
 
 function buildEventList(events) {
   const list = document.getElementById('event-ms-list');
   list.innerHTML = '';
-
-  // "All events" option at top
   const allItem = document.createElement('label');
   allItem.className = 'multiselect-item all-option';
   allItem.innerHTML = `<input type="checkbox" id="ms-all-chk"> All events`;
-  allItem.querySelector('input').addEventListener('change', e => {
-    if (e.target.checked) selectAllEvents(); else clearEventSelection();
-  });
+  allItem.querySelector('input').addEventListener('change', e => { if (e.target.checked) selectAllEvents(); else clearEventSelection(); });
   list.appendChild(allItem);
-
   events.forEach(ev => {
     const item = document.createElement('label');
     item.className = 'multiselect-item';
     item.dataset.value = ev;
     const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.value = ev;
-    chk.checked = selectedEvents.has(ev);
-    chk.addEventListener('change', () => {
-      if (chk.checked) selectedEvents.add(ev); else selectedEvents.delete(ev);
-      updateEventBtn();
-      updateAllCheckbox();
-    });
-    item.appendChild(chk);
-    item.appendChild(document.createTextNode(ev));
+    chk.type = 'checkbox'; chk.value = ev; chk.checked = selectedEvents.has(ev);
+    chk.addEventListener('change', () => { if (chk.checked) selectedEvents.add(ev); else selectedEvents.delete(ev); updateEventBtn(); updateAllCheckbox(); });
+    item.appendChild(chk); item.appendChild(document.createTextNode(ev));
     list.appendChild(item);
   });
-
   updateAllCheckbox();
 }
 
@@ -680,15 +258,12 @@ function toggleEventDropdown(e) {
   if (dd.classList.contains('open')) document.getElementById('event-ms-search').focus();
 }
 
-function closeEventDropdown() {
-  document.getElementById('event-ms-dropdown').classList.remove('open');
-}
+function closeEventDropdown() { document.getElementById('event-ms-dropdown').classList.remove('open'); }
 
 function selectAllEvents() {
   allEvents.forEach(ev => selectedEvents.add(ev));
   document.querySelectorAll('#event-ms-list .multiselect-item:not(.all-option) input').forEach(c => c.checked = true);
-  updateEventBtn();
-  updateAllCheckbox();
+  updateEventBtn(); updateAllCheckbox();
 }
 
 function clearEventSelection() {
@@ -706,49 +281,31 @@ function updateAllCheckbox() {
 
 function updateEventBtn() {
   const btn = document.getElementById('event-ms-btn');
-  if (selectedEvents.size === 0) {
-    btn.textContent = 'All events';
-  } else if (selectedEvents.size === 1) {
-    btn.textContent = [...selectedEvents][0];
-  } else if (selectedEvents.size === allEvents.length && allEvents.length > 0) {
-    btn.textContent = 'All events';
-  } else {
-    btn.innerHTML = `${selectedEvents.size} events selected <span class="ms-badge">${selectedEvents.size}</span>`;
-  }
+  if (selectedEvents.size === 0) { btn.textContent = 'All events'; }
+  else if (selectedEvents.size === 1) { btn.textContent = [...selectedEvents][0]; }
+  else if (selectedEvents.size === allEvents.length && allEvents.length > 0) { btn.textContent = 'All events'; }
+  else { btn.innerHTML = `${selectedEvents.size} events selected <span class="ms-badge">${selectedEvents.size}</span>`; }
 }
 
-// ── Location dropdown ─────────────────────────────────────────────────────────
 async function loadLocations() {
   try {
-    const res  = await fetch(`${SCRIPT_URL}?action=getLocationList`);
+    const res = await fetch(`${SCRIPT_URL}?action=getLocationList`);
     const data = await res.json();
-    const sel  = document.getElementById('location-select');
+    const sel = document.getElementById('location-select');
     sel.innerHTML = '<option value="">All locations</option>';
     if (data.locations && data.locations.length) {
-      data.locations.forEach(loc => {
-        const opt = document.createElement('option');
-        opt.value = loc; opt.textContent = loc;
-        sel.appendChild(opt);
-      });
+      data.locations.forEach(loc => { const opt = document.createElement('option'); opt.value = loc; opt.textContent = loc; sel.appendChild(opt); });
     }
-  } catch(e) {
-    document.getElementById('location-select').innerHTML = '<option value="">All locations</option>';
-  }
+  } catch(e) { document.getElementById('location-select').innerHTML = '<option value="">All locations</option>'; }
 }
 
-// ── Load report ───────────────────────────────────────────────────────────────
 async function loadReport() {
   const dateFrom = document.getElementById('date-from').value;
   const dateTo   = document.getElementById('date-to').value;
   const location = document.getElementById('location-select').value;
-
   if (!dateFrom || !dateTo) { alert('Please select a date range.'); return; }
 
-  // Build event filter: empty string = all, otherwise pipe-separated list
-  const eventFilter = selectedEvents.size > 0 && selectedEvents.size < allEvents.length
-    ? [...selectedEvents].join('|')
-    : '';
-
+  const eventFilter = selectedEvents.size > 0 && selectedEvents.size < allEvents.length ? [...selectedEvents].join('|') : '';
   const btn = document.getElementById('load-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-inline"></span>Calculating…';
@@ -762,37 +319,26 @@ async function loadReport() {
       + `&locationFilter=${encodeURIComponent(location)}`
       + `&dateFrom=${encodeURIComponent(dateFrom)}`
       + `&dateTo=${encodeURIComponent(dateTo)}`;
-
     const res  = await fetch(url);
     const data = await res.json();
-
-    if (data.error) {
-      document.getElementById('main-content').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Error</h3><p>${data.error}</p></div>`;
-      return;
-    }
+    if (data.error) { document.getElementById('main-content').innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><h3>Error</h3><p>${data.error}</p></div>`; return; }
 
     reportData = data.shifts || [];
+    const scheduledCount = data.scheduledCount || 0;
 
     reportData.forEach(s => {
-      if (s.otHours != null) {
-        s.otHours    = roundOT(s.otHours);
-        s.totalHours = (s.regularHours || 0) + s.otHours;
-      }
+      if (s.otHours != null) { s.otHours = roundOT(s.otHours); s.totalHours = (s.regularHours || 0) + s.otHours; }
     });
 
-    renderReport(reportData, eventFilter, location);
-
+    renderReport(reportData, eventFilter, location, scheduledCount);
   } catch(e) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
   }
 
-  btn.disabled = false;
-  btn.textContent = 'Generate Report';
-  closeEventDropdown();
+  btn.disabled = false; btn.textContent = 'Generate Report'; closeEventDropdown();
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
-function renderReport(shifts, eventFilter, location) {
+function renderReport(shifts, eventFilter, location, scheduledCount) {
   if (!shifts.length) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No data found</h3><p>No Clock IN or Clock OUT scans found for this selection.</p></div>';
     return;
@@ -808,22 +354,15 @@ function renderReport(shifts, eventFilter, location) {
     if (s.totalHours   != null) dayGroups[s.date].totalHrs    += s.totalHours;
   });
 
-  Object.entries(dayGroups).forEach(([date, dg]) => {
-    dg.complete = dg.shifts.every(s => !s.incomplete);
-  });
+  Object.entries(dayGroups).forEach(([date, dg]) => { dg.complete = dg.shifts.every(s => !s.incomplete); });
 
   const uniqueWorkers = new Set(shifts.map(s => s.workerName)).size;
   let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
-  Object.values(dayGroups).forEach(dg => {
-    sumActual += dg.totalActual;
-    sumReg    += dg.totalReg;
-    sumOT     += dg.totalOT;
-    sumTotal  += dg.totalHrs;
-  });
+  Object.values(dayGroups).forEach(dg => { sumActual += dg.totalActual; sumReg += dg.totalReg; sumOT += dg.totalOT; sumTotal += dg.totalHrs; });
 
   document.getElementById('sum-days').textContent    = Object.keys(dayGroups).length;
   document.getElementById('sum-workers').textContent = uniqueWorkers;
-  document.getElementById('sum-shifts').textContent  = shifts.length;
+  document.getElementById('sum-shifts').textContent  = scheduledCount || shifts.length;
   document.getElementById('sum-reg').textContent     = r2(sumReg);
   document.getElementById('sum-ot').textContent      = r2(sumOT);
   document.getElementById('sum-total').textContent   = r2(sumTotal);
@@ -831,23 +370,15 @@ function renderReport(shifts, eventFilter, location) {
   let labelHtml = '';
   if (eventFilter) {
     const evList = eventFilter.split('|');
-    labelHtml = evList.length === 1
-      ? `Event: <strong>${escHtml(evList[0])}</strong>`
-      : `Events: <strong>${evList.length} selected</strong>`;
-  } else {
-    labelHtml = `<strong>All events</strong>`;
-  }
+    labelHtml = evList.length === 1 ? `Event: <strong>${escHtml(evList[0])}</strong>` : `Events: <strong>${evList.length} selected</strong>`;
+  } else { labelHtml = `<strong>All events</strong>`; }
   if (location) labelHtml += ` &nbsp;·&nbsp; Location: <strong>${escHtml(location)}</strong>`;
   document.getElementById('event-label-bar').innerHTML = labelHtml;
-
   document.getElementById('summary-bar').classList.add('visible');
   document.getElementById('export-all-btn').classList.add('visible');
 
   let html = '';
-  Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, dg]) => {
-    html += renderDayGroup(date, dg);
-  });
-
+  Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, dg]) => { html += renderDayGroup(date, dg); });
   document.getElementById('main-content').innerHTML = html;
 }
 
@@ -857,25 +388,14 @@ function renderDayGroup(date, dg) {
   const dateStr  = dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
   const complete = dg.complete;
   const missing  = dg.shifts.filter(s => s.incomplete).length;
-
-  const statusHtml = complete
-    ? `<span class="status-badge status-complete">✓ Complete</span>`
-    : `<span class="status-badge status-pending">${missing} pending clock out</span>`;
-
-  const dlBtn = complete
-    ? `<button class="btn-day-dl ready" onclick="exportDayCSV('${date}')">Download CSV</button>`
-    : `<button class="btn-day-dl locked" disabled title="Waiting for all workers to clock out">Download CSV</button>`;
-
-  const sorted = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
-  const rows   = sorted.map(s => renderShiftRow(s)).join('');
+  const statusHtml = complete ? `<span class="status-badge status-complete">✓ Complete</span>` : `<span class="status-badge status-pending">${missing} pending clock out</span>`;
+  const dlBtn = complete ? `<button class="btn-day-dl ready" onclick="exportDayCSV('${date}')">Download CSV</button>` : `<button class="btn-day-dl locked" disabled title="Waiting for all workers to clock out">Download CSV</button>`;
+  const rows = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName)).map(s => renderShiftRow(s)).join('');
 
   return `
     <div class="day-group">
       <div class="day-header">
-        <div class="day-date-block">
-          <span class="day-date-primary">${dateStr}</span>
-          <span class="day-date-name">${dayName}</span>
-        </div>
+        <div class="day-date-block"><span class="day-date-primary">${dateStr}</span><span class="day-date-name">${dayName}</span></div>
         <div class="day-vdivider"></div>
         <div class="day-stats">
           <div class="day-stat"><span class="lbl">Workers</span><span class="val">${dg.shifts.length}</span></div>
@@ -884,10 +404,7 @@ function renderDayGroup(date, dg) {
           <div class="day-stat"><span class="lbl">OT</span><span class="val ot-val">${r2(dg.totalOT)}</span></div>
           <div class="day-stat"><span class="lbl">Total</span><span class="val">${r2(dg.totalHrs)}</span></div>
         </div>
-        <div class="day-actions">
-          ${statusHtml}
-          ${dlBtn}
-        </div>
+        <div class="day-actions">${statusHtml}${dlBtn}</div>
       </div>
       <table class="shift-table">
         <thead>
@@ -896,15 +413,9 @@ function renderDayGroup(date, dg) {
             <th colspan="3" class="billing-group-header">Billable Hours</th>
           </tr>
           <tr>
-            <th class="left">Worker</th>
-            <th class="left">Position</th>
-            <th>Clock IN</th>
-            <th>Clock OUT</th>
-            <th>Actual Hrs</th>
-            <th>Booked Time</th>
-            <th class="billing b-first">Reg Hrs</th>
-            <th class="billing">OT Hrs</th>
-            <th class="billing">Total Hrs</th>
+            <th class="left">Worker</th><th class="left">Position</th>
+            <th>Clock IN</th><th>Clock OUT</th><th>Actual Hrs</th><th>Booked Time</th>
+            <th class="billing b-first">Reg Hrs</th><th class="billing">OT Hrs</th><th class="billing">Total Hrs</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -913,218 +424,72 @@ function renderDayGroup(date, dg) {
 }
 
 function renderShiftRow(s) {
-  const isIncomplete = s.incomplete;
-  const rowClass     = isIncomplete ? 'incomplete' : '';
-  const initials     = s.workerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-
+  const rowClass = s.incomplete ? 'incomplete' : '';
+  const initials = s.workerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   return `
     <tr class="${rowClass}">
-      <td style="text-align:left;">
-        <div class="worker-cell">
-          <div class="worker-avatar">${escHtml(initials)}</div>
-          <div><div class="worker-name-val">${escHtml(s.workerName)}</div></div>
-        </div>
-      </td>
+      <td style="text-align:left;"><div class="worker-cell"><div class="worker-avatar">${escHtml(initials)}</div><div><div class="worker-name-val">${escHtml(s.workerName)}</div></div></div></td>
       <td style="font-size:12px;color:#888;text-align:left;">${escHtml(s.position || '—')}</td>
-      <td class="time-cell">
-        <div class="time-val">${escHtml(s.clockIn || '—')}</div>
-        ${s.clockInDate && s.clockInDate !== s.date ? `<div class="time-date">${escHtml(s.clockInDate)}</div>` : ''}
-      </td>
-      <td class="time-cell">
-        <div class="time-val">${escHtml(s.clockOut || '—')}</div>
-        ${s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : ''}
-      </td>
-      <td class="time-right">
-        ${s.actualHours  != null ? `<span class="hours-val" style="color:#555;">${r2(s.actualHours)}</span>`  : '<span class="hours-val dash">—</span>'}
-      </td>
-      <td>
-        <span style="font-size:13px;color:#555;">${escHtml(s.bookedTime || '—')}</span>
-      </td>
-      <td class="billing b-first">
-        ${s.regularHours != null ? `<span class="hours-val reg">${r2(s.regularHours)}</span>` : '<span class="hours-val dash">—</span>'}
-      </td>
-      <td class="billing">
-        ${s.otHours      != null ? `<span class="hours-val ot">${r2(s.otHours)}</span>`       : '<span class="hours-val dash">—</span>'}
-      </td>
-      <td class="billing">
-        ${s.totalHours   != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>`   : '<span class="hours-val dash">—</span>'}
-      </td>
+      <td class="time-cell"><div class="time-val">${escHtml(s.clockIn || '—')}</div>${s.clockInDate && s.clockInDate !== s.date ? `<div class="time-date">${escHtml(s.clockInDate)}</div>` : ''}</td>
+      <td class="time-cell"><div class="time-val">${escHtml(s.clockOut || '—')}</div>${s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : ''}</td>
+      <td class="time-right">${s.actualHours != null ? `<span class="hours-val" style="color:#555;">${r2(s.actualHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
+      <td><span style="font-size:13px;color:#555;">${escHtml(s.bookedTime || '—')}</span></td>
+      <td class="billing b-first">${s.regularHours != null ? `<span class="hours-val reg">${r2(s.regularHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
+      <td class="billing">${s.otHours != null ? `<span class="hours-val ot">${r2(s.otHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
+      <td class="billing">${s.totalHours != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
     </tr>`;
 }
 
-// ── Export single day CSV ─────────────────────────────────────────────────────
 function exportDayCSV(date) {
-  const dg = dayGroups[date];
-  if (!dg) return;
-
-  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length
-    ? 'All Events'
-    : [...selectedEvents].join(', ');
+  const dg = dayGroups[date]; if (!dg) return;
+  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length ? 'All Events' : [...selectedEvents].join(', ');
   const location = document.getElementById('location-select').value || 'All Locations';
   const dateObj  = parseDateStr(date);
   const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
   const now      = new Date().toLocaleString('en-US');
-
-  const sorted = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
-
-  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT',
-                   'Actual Hrs', 'Booked Time', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'];
-
-  const dataRows = sorted.map(s => [
-    s.workerName,
-    s.position     || '',
-    s.date,
-    dayName,
-    s.clockIn      || '',
-    s.clockOut     || '',
-    s.actualHours  != null ? r2(s.actualHours)  : '',
-    s.bookedTime   || '',
-    s.regularHours != null ? r2(s.regularHours) : '',
-    s.otHours      != null ? r2(s.otHours)      : '',
-    s.totalHours   != null ? r2(s.totalHours)   : ''
-  ]);
-
-  const totalsRow = [
-    'TOTALS', '', date, dayName, '', '',
-    r2(dg.totalActual), '',
-    r2(dg.totalReg),
-    r2(dg.totalOT),
-    r2(dg.totalHrs)
-  ];
-
-  const rows = [
-    ['VIT Time & Attendance Report'],
-    ['Event:', eventLabel],
-    ['Location:', location],
-    ['Date:', `${dayName}, ${date}`],
-    ['Workers:', dg.shifts.length],
-    ['Generated:', now],
-    [],
-    headers,
-    ...dataRows,
-    [],
-    totalsRow
-  ];
-
-  downloadCSV(rows, `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
+  const sorted   = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
+  const headers  = ['Worker','Position','Date','Day','Clock IN','Clock OUT','Actual Hrs','Booked Time','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'];
+  const dataRows = sorted.map(s => [s.workerName, s.position||'', s.date, dayName, s.clockIn||'', s.clockOut||'', s.actualHours!=null?r2(s.actualHours):'', s.bookedTime||'', s.regularHours!=null?r2(s.regularHours):'', s.otHours!=null?r2(s.otHours):'', s.totalHours!=null?r2(s.totalHours):'']);
+  const totalsRow = ['TOTALS','',date,dayName,'','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs)];
+  downloadCSV([['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],['Date:',`${dayName}, ${date}`],['Workers:',dg.shifts.length],['Generated:',now],[],headers,...dataRows,[],totalsRow], `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
 }
 
-// ── Export all days CSV ───────────────────────────────────────────────────────
 function exportAllCSV() {
   if (!reportData.length) return;
-
-  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length
-    ? 'All Events'
-    : [...selectedEvents].join(', ');
+  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length ? 'All Events' : [...selectedEvents].join(', ');
   const location = document.getElementById('location-select').value || 'All Locations';
   const dateFrom = document.getElementById('date-from').value;
   const dateTo   = document.getElementById('date-to').value;
   const now      = new Date().toLocaleString('en-US');
-
   const uniqueWorkers = new Set(reportData.map(s => s.workerName)).size;
-  let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
-  Object.values(dayGroups).forEach(dg => {
-    sumActual += dg.totalActual;
-    sumReg    += dg.totalReg;
-    sumOT     += dg.totalOT;
-    sumTotal  += dg.totalHrs;
-  });
-
-  const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT',
-                   'Actual Hrs', 'Booked Time', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'];
-
-  const sorted = [...reportData].sort((a, b) => {
-    const dc = a.date.localeCompare(b.date);
-    return dc !== 0 ? dc : a.workerName.localeCompare(b.workerName);
-  });
-
-  const detailRows = [];
-  let currentDate = null;
+  let sumActual=0,sumReg=0,sumOT=0,sumTotal=0;
+  Object.values(dayGroups).forEach(dg => { sumActual+=dg.totalActual; sumReg+=dg.totalReg; sumOT+=dg.totalOT; sumTotal+=dg.totalHrs; });
+  const headers = ['Worker','Position','Date','Day','Clock IN','Clock OUT','Actual Hrs','Booked Time','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'];
+  const sorted = [...reportData].sort((a,b) => { const dc=a.date.localeCompare(b.date); return dc!==0?dc:a.workerName.localeCompare(b.workerName); });
+  const detailRows = []; let currentDate = null;
   sorted.forEach(s => {
     if (s.date !== currentDate) {
-      if (currentDate !== null) {
-        const dg = dayGroups[currentDate];
-        const prevDateObj = parseDateStr(currentDate);
-        detailRows.push([
-          `— ${prevDateObj.toLocaleDateString('en-US', { weekday: 'short' })} ${currentDate} SUBTOTAL`,
-          '', '', '', '', '',
-          r2(dg.totalActual), '',
-          r2(dg.totalReg),
-          r2(dg.totalOT),
-          r2(dg.totalHrs)
-        ]);
-        detailRows.push([]);
-      }
+      if (currentDate !== null) { const dg=dayGroups[currentDate]; const pdo=parseDateStr(currentDate); detailRows.push([`— ${pdo.toLocaleDateString('en-US',{weekday:'short'})} ${currentDate} SUBTOTAL`,'','','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs)]); detailRows.push([]); }
       currentDate = s.date;
     }
-    const dateObj = parseDateStr(s.date);
-    const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-    detailRows.push([
-      s.workerName,
-      s.position     || '',
-      s.date,
-      dayName,
-      s.clockIn      || '',
-      s.clockOut     || '',
-      s.actualHours  != null ? r2(s.actualHours)  : '',
-      s.bookedTime   || '',
-      s.regularHours != null ? r2(s.regularHours) : '',
-      s.otHours      != null ? r2(s.otHours)      : '',
-      s.totalHours   != null ? r2(s.totalHours)   : ''
-    ]);
+    const dn = parseDateStr(s.date).toLocaleDateString('en-US',{weekday:'short'});
+    detailRows.push([s.workerName,s.position||'',s.date,dn,s.clockIn||'',s.clockOut||'',s.actualHours!=null?r2(s.actualHours):'',s.bookedTime||'',s.regularHours!=null?r2(s.regularHours):'',s.otHours!=null?r2(s.otHours):'',s.totalHours!=null?r2(s.totalHours):'']);
   });
-
-  if (currentDate) {
-    const dg = dayGroups[currentDate];
-    const lastDateObj = parseDateStr(currentDate);
-    detailRows.push([
-      `— ${lastDateObj.toLocaleDateString('en-US', { weekday: 'short' })} ${currentDate} SUBTOTAL`,
-      '', '', '', '', '',
-      r2(dg.totalActual), '',
-      r2(dg.totalReg),
-      r2(dg.totalOT),
-      r2(dg.totalHrs)
-    ]);
-  }
-
-  const rows = [
-    ['VIT Time & Attendance Report'],
-    ['Event:', eventLabel],
-    ['Location:', location],
-    ['Date Range:', `${dateFrom} to ${dateTo}`],
-    ['Generated:', now],
-    [],
-    ['SUMMARY'],
-    ['Total Days', 'Total Workers', 'Total Shifts', 'Total Actual Hrs', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'],
-    [Object.keys(dayGroups).length, uniqueWorkers, reportData.length, r2(sumActual), r2(sumReg), r2(sumOT), r2(sumTotal)],
-    [],
-    ['DAILY DETAIL'],
-    headers,
-    ...detailRows,
-    [],
-    ['GRAND TOTAL', '', '', '', '', '', r2(sumActual), '', r2(sumReg), r2(sumOT), r2(sumTotal)]
-  ];
-
-  downloadCSV(rows, `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
+  if (currentDate) { const dg=dayGroups[currentDate]; const ldo=parseDateStr(currentDate); detailRows.push([`— ${ldo.toLocaleDateString('en-US',{weekday:'short'})} ${currentDate} SUBTOTAL`,'','','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs)]); }
+  downloadCSV([['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],['Date Range:',`${dateFrom} to ${dateTo}`],['Generated:',now],[],['SUMMARY'],['Total Days','Total Workers','Total Shifts','Total Actual Hrs','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'],[Object.keys(dayGroups).length,uniqueWorkers,reportData.length,r2(sumActual),r2(sumReg),r2(sumOT),r2(sumTotal)],[],['DAILY DETAIL'],headers,...detailRows,[],['GRAND TOTAL','','','','','',r2(sumActual),'',r2(sumReg),r2(sumOT),r2(sumTotal)]], `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
 }
 
 function downloadCSV(rowsArray, filename) {
-  const csv  = rowsArray.map(r => (r || []).map(v => `"${String(v == null ? '' : v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const csv  = rowsArray.map(r => (r||[]).map(v => `"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename + '.csv';
-  a.click();
+  a.href = url; a.download = filename + '.csv'; a.click();
   URL.revokeObjectURL(url);
 }
 
 function r2(n) { return Math.round(n * 100) / 100; }
-
-function escHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function escHtml(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
