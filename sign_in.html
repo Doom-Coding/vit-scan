@@ -1709,30 +1709,18 @@ async function submitModalScan() {
 
 async function loadClockStatus(location, date) {
   try {
-    const url  = `${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(date)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}`;
+    const url  = `${SCRIPT_URL}?action=getClockInStatus&date=${encodeURIComponent(date)}`;
     const res  = await fetch(url);
     const data = await res.json();
-    if (data.error || !data.workers) return;
-    const workerMap = {};
-    data.workers.forEach(w => { workerMap[w.name.toLowerCase()] = w; });
-    // Use forEach position (i) — NOT w.idx which is server-side row number
+    if (data.error || !data.tags) return;
     allWorkers.forEach((w, i) => {
-      const wd = workerMap[w.name.toLowerCase()];
-      if (!wd) return;
-      const callMins    = parseTime(w.bookedTime);
-      const clockInMins = wd.clockIn ? (parseInt(wd.clockIn.split(':')[0]) * 60 + parseInt(wd.clockIn.split(':')[1])) : null;
-      const clockInMatchesShift = clockInMins !== null && callMins !== 9999 && callMins !== 0
-        ? Math.abs(clockInMins - callMins) <= 60 || (callMins > 1320 && clockInMins < 60)
-        : true;
-      if (!clockInMatchesShift) return;
-      if (wd.clockOut && !wd.clockIn) {
-        // clocked out with no clock in on record — edge case, skip
-        return;
-      } else if (wd.clockOut) {
+      if (!w.tagId) return;
+      const status = data.tags[w.tagId];
+      if (!status) return;
+      if (status.clockOut) {
         setRowClockStatus(i, 'clocked-out');
         setScanBtn(i, 'out');
-      } else if (wd.clockIn) {
-        // green for any status that has a clock in — active, on_lunch, etc.
+      } else if (status.clockIn) {
         setRowClockStatus(i, 'clocked-in');
         setScanBtn(i, 'in');
       }
