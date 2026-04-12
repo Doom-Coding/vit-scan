@@ -590,33 +590,113 @@ async function submitModalScan(){
   logBtn.textContent='Log Scan';logBtn.disabled=false;
 }
 
-async function loadClockStatus(location,date){
-  try{
-    const res=await fetch(`${SCRIPT_URL}?action=getClockInStatus&date=${encodeURIComponent(date)}`);const data=await res.json();
-    if(data.error||!data.tags)return;
-    const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
-    allWorkers.forEach((w,i)=>{
-      if(!w.tagId)return;const tag=String(w.tagId).padStart(3,'0'),entry=data.tags[tag];if(!entry)return;
-      const bookedStart=parseTime(w.bookedTime),bookedEnd=parseEndTime(w.bookedTime);
-      const matchingClockIn=entry.clockIns.find(t=>{const m=parseTime(t);return m!==9999&&m>=bookedStart-180&&m<=bookedStart+180;});
-      if(!matchingClockIn)return;
-      const clockInMins=parseTime(matchingClockIn);
-      if(bookedStart!==9999&&clockInMins<bookedStart-15){
-        const minsEarly=bookedStart-clockInMins,key=`early|${w.name}`;
-        if(!siAlertsFired.has(key)){siAlertsFired.add(key);queueAlertPopup('Early Clock-In',`${w.name} clocked in ${minsEarly} minute${minsEarly!==1?'s':''} early.\nBooked time: ${w.bookedTime}\nActual clock-in: ${matchingClockIn}`,'early');}
+async function loadClockStatus(location, date) {
+  try {
+    // Fetch today's scans
+    const res  = await fetch(`${SCRIPT_URL}?action=getClockInStatus&date=${encodeURIComponent(date)}`);
+    const data = await res.json();
+    if (data.error || !data.tags) return;
+
+    // Also fetch next day's scans for overnight shift matching
+    const nextDateISO  = getNextDateISO(date);
+    let nextDayTags    = {};
+    try {
+      const res2  = await fetch(`${SCRIPT_URL}?action=getClockInStatus&date=${encodeURIComponent(nextDateISO)}`);
+      const data2 = await res2.json();
+      if (!data2.error && data2.tags) nextDayTags = data2.tags;
+    } catch(e2) { /* next day fetch failing is non-fatal */ }
+
+    const now     = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+
+    allWorkers.forEach((w, i) => {
+      if (!w.tagId) return;
+      const tag   = String(w.tagId).padStart(3, '0');
+      const entry = data.tags[tag];
+      if (!entry) return;
+
+      const bookedStart  = parseTime(w.bookedTime);
+      const bookedEnd    = parseEndTime(w.bookedTime);
+      const isOvernight  = bookedEnd !== 9999 && bookedEnd < bookedStart; // e.g. 10pm-3am
+
+      // Match clock-in within 180 mins on both sides of booked start
+      const matchingClockIn = entry.clockIns.find(t => {
+        const m = parseTime(t);
+        return m !== 9999 && m >= bookedStart - 180 && m <= bookedStart + 180;
+      });
+      if (!matchingClockIn) return;
+
+      const clockInMins = parseTime(matchingClockIn);
+
+      // Alert: clocked in more than 15 minutes early
+      if (bookedStart !== 9999 && clockInMins < bookedStart - 15) {
+        const minsEarly = bookedStart - clockInMins;
+        const key       = `early|${w.name}`;
+        if (!siAlertsFired.has(key)) {
+          siAlertsFired.add(key);
+          queueAlertPopup(
+            'Early Clock-In',
+            `${w.name} clocked in ${minsEarly} minute${minsEarly !== 1 ? 's' : ''} early.\nBooked time: ${w.bookedTime}\nActual clock-in: ${matchingClockIn}`,
+            'early'
+          );
+        }
       }
-      const matchingClockOut=entry.clockOuts.find(t=>{const m=parseTime(t);return m!==9999&&m>clockInMins;});
-      if(matchingClockOut){setRowClockStatus(i,'clocked-out');setScanBtn(i,'out');}
-      else{
-        setRowClockStatus(i,'clocked-in');setScanBtn(i,'in');
-        if(bookedEnd!==9999&&nowMins>bookedEnd){
-          const minsOver=nowMins-bookedEnd,key=`overtime|${w.name}`;
-          if(!siAlertsFired.has(key)){siAlertsFired.add(key);queueAlertPopup('Still Clocked In — Past End Time',`${w.name} is still clocked in with no Clock Out recorded.\nScheduled end: ${w.bookedTime.split('-').pop().trim()}\n${minsOver} minute${minsOver!==1?'s':''} past scheduled end.`,'overtime');}
+
+      // Look for same-day clock out after the clock-in
+      let matchingClockOut = entry.clockOuts.find(t => {
+        const m = parseTime(t);
+        return m !== 9999 && m > clockInMins;
+      });
+
+      // For overnight shifts: if no same-day clock out found,
+      // check the next day's scans for a clock out in the early hours
+      if (!matchingClockOut && isOvernight) {
+        const nextEntry = nextDayTags[tag];
+        if (nextEntry && nextEntry.clockOuts.length > 0) {
+          // Accept any next-day clock out within 180 mins past midnight of booked end
+          matchingClockOut = nextEntry.clockOuts.find(t => {
+            const m = parseTime(t);
+            return m !== 9999 && m <= bookedEnd + 180;
+          });
+        }
+      }
+
+      if (matchingClockOut) {
+        setRowClockStatus(i, 'clocked-out');
+        setScanBtn(i, 'out');
+      } else {
+        setRowClockStatus(i, 'clocked-in');
+        setScanBtn(i, 'in');
+
+        // Alert: still clocked in past scheduled end (adjusted for overnight)
+        const effectiveEndMins = isOvernight ? bookedEnd + 1440 : bookedEnd;
+        const effectiveNow     = isOvernight && nowMins < bookedStart ? nowMins + 1440 : nowMins;
+        if (bookedEnd !== 9999 && effectiveNow > effectiveEndMins) {
+          const minsOver = effectiveNow - effectiveEndMins;
+          const key      = `overtime|${w.name}`;
+          if (!siAlertsFired.has(key)) {
+            siAlertsFired.add(key);
+            queueAlertPopup(
+              'Still Clocked In — Past End Time',
+              `${w.name} is still clocked in with no Clock Out recorded.\nScheduled end: ${w.bookedTime.split('-').pop().trim()}\n${minsOver} minute${minsOver !== 1 ? 's' : ''} past scheduled end.`,
+              'overtime'
+            );
+          }
         }
       }
     });
+
     resetSiCountdown();
-  }catch(e){console.error('loadClockStatus error:',e);}
+  } catch(e) {
+    console.error('loadClockStatus error:', e);
+  }
+}
+
+// Returns the ISO date string for the day after the given YYYY-MM-DD string
+function getNextDateISO(isoDate) {
+  const d = new Date(isoDate + 'T12:00:00');
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
 }
 
 function setRowClockStatus(idx,cls){const row=document.getElementById(`row-${idx}`);if(!row)return;row.classList.remove('clocked-in','clocked-out');if(cls)row.classList.add(cls);}
