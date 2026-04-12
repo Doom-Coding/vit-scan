@@ -369,7 +369,7 @@
   <span><span class="flag flag-minimum">MIN</span> ≤ 5 hrs → 5 reg · 5–6 hrs → 5 reg + 1 OT</span>
   <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 regular</span>
   <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 = OT</span>
-  <span style="color:#aaa;">· &gt;10 hrs excess = OT · 1.5× multiplier</span>
+  <span style="color:#aaa;">· &gt;10 hrs excess = OT · 1.5× multiplier · OT rounded: ≥0.25 → next whole hr</span>
 </div>
 
 <div class="summary-bar" id="summary-bar">
@@ -416,8 +416,8 @@
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
 
-let reportData  = [];
-let dayGroups   = {};
+let reportData = [];
+let dayGroups  = {};
 
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
@@ -431,12 +431,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function fmt(d) { return d.toISOString().split('T')[0]; }
 
-// ── Parse MM/DD/YYYY safely (fixes Invalid Date bug) ─────────────────────────
+// ── Parse MM/DD/YYYY safely ───────────────────────────────────────────────────
 function parseDateStr(str) {
   if (!str) return new Date('invalid');
   const p = str.split('/');
   if (p.length !== 3) return new Date('invalid');
   return new Date(parseInt(p[2]), parseInt(p[0]) - 1, parseInt(p[1]), 12, 0, 0);
+}
+
+// ── OT rounding: decimal >= 0.25 → round up to next whole hour, else drop ────
+function roundOT(n) {
+  if (n == null) return null;
+  const floor   = Math.floor(n);
+  const decimal = n - floor;
+  return decimal >= 0.25 ? floor + 1 : floor;
 }
 
 async function loadEvents() {
@@ -482,6 +490,16 @@ async function loadReport() {
     }
 
     reportData = data.shifts || [];
+
+    // Apply OT rounding: decimal >= 0.25 rounds up to next whole hour, else drops.
+    // Recalculate totalHours so all downstream totals and CSV exports stay consistent.
+    reportData.forEach(s => {
+      if (s.otHours != null) {
+        s.otHours    = roundOT(s.otHours);
+        s.totalHours = (s.regularHours || 0) + s.otHours;
+      }
+    });
+
     renderReport(reportData, event);
 
   } catch(e) {
@@ -702,7 +720,6 @@ function exportAllCSV() {
   const dateTo   = document.getElementById('date-to').value;
   const now      = new Date().toLocaleString('en-US');
 
-  // Summary block
   const uniqueWorkers = new Set(reportData.map(s => s.workerName)).size;
   let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
   Object.values(dayGroups).forEach(dg => {
@@ -715,7 +732,6 @@ function exportAllCSV() {
   const headers = ['Worker', 'Position', 'Date', 'Day', 'Clock IN', 'Clock OUT',
                    'Actual Hrs', 'Booked Time', 'Billable Reg Hrs', 'Billable OT Hrs', 'Total Billable Hrs'];
 
-  // Build data rows grouped by date with a subtotal after each day
   const sorted = [...reportData].sort((a, b) => {
     const dc = a.date.localeCompare(b.date);
     return dc !== 0 ? dc : a.workerName.localeCompare(b.workerName);
@@ -726,7 +742,6 @@ function exportAllCSV() {
   sorted.forEach(s => {
     if (s.date !== currentDate) {
       if (currentDate !== null) {
-        // Subtotal row for previous day
         const dg = dayGroups[currentDate];
         const prevDateObj = parseDateStr(currentDate);
         detailRows.push([
@@ -758,7 +773,6 @@ function exportAllCSV() {
     ]);
   });
 
-  // Final day subtotal
   if (currentDate) {
     const dg = dayGroups[currentDate];
     const lastDateObj = parseDateStr(currentDate);
