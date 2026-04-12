@@ -1721,7 +1721,7 @@ async function loadClockStatus(location, date) {
       if (!wd) return;
       const callMins    = parseTime(w.bookedTime);
       const clockInMins = wd.clockIn ? (parseInt(wd.clockIn.split(':')[0]) * 60 + parseInt(wd.clockIn.split(':')[1])) : null;
-      const clockInMatchesShift = clockInMins !== null && callMins !== 9999
+      const clockInMatchesShift = clockInMins !== null && callMins !== 9999 && callMins !== 0
         ? Math.abs(clockInMins - callMins) <= 60 || (callMins > 1320 && clockInMins < 60)
         : true;
       if (!clockInMatchesShift) return;
