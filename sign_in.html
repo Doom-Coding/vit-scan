@@ -617,12 +617,17 @@ async function loadClockStatus(location, date) {
 
       const bookedStart  = parseTime(w.bookedTime);
       const bookedEnd    = parseEndTime(w.bookedTime);
-      const isOvernight  = bookedEnd !== 9999 && bookedEnd < bookedStart; // e.g. 10pm-3am
+      // Fix #4: both must be valid numbers; end < start means overnight (e.g. 10pm-3am)
+      const isOvernight  = bookedStart !== 9999 && bookedEnd !== 9999 && bookedEnd < bookedStart;
 
-      // Match clock-in within 180 mins on both sides of booked start
+      // Fix #1: workers booked late at night (after ~9pm) may clock in after
+      // midnight. parseTime always returns 0-1439, so a 00:30 scan returns
+      // 30 instead of 1470. Adjust upward so the ±180 window still matches.
       const matchingClockIn = entry.clockIns.find(t => {
-        const m = parseTime(t);
-        return m !== 9999 && m >= bookedStart - 180 && m <= bookedStart + 180;
+        let m = parseTime(t);
+        if (m === 9999) return false;
+        if (bookedStart !== 9999 && bookedStart > 1260 && m < 180) m += 1440;
+        return m >= bookedStart - 180 && m <= bookedStart + 180;
       });
       if (!matchingClockIn) return;
 
