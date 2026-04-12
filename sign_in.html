@@ -634,7 +634,7 @@ async function loadClockStatus(location, date) {
       const clockInMins = parseTime(matchingClockIn);
 
       // Alert: clocked in more than 15 minutes early
-      if (bookedStart !== 9999 && clockInMins < bookedStart - 15) {
+      if (bookedStart !== 9999 && clockInMins < bookedStart - 30) {
         const minsEarly = bookedStart - clockInMins;
         const key       = `early|${w.name}`;
         if (!siAlertsFired.has(key)) {
