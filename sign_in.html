@@ -1329,10 +1329,10 @@ function updateEventBtnLabel() {
 
 async function loadLocations() {
   try {
-    const res  = await fetch(`${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`);
-    const data = await res.json();
-    const sel    = document.getElementById('location-select');
-    const ccSel  = document.getElementById('cc-location-select');
+    const res   = await fetch(`${SCRIPT_URL}?action=getLocations&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}`);
+    const data  = await res.json();
+    const sel   = document.getElementById('location-select');
+    const ccSel = document.getElementById('cc-location-select');
     if (data.locations && data.locations.length) {
       data.locations.forEach(loc => {
         const opt = document.createElement('option');
@@ -1347,10 +1347,8 @@ async function loadLocations() {
       }
     }
   } catch(e) {
-    const sel   = document.getElementById('location-select');
-    const ccSel = document.getElementById('cc-location-select');
-    const loc   = 'FL - Caribe Royale Orlando - 4006';
-    [sel, ccSel].forEach(s => {
+    const loc = 'FL - Caribe Royale Orlando - 4006';
+    [document.getElementById('location-select'), document.getElementById('cc-location-select')].forEach(s => {
       const opt = document.createElement('option');
       opt.value = loc; opt.textContent = loc; s.appendChild(opt);
     });
