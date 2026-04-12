@@ -439,14 +439,11 @@ function parseDateStr(str) {
   return new Date(parseInt(p[2]), parseInt(p[0]) - 1, parseInt(p[1]), 12, 0, 0);
 }
 
-// ── OT rounding: decimal >= 0.25 → round up to next whole hour, else drop ────
+// ── OT rounding: >= 0.1 → round up to next whole hour, else drop ────
 function roundOT(n) {
   if (n == null) return null;
-  const floor   = Math.floor(n);
-  const decimal = n - floor;
-  return decimal >= 0.25 ? floor + 1 : floor;
+  return Math.ceil(n);
 }
-
 async function loadEvents() {
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getEventList`);
