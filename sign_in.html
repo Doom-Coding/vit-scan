@@ -21,6 +21,47 @@
   #signin-section.hidden { display: none; }
   #command-section { display: none; background: #f0f0ee; }
   #command-section.visible { display: block; }
+  #workers-section { display: none; background: #f0f0ee; }
+  #workers-section.visible { display: block; }
+  .wr-controls { padding: .85rem 1.5rem; background: #fff; border-bottom: 1px solid #e5e5e5; display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+  .wr-search { padding: .45rem .75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; background: #fafafa; min-width: 220px; font-family: inherit; }
+  .wr-search:focus { outline: none; border-color: #1a1a1a; }
+  .wr-stat { font-size: 12px; color: #888; }
+  .wr-stat b { color: #1a1a1a; }
+  .wr-main { padding: 1.25rem 1.5rem; max-width: 1200px; }
+  .wr-table-wrap { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; overflow-x: auto; }
+  .wr-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+  .wr-table thead tr { background: #f8f8f8; border-bottom: 1px solid #e5e5e5; }
+  .wr-table th { padding: .55rem 1rem; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #aaa; white-space: nowrap; }
+  .wr-table tbody tr { border-bottom: 1px solid #f5f5f5; transition: background .1s; }
+  .wr-table tbody tr:last-child { border-bottom: none; }
+  .wr-table tbody tr:hover { background: #fafafa; }
+  .wr-table td { padding: .65rem 1rem; vertical-align: middle; }
+  .wr-name { font-weight: 600; color: #1a1a1a; }
+  .wr-sub  { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .wr-phone { font-family: monospace; font-size: 12px; color: #555; }
+  .wr-tag { display: inline-block; background: #f0f0f0; border-radius: 5px; padding: 2px 8px; font-size: 11px; font-weight: 700; color: #555; font-family: monospace; }
+  .wr-badge-yes { display: inline-block; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 20px; padding: 1px 8px; font-size: 10px; font-weight: 700; }
+  .wr-badge-no  { display: inline-block; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; border-radius: 20px; padding: 1px 8px; font-size: 10px; font-weight: 600; }
+  .wr-pos-list  { display: flex; flex-wrap: wrap; gap: 3px; max-width: 200px; }
+  .wr-pos-tag   { background: #f0f0f0; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 600; color: #666; }
+  .wr-empty { text-align: center; padding: 3rem 1rem; color: #aaa; font-size: 13px; }
+  .wr-empty-icon { font-size: 36px; margin-bottom: .75rem; }
+  .invite-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem; }
+  .invite-title { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: .35rem; }
+  .invite-sub { font-size: 13px; color: #888; margin-bottom: 1rem; line-height: 1.5; }
+  .invite-row { display: flex; gap: .75rem; flex-wrap: wrap; }
+  .invite-input { flex: 1; min-width: 160px; padding: .55rem .75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; background: #fafafa; font-family: inherit; }
+  .invite-input:focus { outline: none; border-color: #1a1a1a; }
+  .invite-input::placeholder { color: #bbb; }
+  .btn-invite { padding: .55rem 1.1rem; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; transition: opacity .15s; }
+  .btn-invite:hover { opacity: .82; }
+  .btn-invite:disabled { opacity: .4; cursor: default; }
+  .invite-result { margin-top: .75rem; padding: .6rem .9rem; border-radius: 8px; font-size: 13px; display: none; }
+  .invite-result.ok  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .invite-result.err { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .wr-refresh-btn { padding: .42rem .9rem; background: none; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; font-weight: 600; color: #888; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .wr-refresh-btn:hover { border-color: #1a1a1a; color: #1a1a1a; }
   .controls { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
   .control-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
   .control-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
@@ -271,6 +312,7 @@
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
   <button class="tab-btn" id="tab-command" onclick="switchTab('command')">Command Center <span class="tab-badge" id="alert-badge" style="display:none">0</span></button>
+  <button class="tab-btn" id="tab-workers" onclick="switchTab('workers')">Workers <span class="tab-badge" id="workers-badge" style="display:none">!</span></button>
 </div>
 <div id="signin-section">
   <div class="controls">
@@ -322,6 +364,48 @@
         <div class="cc-alerts-header"><span class="cc-alerts-title">Alert Log</span><span class="cc-alert-count clear" id="cc-alert-count">0 open</span></div>
         <div class="cc-alerts-body" id="cc-alert-body"><div class="cc-all-clear">No alerts yet.</div></div>
       </div>
+    </div>
+  </div>
+</div>
+<div id="workers-section">
+  <div class="wr-controls">
+    <input class="wr-search" id="wr-search" placeholder="Search name, phone, email…" oninput="filterRoster()">
+    <button class="wr-refresh-btn" onclick="loadRoster()">↻ Refresh</button>
+    <span class="wr-stat"><b id="wr-count">—</b> workers · <b id="wr-complete">—</b> profiles complete</span>
+  </div>
+  <div class="wr-main">
+    <div class="wr-table-wrap">
+      <table class="wr-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Emergency Contact</th>
+            <th>Emergency Phone</th>
+            <th>Tag ID</th>
+            <th>Positions Worked</th>
+            <th>Events</th>
+            <th>Profile</th>
+          </tr>
+        </thead>
+        <tbody id="wr-tbody">
+          <tr><td colspan="9" class="wr-empty"><div class="wr-empty-icon">👥</div><div>Click Refresh to load the worker roster.</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Invite card -->
+    <div class="invite-card">
+      <div class="invite-title">Invite a Worker</div>
+      <div class="invite-sub">Enter your name and the worker's phone number. They'll receive a link to set up their profile. Once complete, their information will appear in the roster automatically.</div>
+      <div class="invite-row">
+        <input type="text" class="invite-input" id="inv-sender" placeholder="Your full name">
+        <input type="tel"  class="invite-input" id="inv-phone"  placeholder="Worker's phone (10 digits)" maxlength="10"
+          oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+        <button class="btn-invite" id="inv-btn" onclick="sendInvite()">Send Invite</button>
+      </div>
+      <div class="invite-result" id="inv-result"></div>
     </div>
   </div>
 </div>
@@ -441,9 +525,27 @@ window.addEventListener('DOMContentLoaded',()=>{
 });
 
 function switchTab(tab){
-  const si=document.getElementById('signin-section'),cc=document.getElementById('command-section'),ts=document.getElementById('tab-signin'),tc=document.getElementById('tab-command');
-  if(tab==='signin'){si.classList.remove('hidden');cc.classList.remove('visible');ts.classList.add('active');tc.classList.remove('active');stopAutoRefresh();if(allWorkers.length)startSiRefresh();}
-  else{si.classList.add('hidden');cc.classList.add('visible');ts.classList.remove('active');tc.classList.add('active');stopSiRefresh();loadDashboard();startAutoRefresh();}
+  const si=document.getElementById('signin-section');
+  const cc=document.getElementById('command-section');
+  const wr=document.getElementById('workers-section');
+  const ts=document.getElementById('tab-signin');
+  const tc=document.getElementById('tab-command');
+  const tw=document.getElementById('tab-workers');
+
+  // hide all
+  si.classList.add('hidden'); cc.classList.remove('visible'); wr.classList.remove('visible');
+  ts.classList.remove('active'); tc.classList.remove('active'); tw.classList.remove('active');
+
+  if(tab==='signin'){
+    si.classList.remove('hidden'); ts.classList.add('active');
+    stopAutoRefresh(); if(allWorkers.length)startSiRefresh();
+  } else if(tab==='command'){
+    cc.classList.add('visible'); tc.classList.add('active');
+    stopSiRefresh(); loadDashboard(); startAutoRefresh();
+  } else if(tab==='workers'){
+    wr.classList.add('visible'); tw.classList.add('active');
+    stopSiRefresh(); stopAutoRefresh(); loadRoster();
+  }
 }
 
 function queueAlertPopup(title,msg,type){alertQueue.push({title,msg,type});if(!alertPopupOpen)showNextAlert();}
@@ -562,21 +664,67 @@ async function loadWorkers(){
   const btn=document.getElementById('load-btn');btn.disabled=true;btn.innerHTML='<span class="spinner-inline"></span>Loading…';document.getElementById('main-content').innerHTML='<div class="loading"><span class="spinner-inline"></span>Fetching worker list…</div>';
   try{const res=await fetch(`${SCRIPT_URL}?action=getWorkers&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}`);const data=await res.json();
   if(data.error){showToast(data.error,'error');document.getElementById('main-content').innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><h3>Error loading workers</h3><p>${data.error}</p></div>`;return;}
-  allWorkers=data.workers||[];siAlertsFired=new Set();renderWorkers_signin(allWorkers);updateStats();siLastLocation=location;siLastDate=date;loadClockStatus(location,date);stopSiRefresh();startSiRefresh();}
+  allWorkers=data.workers||[];siAlertsFired=new Set();renderWorkers_signin(allWorkers);updateStats();siLastLocation=location;siLastDate=date;loadClockStatus(location,date);stopSiRefresh();startSiRefresh();
+  autoInviteNew(allWorkers, supervisor);}
   catch(e){showToast('Could not connect. Check your network.','error');document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Try again.</p></div>';}
   btn.disabled=false;btn.textContent='Load Workers';
 }
+
+// ── Auto-invite workers not yet in the Workers tab ───────────────────────────
+// Runs silently after each loadWorkers(). Collects phones where inRoster=false,
+// sends one batch request. Once the server creates their Workers row, their
+// phone is in the roster — on the next load it shows bold and this won't fire.
+const invitedThisSession = new Set(); // prevents duplicate calls within same session
+
+async function autoInviteNew(workers, supervisor) {
+  // Collect unique phones not yet in roster and not already sent this session
+  const newPhones = [...new Set(
+    workers
+      .filter(w => w.phone && !w.inRoster && !invitedThisSession.has(w.phone))
+      .map(w => w.phone)
+  )];
+  if (!newPhones.length) return;
+
+  // Mark as sent in session immediately to prevent duplicate calls
+  newPhones.forEach(p => invitedThisSession.add(p));
+
+  try {
+    const sender = (supervisor || document.getElementById('supervisor-name')?.value || 'VIT').trim();
+    const res    = await fetch(`${SCRIPT_URL}?action=batchInviteWorkers&phones=${encodeURIComponent(newPhones.join('|'))}&senderName=${encodeURIComponent(sender)}`);
+    const data   = await res.json();
+    if (data.error) { console.warn('autoInviteNew error:', data.error); return; }
+    if (data.sent > 0) {
+      // Update phone cells using data-phone attribute — avoids idx mismatch
+      // between allWorkers (labor sheet index) and rendered rows (forEach index)
+      document.querySelectorAll('[id^="phone-cell-"]').forEach(cell => {
+        const phone = cell.dataset.phone;
+        if (phone && newPhones.includes(phone)) {
+          cell.textContent = phone + ' 📨';
+          cell.title = 'Profile invite sent';
+        }
+      });
+      showToast(`${data.sent} profile invite${data.sent!==1?'s':''} sent`, 'success');
+    }
+  } catch(e) { console.warn('autoInviteNew fetch failed:', e); }
+}
+
 
 function renderWorkers_signin(workers){
   if(!workers.length){document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this filter.</p></div>';document.getElementById('stats-bar').style.display='none';return;}
   const groups={};workers.forEach((w,idx)=>{const ev=w.eventName||'Unassigned';if(!groups[ev])groups[ev]=[];groups[ev].push({...w,idx});});
   Object.values(groups).forEach(g=>g.sort((a,b)=>parseTime(a.bookedTime)-parseTime(b.bookedTime)));
-  let html='';Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).forEach(([event,rows])=>{html+=`<div class="event-group"><div class="event-header"><span class="event-label">${escHtml(event)}</span><span class="event-count">${rows.length} worker${rows.length!==1?'s':''}</span></div><table class="worker-table"><thead><tr><th class="chk-col"><input type="checkbox" class="bulk-chk" onchange="toggleSelectAll(this)" title="Select all clocked-in"></th><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th style="width:240px;">TagID</th></tr></thead><tbody>${rows.map(w=>renderRow(w)).join('')}</tbody></table></div>`;});
+  let html='';Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).forEach(([event,rows])=>{html+=`<div class="event-group"><div class="event-header"><span class="event-label">${escHtml(event)}</span><span class="event-count">${rows.length} worker${rows.length!==1?'s':''}</span></div><table class="worker-table"><thead><tr><th class="chk-col"><input type="checkbox" class="bulk-chk" onchange="toggleSelectAll(this)" title="Select all clocked-in"></th><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th style="width:240px;">Actions</th></tr></thead><tbody>${rows.map(w=>renderRow(w)).join('')}</tbody></table></div>`;});
   document.getElementById('main-content').innerHTML=html;document.getElementById('stats-bar').style.display='flex';
   workers.forEach((w,i)=>{if(w.tagId){const input=document.getElementById(`tag-${i}`);if(input){input.value=w.tagId;input.classList.add('has-value');markSaved(i);}}});
 }
 
-function renderRow(w){const i=w.idx;return `<tr id="row-${i}"><td class="chk-col"><input type="checkbox" class="bulk-chk" id="chk-${i}" onchange="onBulkChkChange()" data-idx="${i}"></td><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td><span style="font-size:13px;color:#555;white-space:nowrap;">${escHtml(w.phone||'—')}</span></td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
+function renderRow(w){const i=w.idx;
+  const phoneHtml = w.phone
+    ? w.inRoster
+      ? `<span style="font-size:13px;font-weight:700;color:#1a1a1a;white-space:nowrap;" title="In worker roster">${escHtml(w.phone)}</span>`
+      : `<span id="phone-cell-${i}" data-phone="${escHtml(w.phone)}" style="font-size:13px;color:#aaa;white-space:nowrap;" title="Not yet in roster">${escHtml(w.phone)}</span>`
+    : `<span style="font-size:13px;color:#ccc;">—</span>`;
+  return `<tr id="row-${i}"><td class="chk-col"><input type="checkbox" class="bulk-chk" id="chk-${i}" onchange="onBulkChkChange()" data-idx="${i}"></td><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td>${phoneHtml}</td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
 
 function onTagInput(idx){const input=document.getElementById(`tag-${idx}`),dot=document.getElementById(`dot-${idx}`),btn=document.getElementById(`savebtn-${idx}`),msg=document.getElementById(`conflict-${idx}`);input.classList.remove('has-value','conflict');input.classList.toggle('has-value',input.value.length>0);dot.className='status-dot unsaved';btn.textContent='Save Tag';btn.classList.remove('saved','conflict');btn.onclick=()=>saveTag(idx);msg.style.display='none';}
 
@@ -669,6 +817,126 @@ function parseTime(str){if(!str)return 9999;const m=str.match(/^(\d+)(?::(\d+))?
 function parseEndTime(str){if(!str)return 9999;const parts=str.split('-');if(parts.length<2)return 9999;return parseTime(parts[parts.length-1].trim());}
 function escHtml(str){if(!str)return '';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className='toast';},3500);}
+
+// ── Workers tab ───────────────────────────────────────────────────────────────
+let rosterData = [];
+
+async function loadRoster() {
+  const tbody = document.getElementById('wr-tbody');
+  if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:#aaa;font-size:13px;"><span style="display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:#1a1a1a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;"></span>Loading roster…</td></tr>`;
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getWorkerRoster`);
+    const data = await res.json();
+    if (data.error) { if(tbody) tbody.innerHTML=`<tr><td colspan="9" class="wr-empty"><div>Error: ${escHtml(data.error)}</div></td></tr>`; return; }
+    rosterData = data.workers || [];
+    renderRoster(rosterData);
+  } catch(e) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="wr-empty"><div>Connection error. Try again.</div></td></tr>`;
+  }
+}
+
+function renderRoster(workers) {
+  const tbody    = document.getElementById('wr-tbody');
+  const cntEl    = document.getElementById('wr-count');
+  const compEl   = document.getElementById('wr-complete');
+  if (!tbody) return;
+
+  const complete = workers.filter(w => w.profileComplete === 'Yes').length;
+  if (cntEl)  cntEl.textContent  = workers.length;
+  if (compEl) compEl.textContent = complete;
+
+  if (!workers.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="wr-empty"><div class="wr-empty-icon">👥</div><div>No workers in the roster yet.</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = workers.map(w => {
+    const posTags = (w.positions || []).slice(0,5).map(p =>
+      `<span class="wr-pos-tag">${escHtml(p)}</span>`).join('') +
+      (w.positions.length > 5 ? `<span class="wr-pos-tag">+${w.positions.length-5}</span>` : '');
+
+    const profBadge = w.profileComplete === 'Yes'
+      ? `<span class="wr-badge-yes">Complete</span>`
+      : `<span class="wr-badge-no">Pending</span>`;
+
+    const emgLine = w.emergencyName
+      ? `<div class="wr-name" style="font-weight:500">${escHtml(w.emergencyName)}</div>`
+      : `<span style="color:#ccc">—</span>`;
+
+    const emgPhone = w.emergencyPhone
+      ? `<span class="wr-phone">${escHtml(w.emergencyPhone)}</span>`
+      : `<span style="color:#ccc">—</span>`;
+
+    return `<tr>
+      <td>
+        <div class="wr-name">${escHtml(w.name || '—')}</div>
+        ${w.market ? `<div class="wr-sub">${escHtml(w.market)}</div>` : ''}
+      </td>
+      <td><span class="wr-phone">${escHtml(w.phone || '—')}</span></td>
+      <td>${w.email ? `<span style="font-size:12px;color:#555">${escHtml(w.email)}</span>` : '<span style="color:#ccc">—</span>'}</td>
+      <td>${emgLine}</td>
+      <td>${emgPhone}</td>
+      <td>${w.tagId ? `<span class="wr-tag">${escHtml(w.tagId)}</span>` : '<span style="color:#ccc">—</span>'}</td>
+      <td><div class="wr-pos-list">${posTags || '<span style="color:#ccc;font-size:11px">None yet</span>'}</div></td>
+      <td style="text-align:center;font-weight:600;color:#555">${w.eventsTotal || 0}</td>
+      <td>${profBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterRoster() {
+  const q = (document.getElementById('wr-search')?.value || '').toLowerCase().trim();
+  if (!q) { renderRoster(rosterData); return; }
+  const filtered = rosterData.filter(w =>
+    (w.name         || '').toLowerCase().includes(q) ||
+    (w.phone        || '').includes(q) ||
+    (w.email        || '').toLowerCase().includes(q) ||
+    (w.emergencyName|| '').toLowerCase().includes(q) ||
+    (w.positions    || []).some(p => p.toLowerCase().includes(q)) ||
+    (w.tagId        || '').toLowerCase().includes(q)
+  );
+  renderRoster(filtered);
+}
+
+async function sendInvite() {
+  const senderInput = document.getElementById('inv-sender');
+  const phoneInput  = document.getElementById('inv-phone');
+  const btn         = document.getElementById('inv-btn');
+  const resultEl    = document.getElementById('inv-result');
+
+  const sender = (senderInput?.value || '').trim();
+  const phone  = (phoneInput?.value  || '').replace(/\D/g,'');
+
+  resultEl.className = 'invite-result'; resultEl.style.display = 'none';
+
+  if (!sender) { showInviteResult('error', 'Enter your name before sending.'); return; }
+  if (phone.length !== 10) { showInviteResult('error', 'Enter a valid 10-digit phone number.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=inviteWorker&senderName=${encodeURIComponent(sender)}&phone=${encodeURIComponent(phone)}`);
+    const data = await res.json();
+    if (data.error) { showInviteResult('error', data.error); }
+    else {
+      showInviteResult('ok', `Invite sent! Link: ${data.link || '(check Logger)'}`);
+      if (phoneInput) phoneInput.value = '';
+      // Refresh roster to show the new pending entry
+      setTimeout(() => loadRoster(), 1200);
+    }
+  } catch(e) {
+    showInviteResult('error', 'Connection error. Please try again.');
+  }
+  btn.disabled = false; btn.textContent = 'Send Invite';
+}
+
+function showInviteResult(type, msg) {
+  const el = document.getElementById('inv-result');
+  if (!el) return;
+  el.className = `invite-result ${type}`;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 
 // ── Bulk clock-out ────────────────────────────────────────────────────────────
 let bPinBuffer='';
