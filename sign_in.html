@@ -687,20 +687,6 @@ async function loadClockStatus(location, date) {
 
       const clockInMins = parseTime(matchingClockIn);
 
-      // Alert: clocked in more than 15 minutes early
-      if (bookedStart !== 9999 && clockInMins < bookedStart - 15) {
-        const minsEarly = bookedStart - clockInMins;
-        const key       = `early|${w.name}`;
-        if (!siAlertsFired.has(key)) {
-          siAlertsFired.add(key);
-          queueAlertPopup(
-            'Early Clock-In',
-            `${w.name} clocked in ${minsEarly} minute${minsEarly !== 1 ? 's' : ''} early.\nBooked time: ${w.bookedTime}\nActual clock-in: ${matchingClockIn}`,
-            'early'
-          );
-        }
-      }
-
       // Look for same-day clock out after the clock-in
       let matchingClockOut = entry.clockOuts.find(t => {
         const m = parseTime(t);
@@ -734,18 +720,6 @@ async function loadClockStatus(location, date) {
         // Alert: still clocked in past scheduled end (adjusted for overnight)
         const effectiveEndMins = isOvernight ? bookedEnd + 1440 : bookedEnd;
         const effectiveNow     = isOvernight && nowMins < bookedStart ? nowMins + 1440 : nowMins;
-        if (bookedEnd !== 9999 && effectiveNow > effectiveEndMins) {
-          const minsOver = effectiveNow - effectiveEndMins;
-          const key      = `overtime|${w.name}`;
-          if (!siAlertsFired.has(key)) {
-            siAlertsFired.add(key);
-            queueAlertPopup(
-              'Still Clocked In — Past End Time',
-              `${w.name} is still clocked in with no Clock Out recorded.\nScheduled end: ${w.bookedTime.split('-').pop().trim()}\n${minsOver} minute${minsOver !== 1 ? 's' : ''} past scheduled end.`,
-              'overtime'
-            );
-          }
-        }
       }
     });
 
