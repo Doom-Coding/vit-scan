@@ -105,6 +105,53 @@
   .flag-minimum { background: #fef3c7; color: #92400e; }
   .flag-bumped { background: #dbeafe; color: #1e40af; }
   .flag-grace { background: #fef3c7; color: #92400e; }
+  /* ── Sign-off status indicators ── */
+  .so-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; white-space: nowrap; cursor: default; }
+  .so-pending   { background: #f1f5f9; color: #94a3b8; }
+  .so-confirmed { background: #f0fdf4; color: #16a34a; }
+  .so-disputed  { background: #fef2f2; color: #dc2626; cursor: pointer; }
+  .so-expired   { background: #f8fafc; color: #94a3b8; }
+  .so-resolved  { background: #eff6ff; color: #2563eb; cursor: pointer; }
+  .so-notsent   { color: #ccc; font-size: 12px; }
+  .so-disputed:hover, .so-resolved:hover { opacity: 0.8; }
+  /* ── Dispute / time-override modal ── */
+  .so-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 800; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .so-modal-overlay.open { opacity: 1; pointer-events: all; }
+  .so-modal-card { background: #fff; border-radius: 16px; width: 100%; max-width: 420px; transform: translateY(10px); transition: transform 0.2s; overflow: hidden; max-height: 90vh; overflow-y: auto; }
+  .so-modal-overlay.open .so-modal-card { transform: translateY(0); }
+  .so-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #f0f0f0; }
+  .so-modal-title { font-size: 16px; font-weight: 700; }
+  .so-modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #aaa; padding: 2px 6px; border-radius: 6px; }
+  .so-modal-close:hover { background: #f5f5f5; color: #1a1a1a; }
+  .so-modal-body { padding: 1.25rem 1.5rem; }
+  .so-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; margin-bottom: 5px; display: block; }
+  .so-info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+  .so-info-row:last-child { border-bottom: none; }
+  .so-info-row .lbl { color: #888; }
+  .so-info-row .val { font-weight: 600; }
+  .so-dispute-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.75rem 1rem; margin: 1rem 0; }
+  .so-dispute-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #dc2626; margin-bottom: 4px; }
+  .so-dispute-note { font-size: 13px; color: #333; line-height: 1.5; }
+  .so-input { width: 100%; padding: 0.55rem 0.75rem; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; font-family: inherit; margin-bottom: 1rem; }
+  .so-input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+  .so-textarea { width: 100%; padding: 0.55rem 0.75rem; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 13px; background: #fafafa; color: #1a1a1a; font-family: inherit; resize: none; min-height: 64px; margin-bottom: 1rem; }
+  .so-textarea:focus { outline: none; border-color: #1a1a1a; }
+  .so-pin-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+  .so-pin-input { flex: 1; padding: 0.55rem 0.75rem; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center; letter-spacing: 0.2em; font-family: inherit; background: #fafafa; }
+  .so-pin-input:focus { outline: none; border-color: #1a1a1a; }
+  .so-btn-row { display: flex; gap: 8px; }
+  .so-btn { flex: 1; padding: 0.7rem; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+  .so-btn:hover { opacity: 0.8; }
+  .so-btn-primary { background: #1a1a1a; color: #fff; }
+  .so-btn-accept  { background: #16a34a; color: #fff; }
+  .so-btn-reject  { background: #dc2626; color: #fff; }
+  .so-btn-cancel  { background: #f0f0f0; color: #1a1a1a; }
+  .so-error { background: #fef2f2; color: #991b1b; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 13px; margin-bottom: 0.75rem; display: none; }
+  .so-divider { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
+  /* ── Send sign-offs button ── */
+  .btn-send-signoffs { padding: 0.38rem 0.85rem; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); background: none; color: rgba(255,255,255,0.6); cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+  .btn-send-signoffs:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.4); }
+  .btn-send-signoffs:disabled { opacity: 0.3; cursor: default; }
   .empty-state { text-align: center; padding: 5rem 2rem; color: #888; }
   .empty-state .icon { font-size: 44px; margin-bottom: 1rem; }
   .empty-state h3 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; }
@@ -165,7 +212,7 @@
   <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 regular</span>
   <span><span class="flag flag-bumped">BOOKED 10</span> booked for 10 hrs → 10 hr minimum billing</span>
   <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 = OT</span>
-  <span><span class="flag flag-grace">GRACE</span> clock-in within 15 min · clock-out within 15 min → billed at booked time</span>
+  <span><span class="flag flag-grace">GRACE</span> clock-in within 15 min · clock-out within 14 min → billed at booked time</span>
   <span style="color:#aaa;">· &gt;10 hrs excess = OT · OT rounded up to whole hr</span>
 </div>
 
@@ -192,9 +239,49 @@
   </div>
 </div>
 
+<!-- ── Sign-off dispute/resolve modal ── -->
+<div class="so-modal-overlay" id="so-modal" onclick="handleSoOverlayClick(event)">
+  <div class="so-modal-card">
+    <div class="so-modal-header">
+      <span class="so-modal-title" id="so-modal-title">Sign-Off Details</span>
+      <button class="so-modal-close" onclick="closeSoModal()">✕</button>
+    </div>
+    <div class="so-modal-body" id="so-modal-body"></div>
+  </div>
+</div>
+
+<!-- ── Time override modal ── -->
+<div class="so-modal-overlay" id="time-modal" onclick="handleTimeOverlayClick(event)">
+  <div class="so-modal-card">
+    <div class="so-modal-header">
+      <span class="so-modal-title">Edit Billing Times</span>
+      <button class="so-modal-close" onclick="closeTimeModal()">✕</button>
+    </div>
+    <div class="so-modal-body">
+      <p style="font-size:13px;color:#888;margin-bottom:1rem;">Actual clock times are never changed. Only billing hours are updated.</p>
+      <span class="so-field-label">Billing Clock IN (HH:MM 24-hr)</span>
+      <input type="text" class="so-input" id="time-in-input"  placeholder="08:00" maxlength="5">
+      <span class="so-field-label">Billing Clock OUT (HH:MM 24-hr)</span>
+      <input type="text" class="so-input" id="time-out-input" placeholder="18:00" maxlength="5">
+      <hr class="so-divider">
+      <span class="so-field-label">Manager PIN</span>
+      <input type="password" class="so-pin-input" id="time-pin" maxlength="4" placeholder="••••" inputmode="numeric" style="margin-bottom:1rem;width:100%;">
+      <div class="so-error" id="time-error"></div>
+      <div class="so-btn-row">
+        <button class="so-btn so-btn-cancel"  onclick="closeTimeModal()">Cancel</button>
+        <button class="so-btn so-btn-primary" onclick="submitTimeOverride()">Update Hours</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
 let reportData = [], dayGroups = {}, allEvents = [], selectedEvents = new Set();
+let signoffStatuses = {};
+let activeTimeToken = null;
 
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date(), prior = new Date(today);
@@ -211,14 +298,12 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function fmt(d) { return d.toISOString().split('T')[0]; }
-
 function parseDateStr(str) {
   if (!str) return new Date('invalid');
   const p = str.split('/');
   if (p.length !== 3) return new Date('invalid');
   return new Date(parseInt(p[2]), parseInt(p[0]) - 1, parseInt(p[1]), 12, 0, 0);
 }
-
 function roundOT(n) { if (n == null) return null; return Math.ceil(n); }
 
 async function loadEvents() {
@@ -256,35 +341,29 @@ function filterEventList(query) {
     item.style.display = item.dataset.value.toLowerCase().includes(q) ? '' : 'none';
   });
 }
-
 function toggleEventDropdown(e) {
   e.stopPropagation();
   const dd = document.getElementById('event-ms-dropdown');
   dd.classList.toggle('open');
   if (dd.classList.contains('open')) document.getElementById('event-ms-search').focus();
 }
-
 function closeEventDropdown() { document.getElementById('event-ms-dropdown').classList.remove('open'); }
-
 function selectAllEvents() {
   allEvents.forEach(ev => selectedEvents.add(ev));
   document.querySelectorAll('#event-ms-list .multiselect-item:not(.all-option) input').forEach(c => c.checked = true);
   updateEventBtn(); updateAllCheckbox();
 }
-
 function clearEventSelection() {
   selectedEvents.clear();
   document.querySelectorAll('#event-ms-list input[type="checkbox"]').forEach(c => c.checked = false);
   updateEventBtn();
 }
-
 function updateAllCheckbox() {
   const allChk = document.getElementById('ms-all-chk');
   if (!allChk) return;
   allChk.checked = allEvents.length > 0 && selectedEvents.size === allEvents.length;
   allChk.indeterminate = selectedEvents.size > 0 && selectedEvents.size < allEvents.length;
 }
-
 function updateEventBtn() {
   const btn = document.getElementById('event-ms-btn');
   if (selectedEvents.size === 0) btn.textContent = 'All events';
@@ -313,8 +392,8 @@ async function loadReport() {
   const eventFilter = selectedEvents.size > 0 && selectedEvents.size < allEvents.length ? [...selectedEvents].join('|') : '';
   const btn = document.getElementById('load-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-inline"></span>Calculating…';
-  document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Processing scan data…</div>';
+  btn.innerHTML = '<span class="spinner-inline"></span>Calculating...';
+  document.getElementById('main-content').innerHTML = '<div class="loading"><span class="spinner-inline"></span>Processing scan data...</div>';
   document.getElementById('summary-bar').classList.remove('visible');
   document.getElementById('export-all-btn').classList.remove('visible');
   try {
@@ -330,6 +409,7 @@ async function loadReport() {
     reportData.forEach(s => {
       if (s.otHours != null) { s.otHours = roundOT(s.otHours); s.totalHours = (s.regularHours || 0) + s.otHours; }
     });
+    await loadSignoffStatuses(eventFilter, location);
     renderReport(reportData, eventFilter, location);
   } catch(e) {
     document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
@@ -337,11 +417,39 @@ async function loadReport() {
   btn.disabled = false; btn.textContent = 'Generate Report'; closeEventDropdown();
 }
 
+async function loadSignoffStatuses(eventFilter, location) {
+  try {
+    const url  = `${SCRIPT_URL}?action=getSignoffStatuses&eventFilter=${encodeURIComponent(eventFilter||'')}&locationFilter=${encodeURIComponent(location||'')}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.statuses) signoffStatuses = data.statuses;
+  } catch(e) { signoffStatuses = {}; }
+}
+
+function getSignoffStatus(s) {
+  const key = s.workerName.toLowerCase() + '|' + s.date + '|' + (s.eventName || '');
+  return signoffStatuses[key] || null;
+}
+
+function renderSignoffBadge(s) {
+  const so = getSignoffStatus(s);
+  if (!so) return `<span style="color:#ccc;font-size:12px;">—</span>`;
+  const tok = encodeURIComponent(so.token || '');
+  switch(so.status) {
+    case 'Confirmed': return `<span class="so-badge so-confirmed">✅ Confirmed</span>`;
+    case 'Disputed':  return `<span class="so-badge so-disputed" onclick="openDisputeModal('${tok}')">🚩 Disputed</span>`;
+    case 'Resolved':  return `<span class="so-badge so-resolved" onclick="openDisputeModal('${tok}')">✔ Resolved</span>`;
+    case 'Expired':   return `<span class="so-badge so-expired">⏰ Auto-confirmed</span>`;
+    case 'Pending':   return `<span class="so-badge so-pending">⏳ Pending</span>`;
+    default:          return `<span style="color:#ccc;font-size:12px;">—</span>`;
+  }
+}
+
 function renderReport(shifts, eventFilter, location) {
   if (!shifts.length) { document.getElementById('main-content').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No data found</h3><p>No Clock IN or Clock OUT scans found for this selection.</p></div>'; return; }
   dayGroups = {};
   shifts.forEach(s => {
-    if (!dayGroups[s.date]) dayGroups[s.date] = { shifts: [], totalActual: 0, totalReg: 0, totalOT: 0, totalHrs: 0 };
+    if (!dayGroups[s.date]) dayGroups[s.date] = { shifts:[], totalActual:0, totalReg:0, totalOT:0, totalHrs:0 };
     dayGroups[s.date].shifts.push(s);
     if (s.actualHours  != null) dayGroups[s.date].totalActual += s.actualHours;
     if (s.regularHours != null) dayGroups[s.date].totalReg    += s.regularHours;
@@ -350,8 +458,8 @@ function renderReport(shifts, eventFilter, location) {
   });
   Object.entries(dayGroups).forEach(([date, dg]) => { dg.complete = dg.shifts.every(s => !s.incomplete); });
   const uniqueWorkers = new Set(shifts.map(s => s.workerName)).size;
-  let sumActual = 0, sumReg = 0, sumOT = 0, sumTotal = 0;
-  Object.values(dayGroups).forEach(dg => { sumActual += dg.totalActual; sumReg += dg.totalReg; sumOT += dg.totalOT; sumTotal += dg.totalHrs; });
+  let sumActual=0,sumReg=0,sumOT=0,sumTotal=0;
+  Object.values(dayGroups).forEach(dg=>{sumActual+=dg.totalActual;sumReg+=dg.totalReg;sumOT+=dg.totalOT;sumTotal+=dg.totalHrs;});
   document.getElementById('sum-days').textContent    = Object.keys(dayGroups).length;
   document.getElementById('sum-workers').textContent = uniqueWorkers;
   document.getElementById('sum-shifts').textContent  = shifts.length;
@@ -368,19 +476,18 @@ function renderReport(shifts, eventFilter, location) {
   document.getElementById('summary-bar').classList.add('visible');
   document.getElementById('export-all-btn').classList.add('visible');
   let html = '';
-  Object.entries(dayGroups).sort(([a], [b]) => a.localeCompare(b)).forEach(([date, dg]) => { html += renderDayGroup(date, dg); });
+  Object.entries(dayGroups).sort(([a],[b])=>a.localeCompare(b)).forEach(([date,dg])=>{html+=renderDayGroup(date,dg);});
   document.getElementById('main-content').innerHTML = html;
 }
 
 function renderDayGroup(date, dg) {
-  const dateObj  = parseDateStr(date);
-  const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-  const dateStr  = dateObj.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' });
-  const complete = dg.complete;
-  const missing  = dg.shifts.filter(s => s.incomplete).length;
-  const statusHtml = complete ? `<span class="status-badge status-complete">✓ Complete</span>` : `<span class="status-badge status-pending">${missing} pending clock out</span>`;
-  const dlBtn = complete ? `<button class="btn-day-dl ready" onclick="exportDayCSV('${date}')">Download CSV</button>` : `<button class="btn-day-dl locked" disabled>Download CSV</button>`;
-  const rows = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName)).map(s => renderShiftRow(s)).join('');
+  const dateObj = parseDateStr(date);
+  const dayName = dateObj.toLocaleDateString('en-US',{weekday:'long'});
+  const dateStr = dateObj.toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'});
+  const missing = dg.shifts.filter(s=>s.incomplete).length;
+  const statusHtml = dg.complete ? `<span class="status-badge status-complete">✓ Complete</span>` : `<span class="status-badge status-pending">${missing} pending clock out</span>`;
+  const dlBtn = dg.complete ? `<button class="btn-day-dl ready" onclick="exportDayCSV('${date}')">Download CSV</button>` : `<button class="btn-day-dl locked" disabled>Download CSV</button>`;
+  const rows  = [...dg.shifts].sort((a,b)=>a.workerName.localeCompare(b.workerName)).map(s=>renderShiftRow(s)).join('');
   return `
     <div class="day-group">
       <div class="day-header">
@@ -393,24 +500,19 @@ function renderDayGroup(date, dg) {
           <div class="day-stat"><span class="lbl">OT</span><span class="val ot-val">${r2(dg.totalOT)}</span></div>
           <div class="day-stat"><span class="lbl">Total</span><span class="val">${r2(dg.totalHrs)}</span></div>
         </div>
-        <div class="day-actions">${statusHtml}${dlBtn}</div>
+        <div class="day-actions">${statusHtml}${dlBtn}<button class="btn-send-signoffs" onclick="sendSignoffs('${date}',event)">📨 Send Sign-offs</button></div>
       </div>
       <table class="shift-table">
         <thead>
           <tr>
             <th colspan="6" style="background:#f8f8f8;border-bottom:none;padding:0;"></th>
-            <th colspan="3" class="billing-group-header">Billable Hours</th>
+            <th colspan="4" class="billing-group-header">Billable Hours</th>
           </tr>
           <tr>
-            <th class="left">Worker</th>
-            <th class="left">Position</th>
-            <th>Clock IN</th>
-            <th>Clock OUT</th>
-            <th>Actual Hrs</th>
-            <th>Booked Time</th>
-            <th class="billing b-first">Reg Hrs</th>
-            <th class="billing">OT Hrs</th>
-            <th class="billing">Total Hrs</th>
+            <th class="left">Worker</th><th class="left">Position</th>
+            <th>Clock IN</th><th>Clock OUT</th><th>Actual Hrs</th><th>Booked Time</th>
+            <th class="billing b-first">Reg Hrs</th><th class="billing">OT Hrs</th>
+            <th class="billing">Total Hrs</th><th class="billing">Sign-Off</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -420,124 +522,232 @@ function renderDayGroup(date, dg) {
 
 function renderShiftRow(s) {
   const rowClass = s.incomplete ? 'incomplete' : '';
-  const initials = s.workerName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-
-  // Clock IN cell — show actual in gray + amber "→ billed" line if snapped
+  const initials = s.workerName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   const clockInHtml = s.snappedIn
     ? `<div class="time-val time-actual">${escHtml(s.clockIn)}</div><div class="time-billed">→ billed ${escHtml(s.billingClockIn)}</div>`
-    : `<div class="time-val">${escHtml(s.clockIn || '—')}</div>`;
-
-  // Clock OUT cell
+    : `<div class="time-val">${escHtml(s.clockIn||'—')}</div>`;
   const clockOutHtml = s.snappedOut
     ? `<div class="time-val time-actual">${escHtml(s.clockOut)}</div><div class="time-billed">→ billed ${escHtml(s.billingClockOut)}</div>`
-    : `<div class="time-val">${escHtml(s.clockOut || '—')}</div>`;
-
-  const clockInDateHtml  = s.clockInDate  && s.clockInDate  !== s.date ? `<div class="time-date">${escHtml(s.clockInDate)}</div>`  : '';
-  const clockOutDateHtml = s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : '';
-
+    : `<div class="time-val">${escHtml(s.clockOut||'—')}</div>`;
+  const ciDate  = s.clockInDate  && s.clockInDate  !== s.date ? `<div class="time-date">${escHtml(s.clockInDate)}</div>`  : '';
+  const coDate  = s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : '';
   return `
     <tr class="${rowClass}">
       <td style="text-align:left;"><div class="worker-cell"><div class="worker-avatar">${escHtml(initials)}</div><div><div class="worker-name-val">${escHtml(s.workerName)}</div></div></div></td>
-      <td style="font-size:12px;color:#888;text-align:left;">${escHtml(s.position || '—')}</td>
-      <td class="time-cell">${clockInHtml}${clockInDateHtml}</td>
-      <td class="time-cell">${clockOutHtml}${clockOutDateHtml}</td>
-      <td class="time-right">${s.actualHours != null ? `<span class="hours-val" style="color:#555;">${r2(s.actualHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
-      <td><span style="font-size:13px;color:#555;">${escHtml(s.bookedTime || '—')}</span></td>
-      <td class="billing b-first">${s.regularHours != null ? `<span class="hours-val reg">${r2(s.regularHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
-      <td class="billing">${s.otHours != null ? `<span class="hours-val ot">${r2(s.otHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
-      <td class="billing">${s.totalHours != null ? `<span class="hours-val tot">${r2(s.totalHours)}</span>` : '<span class="hours-val dash">—</span>'}</td>
+      <td style="font-size:12px;color:#888;text-align:left;">${escHtml(s.position||'—')}</td>
+      <td class="time-cell">${clockInHtml}${ciDate}</td>
+      <td class="time-cell">${clockOutHtml}${coDate}</td>
+      <td class="time-right">${s.actualHours!=null?`<span class="hours-val" style="color:#555;">${r2(s.actualHours)}</span>`:'<span class="hours-val dash">—</span>'}</td>
+      <td><span style="font-size:13px;color:#555;">${escHtml(s.bookedTime||'—')}</span></td>
+      <td class="billing b-first">${s.regularHours!=null?`<span class="hours-val reg">${r2(s.regularHours)}</span>`:'<span class="hours-val dash">—</span>'}</td>
+      <td class="billing">${s.otHours!=null?`<span class="hours-val ot">${r2(s.otHours)}</span>`:'<span class="hours-val dash">—</span>'}</td>
+      <td class="billing">${s.totalHours!=null?`<span class="hours-val tot">${r2(s.totalHours)}</span>`:'<span class="hours-val dash">—</span>'}</td>
+      <td class="billing">${renderSignoffBadge(s)}</td>
     </tr>`;
 }
 
+// ── Send sign-offs for a day ───────────────────────────────────────────────────
+async function sendSignoffs(date, e) {
+  const btn = e.target; btn.disabled = true; btn.textContent = '📨 Sending...';
+  const eventFilter = selectedEvents.size>0 && selectedEvents.size<allEvents.length ? [...selectedEvents].join('|') : '';
+  const location    = document.getElementById('location-select').value;
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=sendSignoffLinks&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}&locationFilter=${encodeURIComponent(location)}`);
+    const data = await res.json();
+    if (data.error) showToast('Error: ' + data.error, 'error');
+    else showToast(`✓ ${data.sent} sent · ${data.skipped} already sent · ${data.notReady} not yet clocked out`, 'success');
+    await loadSignoffStatuses(eventFilter, location);
+    renderReport(reportData, eventFilter, location);
+  } catch(err) { showToast('Connection error.', 'error'); }
+  btn.disabled = false; btn.textContent = '📨 Send Sign-offs';
+}
+
+// ── Dispute modal ─────────────────────────────────────────────────────────────
+function openDisputeModal(encodedToken) {
+  const token = decodeURIComponent(encodedToken);
+  const so    = Object.values(signoffStatuses).find(s => s.token === token);
+  if (!so) return;
+  document.getElementById('so-modal-title').textContent = so.status === 'Resolved' ? 'Resolution Details' : 'Dispute Details';
+  const isResolved = so.status === 'Resolved';
+  document.getElementById('so-modal-body').innerHTML = `
+    <div style="margin-bottom:1rem;">
+      <span class="so-field-label">Billing Times</span>
+      <div class="so-info-row"><span class="lbl">Billed In</span><span class="val">${escHtml(so.billingIn)}</span></div>
+      <div class="so-info-row"><span class="lbl">Billed Out</span><span class="val">${escHtml(so.billingOut)}</span></div>
+      <div class="so-info-row"><span class="lbl">Regular</span><span class="val">${so.regHrs??'—'}</span></div>
+      <div class="so-info-row"><span class="lbl">OT</span><span class="val">${so.otHrs??'—'}</span></div>
+      <div class="so-info-row"><span class="lbl">Total</span><span class="val">${so.totalHrs??'—'}</span></div>
+    </div>
+    <div class="so-dispute-box">
+      <div class="so-dispute-type">Dispute: ${escHtml(so.disputeType||'Not specified')}</div>
+      <div class="so-dispute-note">${escHtml(so.disputeNote||'—')}</div>
+    </div>
+    ${isResolved ? `
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#2563eb;margin-bottom:4px;">Resolution: ${escHtml(so.resolution)}</div>
+        <div style="font-size:13px;color:#333;">${escHtml(so.managerNote||'—')}</div>
+      </div>
+      <div style="text-align:center;"><button class="so-btn so-btn-cancel" style="min-width:120px;" onclick="closeSoModal()">Close</button></div>
+    ` : `
+      <hr class="so-divider">
+      <span class="so-field-label">Edit Billing Times (optional)</span>
+      <input type="text" class="so-input" id="disp-bill-in"  value="${escHtml(so.billingIn)}"  placeholder="HH:MM">
+      <input type="text" class="so-input" id="disp-bill-out" value="${escHtml(so.billingOut)}" placeholder="HH:MM">
+      <span class="so-field-label">Manager Note</span>
+      <textarea class="so-textarea" id="disp-mgr-note" placeholder="Explain your resolution..."></textarea>
+      <span class="so-field-label">Manager PIN</span>
+      <input type="password" class="so-pin-input" id="disp-pin" maxlength="4" placeholder="••••" inputmode="numeric" style="margin-bottom:1rem;width:100%;">
+      <div class="so-error" id="disp-error"></div>
+      <div class="so-btn-row">
+        <button class="so-btn so-btn-cancel" onclick="closeSoModal()">Cancel</button>
+        <button class="so-btn so-btn-reject" onclick="resolveDispute('${encodeURIComponent(token)}','Rejected')">Reject Dispute</button>
+        <button class="so-btn so-btn-accept" onclick="resolveDispute('${encodeURIComponent(token)}','Accepted')">Accept Dispute</button>
+      </div>
+    `}`;
+  document.getElementById('so-modal').classList.add('open');
+}
+
+async function resolveDispute(encodedToken, resolution) {
+  const token   = decodeURIComponent(encodedToken);
+  const pin     = (document.getElementById('disp-pin')||{}).value||'';
+  const note    = (document.getElementById('disp-mgr-note')||{}).value||'';
+  const billIn  = (document.getElementById('disp-bill-in')||{}).value||'';
+  const billOut = (document.getElementById('disp-bill-out')||{}).value||'';
+  const errEl   = document.getElementById('disp-error');
+  if (errEl) errEl.style.display = 'none';
+
+  // Update billing times first if changed from original
+  const so = Object.values(signoffStatuses).find(s => s.token === token);
+  if (so && (billIn !== so.billingIn || billOut !== so.billingOut)) {
+    const tRes  = await fetch(`${SCRIPT_URL}?action=updateBillingTimes&token=${encodeURIComponent(token)}&billingIn=${encodeURIComponent(billIn)}&billingOut=${encodeURIComponent(billOut)}&pin=${encodeURIComponent(pin)}`);
+    const tData = await tRes.json();
+    if (tData.error) { if(errEl){errEl.textContent=tData.error;errEl.style.display='block';} return; }
+  }
+
+  const res  = await fetch(`${SCRIPT_URL}?action=resolveDispute&token=${encodeURIComponent(token)}&resolution=${encodeURIComponent(resolution)}&managerNote=${encodeURIComponent(note)}&pin=${encodeURIComponent(pin)}`);
+  const data = await res.json();
+  if (data.error) { if(errEl){errEl.textContent=data.error;errEl.style.display='block';} return; }
+
+  showToast(`Dispute ${resolution.toLowerCase()} successfully`, 'success');
+  closeSoModal();
+  const ef = selectedEvents.size>0&&selectedEvents.size<allEvents.length?[...selectedEvents].join('|'):'';
+  const lc = document.getElementById('location-select').value;
+  await loadSignoffStatuses(ef, lc);
+  renderReport(reportData, ef, lc);
+}
+
+function closeSoModal() { document.getElementById('so-modal').classList.remove('open'); }
+function handleSoOverlayClick(e) { if(e.target===document.getElementById('so-modal')) closeSoModal(); }
+
+// ── Time override modal ───────────────────────────────────────────────────────
+function openTimeModal(token) {
+  activeTimeToken = token;
+  document.getElementById('time-pin').value='';
+  document.getElementById('time-in-input').value='';
+  document.getElementById('time-out-input').value='';
+  const errEl = document.getElementById('time-error');
+  if (errEl) errEl.style.display='none';
+  document.getElementById('time-modal').classList.add('open');
+}
+async function submitTimeOverride() {
+  const pin    = document.getElementById('time-pin').value;
+  const billIn = document.getElementById('time-in-input').value.trim();
+  const billOut= document.getElementById('time-out-input').value.trim();
+  const errEl  = document.getElementById('time-error');
+  if (!billIn||!billOut) { errEl.textContent='Enter both billing times.'; errEl.style.display='block'; return; }
+  if (!pin)              { errEl.textContent='Enter the manager PIN.';    errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=updateBillingTimes&token=${encodeURIComponent(activeTimeToken)}&billingIn=${encodeURIComponent(billIn)}&billingOut=${encodeURIComponent(billOut)}&pin=${encodeURIComponent(pin)}`);
+    const data = await res.json();
+    if (data.error) { errEl.textContent=data.error; errEl.style.display='block'; return; }
+    showToast('Billing times updated','success'); closeTimeModal();
+    const ef = selectedEvents.size>0&&selectedEvents.size<allEvents.length?[...selectedEvents].join('|'):'';
+    const lc = document.getElementById('location-select').value;
+    await loadSignoffStatuses(ef,lc); renderReport(reportData,ef,lc);
+  } catch(err) { errEl.textContent='Connection error.'; errEl.style.display='block'; }
+}
+function closeTimeModal() { document.getElementById('time-modal').classList.remove('open'); activeTimeToken=null; }
+function handleTimeOverlayClick(e) { if(e.target===document.getElementById('time-modal')) closeTimeModal(); }
+
+// ── CSV exports ───────────────────────────────────────────────────────────────
 function exportDayCSV(date) {
   const dg = dayGroups[date]; if (!dg) return;
-  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length ? 'All Events' : [...selectedEvents].join(', ');
-  const location = document.getElementById('location-select').value || 'All Locations';
-  const dateObj  = parseDateStr(date);
-  const dayName  = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-  const now      = new Date().toLocaleString('en-US');
-  const sorted   = [...dg.shifts].sort((a, b) => a.workerName.localeCompare(b.workerName));
-  const headers  = ['Worker','Position','Date','Day','Actual IN','Actual OUT','Billed IN','Billed OUT','Actual Hrs','Booked Time','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'];
-  const dataRows = sorted.map(s => [
-    s.workerName, s.position||'', s.date, dayName,
-    s.clockIn||'', s.clockOut||'',
-    s.billingClockIn||s.clockIn||'', s.billingClockOut||s.clockOut||'',
-    s.actualHours  != null ? r2(s.actualHours)  : '',
-    s.bookedTime   || '',
-    s.regularHours != null ? r2(s.regularHours) : '',
-    s.otHours      != null ? r2(s.otHours)      : '',
-    s.totalHours   != null ? r2(s.totalHours)   : ''
-  ]);
-  const totalsRow = ['TOTALS','',date,dayName,'','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs)];
+  const eventLabel = selectedEvents.size===0||selectedEvents.size===allEvents.length?'All Events':[...selectedEvents].join(', ');
+  const location   = document.getElementById('location-select').value||'All Locations';
+  const dateObj    = parseDateStr(date);
+  const dayName    = dateObj.toLocaleDateString('en-US',{weekday:'long'});
+  const now        = new Date().toLocaleString('en-US');
+  const sorted     = [...dg.shifts].sort((a,b)=>a.workerName.localeCompare(b.workerName));
+  const headers    = ['Worker','Position','Date','Day','Actual IN','Actual OUT','Billed IN','Billed OUT','Actual Hrs','Booked Time','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs','Sign-Off Status'];
+  const dataRows   = sorted.map(s => {
+    const so = getSignoffStatus(s);
+    return [s.workerName,s.position||'',s.date,dayName,s.clockIn||'',s.clockOut||'',
+      s.billingClockIn||s.clockIn||'',s.billingClockOut||s.clockOut||'',
+      s.actualHours!=null?r2(s.actualHours):'',s.bookedTime||'',
+      s.regularHours!=null?r2(s.regularHours):'',s.otHours!=null?r2(s.otHours):'',
+      s.totalHours!=null?r2(s.totalHours):'',so?so.status:'Not Sent'];
+  });
+  const totals = ['TOTALS','',date,dayName,'','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs),''];
   downloadCSV([
     ['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],
     ['Date:',`${dayName}, ${date}`],['Workers:',dg.shifts.length],['Generated:',now],
-    ['Grace Window:','Scans within 15 min of booked time billed at booked time'],
-    [],headers,...dataRows,[],totalsRow
-  ], `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
+    ['Grace Window:','Clock-in within 15 min / clock-out within 14 min billed at booked time'],
+    [],headers,...dataRows,[],totals
+  ],`VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
 }
 
 function exportAllCSV() {
   if (!reportData.length) return;
-  const eventLabel = selectedEvents.size === 0 || selectedEvents.size === allEvents.length ? 'All Events' : [...selectedEvents].join(', ');
-  const location = document.getElementById('location-select').value || 'All Locations';
-  const dateFrom = document.getElementById('date-from').value;
-  const dateTo   = document.getElementById('date-to').value;
-  const now      = new Date().toLocaleString('en-US');
-  const uniqueWorkers = new Set(reportData.map(s => s.workerName)).size;
-  let sumActual=0,sumReg=0,sumOT=0,sumTotal=0;
-  Object.values(dayGroups).forEach(dg => { sumActual+=dg.totalActual; sumReg+=dg.totalReg; sumOT+=dg.totalOT; sumTotal+=dg.totalHrs; });
-  const headers = ['Worker','Position','Date','Day','Actual IN','Actual OUT','Billed IN','Billed OUT','Actual Hrs','Booked Time','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'];
-  const sorted = [...reportData].sort((a, b) => { const dc=a.date.localeCompare(b.date); return dc!==0?dc:a.workerName.localeCompare(b.workerName); });
-  const detailRows = []; let currentDate = null;
-  sorted.forEach(s => {
-    if (s.date !== currentDate) {
-      if (currentDate !== null) {
-        const dg=dayGroups[currentDate]; const pdo=parseDateStr(currentDate);
-        detailRows.push([`— ${pdo.toLocaleDateString('en-US',{weekday:'short'})} ${currentDate} SUBTOTAL`,'','','','','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs)]);
-        detailRows.push([]);
-      }
-      currentDate = s.date;
+  const eventLabel = selectedEvents.size===0||selectedEvents.size===allEvents.length?'All Events':[...selectedEvents].join(', ');
+  const location   = document.getElementById('location-select').value||'All Locations';
+  const dateFrom   = document.getElementById('date-from').value;
+  const dateTo     = document.getElementById('date-to').value;
+  const now        = new Date().toLocaleString('en-US');
+  const uniqW      = new Set(reportData.map(s=>s.workerName)).size;
+  let sa=0,sr=0,so=0,st=0;
+  Object.values(dayGroups).forEach(dg=>{sa+=dg.totalActual;sr+=dg.totalReg;so+=dg.totalOT;st+=dg.totalHrs;});
+  const headers  = ['Worker','Position','Date','Day','Actual IN','Actual OUT','Billed IN','Billed OUT','Actual Hrs','Booked Time','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs','Sign-Off Status'];
+  const sorted   = [...reportData].sort((a,b)=>{const dc=a.date.localeCompare(b.date);return dc!==0?dc:a.workerName.localeCompare(b.workerName);});
+  const detail   = []; let cur = null;
+  sorted.forEach(s=>{
+    if (s.date!==cur){
+      if(cur!==null){const dg=dayGroups[cur];const pdo=parseDateStr(cur);detail.push([`— ${pdo.toLocaleDateString('en-US',{weekday:'short'})} ${cur} SUBTOTAL`,'','','','','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs),'']);detail.push([]);}
+      cur=s.date;
     }
-    const dn = parseDateStr(s.date).toLocaleDateString('en-US',{weekday:'short'});
-    detailRows.push([
-      s.workerName, s.position||'', s.date, dn,
-      s.clockIn||'', s.clockOut||'',
-      s.billingClockIn||s.clockIn||'', s.billingClockOut||s.clockOut||'',
-      s.actualHours  != null ? r2(s.actualHours)  : '',
-      s.bookedTime   || '',
-      s.regularHours != null ? r2(s.regularHours) : '',
-      s.otHours      != null ? r2(s.otHours)      : '',
-      s.totalHours   != null ? r2(s.totalHours)   : ''
-    ]);
+    const dn=parseDateStr(s.date).toLocaleDateString('en-US',{weekday:'short'});
+    const sso=getSignoffStatus(s);
+    detail.push([s.workerName,s.position||'',s.date,dn,s.clockIn||'',s.clockOut||'',
+      s.billingClockIn||s.clockIn||'',s.billingClockOut||s.clockOut||'',
+      s.actualHours!=null?r2(s.actualHours):'',s.bookedTime||'',
+      s.regularHours!=null?r2(s.regularHours):'',s.otHours!=null?r2(s.otHours):'',
+      s.totalHours!=null?r2(s.totalHours):'',sso?sso.status:'Not Sent']);
   });
-  if (currentDate) {
-    const dg=dayGroups[currentDate]; const ldo=parseDateStr(currentDate);
-    detailRows.push([`— ${ldo.toLocaleDateString('en-US',{weekday:'short'})} ${currentDate} SUBTOTAL`,'','','','','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs)]);
-  }
+  if(cur){const dg=dayGroups[cur];const ldo=parseDateStr(cur);detail.push([`— ${ldo.toLocaleDateString('en-US',{weekday:'short'})} ${cur} SUBTOTAL`,'','','','','','','',r2(dg.totalActual),'',r2(dg.totalReg),r2(dg.totalOT),r2(dg.totalHrs),'']);}
   downloadCSV([
     ['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],
     ['Date Range:',`${dateFrom} to ${dateTo}`],['Generated:',now],
-    ['Grace Window:','Scans within 15 min of booked time billed at booked time'],
+    ['Grace Window:','Clock-in within 15 min / clock-out within 14 min billed at booked time'],
     [],['SUMMARY'],
     ['Total Days','Total Workers','Total Shifts','Total Actual Hrs','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'],
-    [Object.keys(dayGroups).length,uniqueWorkers,reportData.length,r2(sumActual),r2(sumReg),r2(sumOT),r2(sumTotal)],
-    [],['DAILY DETAIL'],headers,...detailRows,
-    [],['GRAND TOTAL','','','','','','','',r2(sumActual),'',r2(sumReg),r2(sumOT),r2(sumTotal)]
-  ], `VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
+    [Object.keys(dayGroups).length,uniqW,reportData.length,r2(sa),r2(sr),r2(so),r2(st)],
+    [],['DAILY DETAIL'],headers,...detail,
+    [],['GRAND TOTAL','','','','','','','',r2(sa),'',r2(sr),r2(so),r2(st),'']
+  ],`VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${dateFrom}_to_${dateTo}`);
 }
 
-function downloadCSV(rowsArray, filename) {
-  const csv  = rowsArray.map(r => (r||[]).map(v => `"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = filename + '.csv'; a.click();
-  URL.revokeObjectURL(url);
+function downloadCSV(rows,filename) {
+  const csv=rows.map(r=>(r||[]).map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename+'.csv';a.click();URL.revokeObjectURL(url);
 }
 
-function r2(n) { return Math.round(n * 100) / 100; }
-function escHtml(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function r2(n) { return Math.round(n*100)/100; }
+function escHtml(str) { if(!str)return''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg,type='') {
+  const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;
+  setTimeout(()=>{t.className='toast';},4000);
+}
 </script>
 </body>
 </html>
