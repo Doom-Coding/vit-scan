@@ -386,11 +386,12 @@
             <th>Tag ID</th>
             <th>Positions Worked</th>
             <th>Events</th>
+            <th>Last Updated</th>
             <th>Profile</th>
           </tr>
         </thead>
         <tbody id="wr-tbody">
-          <tr><td colspan="9" class="wr-empty"><div class="wr-empty-icon">👥</div><div>Click Refresh to load the worker roster.</div></td></tr>
+          <tr><td colspan="10" class="wr-empty"><div class="wr-empty-icon">👥</div><div>Click Refresh to load the worker roster.</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -823,15 +824,15 @@ let rosterData = [];
 
 async function loadRoster() {
   const tbody = document.getElementById('wr-tbody');
-  if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:#aaa;font-size:13px;"><span style="display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:#1a1a1a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;"></span>Loading roster…</td></tr>`;
+  if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:#aaa;font-size:13px;"><span style="display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:#1a1a1a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;"></span>Loading roster…</td></tr>`;
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getWorkerRoster`);
     const data = await res.json();
-    if (data.error) { if(tbody) tbody.innerHTML=`<tr><td colspan="9" class="wr-empty"><div>Error: ${escHtml(data.error)}</div></td></tr>`; return; }
+    if (data.error) { if(tbody) tbody.innerHTML=`<tr><td colspan="10" class="wr-empty"><div>Error: ${escHtml(data.error)}</div></td></tr>`; return; }
     rosterData = data.workers || [];
     renderRoster(rosterData);
   } catch(e) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="wr-empty"><div>Connection error. Try again.</div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="wr-empty"><div>Connection error. Try again.</div></td></tr>`;
   }
 }
 
@@ -846,7 +847,7 @@ function renderRoster(workers) {
   if (compEl) compEl.textContent = complete;
 
   if (!workers.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="wr-empty"><div class="wr-empty-icon">👥</div><div>No workers in the roster yet.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="wr-empty"><div class="wr-empty-icon">👥</div><div>No workers in the roster yet.</div></td></tr>`;
     return;
   }
 
@@ -858,6 +859,18 @@ function renderRoster(workers) {
     const profBadge = w.profileComplete === 'Yes'
       ? `<span class="wr-badge-yes">Complete</span>`
       : `<span class="wr-badge-no">Pending</span>`;
+
+    const lastUpdated = w.profileUpdated
+      ? `<span style="font-size:12px;color:#555">${escHtml(w.profileUpdated)}</span>`
+      : `<span style="color:#ccc">—</span>`;
+
+    const reqBtn = w.phone
+      ? `<button onclick="requestProfileUpdate('${escHtml(w.phone)}')"
+           style="padding:2px 8px;background:none;border:1px solid #ddd;border-radius:5px;font-size:11px;font-weight:600;color:#888;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .15s"
+           onmouseover="this.style.borderColor='#1a1a1a';this.style.color='#1a1a1a'"
+           onmouseout="this.style.borderColor='#ddd';this.style.color='#888'">
+           ↺ Request Update</button>`
+      : '';
 
     const emgLine = w.emergencyName
       ? `<div class="wr-name" style="font-weight:500">${escHtml(w.emergencyName)}</div>`
@@ -879,7 +892,8 @@ function renderRoster(workers) {
       <td>${w.tagId ? `<span class="wr-tag">${escHtml(w.tagId)}</span>` : '<span style="color:#ccc">—</span>'}</td>
       <td><div class="wr-pos-list">${posTags || '<span style="color:#ccc;font-size:11px">None yet</span>'}</div></td>
       <td style="text-align:center;font-weight:600;color:#555">${w.eventsTotal || 0}</td>
-      <td>${profBadge}</td>
+      <td>${lastUpdated}</td>
+      <td><div style="display:flex;align-items:center;gap:6px;">${profBadge}${reqBtn}</div></td>
     </tr>`;
   }).join('');
 }
@@ -936,6 +950,17 @@ function showInviteResult(type, msg) {
   el.className = `invite-result ${type}`;
   el.textContent = msg;
   el.style.display = 'block';
+}
+
+async function requestProfileUpdate(phone) {
+  if (!phone) return;
+  const sender = document.getElementById('inv-sender')?.value?.trim() || 'VIT';
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=inviteWorker&phone=${encodeURIComponent(phone)}&senderName=${encodeURIComponent(sender)}`);
+    const data = await res.json();
+    if (data.error) showToast('Error: ' + data.error, 'error');
+    else { showToast('Profile update link sent to ' + phone, 'success'); }
+  } catch(e) { showToast('Connection error.', 'error'); }
 }
 
 // ── Bulk clock-out ────────────────────────────────────────────────────────────
