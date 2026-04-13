@@ -59,6 +59,22 @@
   .worker-table tr.clocked-in { background: #dcfce7; }
   .worker-table tr.clocked-out { background: #fee2e2; }
   .worker-table tr.clocked-in td, .worker-table tr.clocked-out td { transition: background 0.4s ease; }
+  .bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 400; background: #1a1a1a; color: #fff; padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 1rem; transform: translateY(100%); transition: transform 0.2s; box-shadow: 0 -4px 24px rgba(0,0,0,0.18); }
+  .bulk-bar.visible { transform: translateY(0); }
+  .bulk-bar-label { font-size: 14px; font-weight: 600; flex: 1; }
+  .bulk-bar-count { background: #22c55e; color: #fff; font-size: 12px; font-weight: 700; border-radius: 99px; padding: 2px 9px; }
+  .btn-bulk-co { padding: 0.55rem 1.25rem; background: #ef4444; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+  .btn-bulk-co:hover { opacity: 0.85; }
+  .btn-bulk-cancel { padding: 0.55rem 1rem; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .btn-bulk-cancel:hover { opacity: 0.7; }
+  .worker-table th.chk-col, .worker-table td.chk-col { width: 32px; padding: 0 8px; text-align: center; }
+  input.bulk-chk { width: 15px; height: 15px; accent-color: #1a1a1a; cursor: pointer; }
+  .bulk-progress-list { max-height: 200px; overflow-y: auto; margin: 0.75rem 0; }
+  .bulk-progress-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #f5f5f5; }
+  .bulk-progress-item:last-child { border-bottom: none; }
+  .bp-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  .bp-name { flex: 1; }
+  .bp-status { font-size: 11px; color: #888; }
   .worker-name { font-weight: 600; color: #1a1a1a; }
   .worker-position { font-size: 12px; color: #888; margin-top: 2px; }
   .worker-time { font-size: 13px; color: #555; white-space: nowrap; }
@@ -316,6 +332,40 @@
     <div class="cc-room-modal-body" id="modal-room-body"></div>
   </div>
 </div>
+<!-- ── Bulk clock-out bar ── -->
+<div class="bulk-bar" id="bulk-bar">
+  <span class="bulk-bar-label">Clock out <span class="bulk-bar-count" id="bulk-count">0</span> workers</span>
+  <button class="btn-bulk-cancel" onclick="clearBulkSelection()">Cancel</button>
+  <button class="btn-bulk-co" onclick="openBulkModal()">🕐 Clock Out Selected</button>
+</div>
+
+<!-- ── Bulk clock-out modal ── -->
+<div class="modal-overlay" id="bulk-modal" onclick="handleBulkOverlayClick(event)">
+  <div class="modal-card" style="max-width:400px;">
+    <div class="modal-header"><span class="modal-title" id="bulk-modal-title">Bulk Clock Out</span><button class="modal-close" onclick="closeBulkModal()">✕</button></div>
+    <div id="bulk-setup" style="padding:1.25rem;">
+      <label class="modal-label">Manager</label>
+      <select class="modal-select" id="bulk-manager" style="width:100%;margin-bottom:0.75rem;"><option value="">Select manager…</option></select>
+      <label class="modal-label">Phase</label>
+      <select class="modal-select" id="bulk-phase" style="width:100%;margin-bottom:1rem;"><option value="">Select phase…</option><option>Load In</option><option>Set Build</option><option>Rehearsal</option><option>Show Day</option><option>Strike</option></select>
+      <div class="pin-label">Enter manager PIN</div>
+      <div class="modal-error" id="bulk-pin-error"></div>
+      <div class="pin-dots"><div class="pin-dot" id="bdot-0"></div><div class="pin-dot" id="bdot-1"></div><div class="pin-dot" id="bdot-2"></div><div class="pin-dot" id="bdot-3"></div></div>
+      <div class="pin-pad">
+        <button onclick="bpinKey('1')">1</button><button onclick="bpinKey('2')">2</button><button onclick="bpinKey('3')">3</button>
+        <button onclick="bpinKey('4')">4</button><button onclick="bpinKey('5')">5</button><button onclick="bpinKey('6')">6</button>
+        <button onclick="bpinKey('7')">7</button><button onclick="bpinKey('8')">8</button><button onclick="bpinKey('9')">9</button>
+        <button class="empty"></button><button onclick="bpinKey('0')">0</button><button class="del" onclick="bpinBackspace()">⌫</button>
+      </div>
+    </div>
+    <div id="bulk-progress" style="padding:1.25rem;display:none;">
+      <div style="font-size:13px;color:#888;margin-bottom:0.5rem;" id="bulk-progress-label">Clocking out workers…</div>
+      <div class="bulk-progress-list" id="bulk-progress-list"></div>
+      <button class="btn-modal-primary" id="bulk-done-btn" style="display:none;margin-top:0.75rem;" onclick="closeBulkModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="scan-modal" onclick="handleModalOverlayClick(event)">
   <div class="modal-card">
     <div class="modal-header"><span class="modal-title">Log Scan</span><button class="modal-close" onclick="closeModal()">✕</button></div>
@@ -521,12 +571,12 @@ function renderWorkers_signin(workers){
   if(!workers.length){document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this filter.</p></div>';document.getElementById('stats-bar').style.display='none';return;}
   const groups={};workers.forEach((w,idx)=>{const ev=w.eventName||'Unassigned';if(!groups[ev])groups[ev]=[];groups[ev].push({...w,idx});});
   Object.values(groups).forEach(g=>g.sort((a,b)=>parseTime(a.bookedTime)-parseTime(b.bookedTime)));
-  let html='';Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).forEach(([event,rows])=>{html+=`<div class="event-group"><div class="event-header"><span class="event-label">${escHtml(event)}</span><span class="event-count">${rows.length} worker${rows.length!==1?'s':''}</span></div><table class="worker-table"><thead><tr><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th style="width:240px;">Actions</th></tr></thead><tbody>${rows.map(w=>renderRow(w)).join('')}</tbody></table></div>`;});
+  let html='';Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).forEach(([event,rows])=>{html+=`<div class="event-group"><div class="event-header"><span class="event-label">${escHtml(event)}</span><span class="event-count">${rows.length} worker${rows.length!==1?'s':''}</span></div><table class="worker-table"><thead><tr><th class="chk-col"><input type="checkbox" class="bulk-chk" onchange="toggleSelectAll(this)" title="Select all clocked-in"></th><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th style="width:240px;">Actions</th></tr></thead><tbody>${rows.map(w=>renderRow(w)).join('')}</tbody></table></div>`;});
   document.getElementById('main-content').innerHTML=html;document.getElementById('stats-bar').style.display='flex';
   workers.forEach((w,i)=>{if(w.tagId){const input=document.getElementById(`tag-${i}`);if(input){input.value=w.tagId;input.classList.add('has-value');markSaved(i);}}});
 }
 
-function renderRow(w){const i=w.idx;return `<tr id="row-${i}"><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td><span style="font-size:13px;color:#555;white-space:nowrap;">${escHtml(w.phone||'—')}</span></td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
+function renderRow(w){const i=w.idx;return `<tr id="row-${i}"><td class="chk-col"><input type="checkbox" class="bulk-chk" id="chk-${i}" onchange="onBulkChkChange()" data-idx="${i}"></td><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td><span style="font-size:13px;color:#555;white-space:nowrap;">${escHtml(w.phone||'—')}</span></td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
 
 function onTagInput(idx){const input=document.getElementById(`tag-${idx}`),dot=document.getElementById(`dot-${idx}`),btn=document.getElementById(`savebtn-${idx}`),msg=document.getElementById(`conflict-${idx}`);input.classList.remove('has-value','conflict');input.classList.toggle('has-value',input.value.length>0);dot.className='status-dot unsaved';btn.textContent='Save Tag';btn.classList.remove('saved','conflict');btn.onclick=()=>saveTag(idx);msg.style.display='none';}
 
@@ -611,7 +661,7 @@ async function loadClockStatus(location,date){
   }catch(e){console.error('loadClockStatus error:',e);}
 }
 
-function setRowClockStatus(idx,cls){const row=document.getElementById(`row-${idx}`);if(!row)return;row.classList.remove('clocked-in','clocked-out');if(cls)row.classList.add(cls);}
+function setRowClockStatus(idx,cls){const row=document.getElementById(`row-${idx}`);if(!row)return;row.classList.remove('clocked-in','clocked-out');if(cls)row.classList.add(cls);const chk=document.getElementById(`chk-${idx}`);if(chk){if(cls==='clocked-out'){chk.checked=false;chk.disabled=true;}else{chk.disabled=false;}}onBulkChkChange();}
 function setScanBtn(idx,state){const btn=document.getElementById(`scanbtn-${idx}`);if(!btn)return;btn.classList.add('logged');if(state==='in')btn.textContent='✅ Clocked IN';else if(state==='out')btn.textContent='✅ Clocked Out';else btn.textContent='✅ Scanned';}
 function updateStats(){const total=allWorkers.length,assigned=new Set(allWorkers.filter(w=>w.tagId).map(w=>w.tagId)).size;document.getElementById('stat-total').textContent=total;document.getElementById('stat-assigned').textContent=assigned;document.getElementById('stat-unassigned').textContent=total-assigned;document.getElementById('stats-bar').style.display=total?'flex':'none';}
 
@@ -619,6 +669,58 @@ function parseTime(str){if(!str)return 9999;const m=str.match(/^(\d+)(?::(\d+))?
 function parseEndTime(str){if(!str)return 9999;const parts=str.split('-');if(parts.length<2)return 9999;return parseTime(parts[parts.length-1].trim());}
 function escHtml(str){if(!str)return '';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>{t.className='toast';},3500);}
+
+// ── Bulk clock-out ────────────────────────────────────────────────────────────
+let bPinBuffer='';
+function getSelectedWorkers(){return[...document.querySelectorAll('input.bulk-chk[data-idx]:checked')].map(c=>allWorkers[parseInt(c.dataset.idx)]).filter(w=>w&&w.tagId&&!document.getElementById(`row-${w.idx}`)?.classList.contains('clocked-out'));}
+function onBulkChkChange(){const sel=getSelectedWorkers();document.getElementById('bulk-count').textContent=sel.length;document.getElementById('bulk-bar').classList.toggle('visible',sel.length>0);}
+function clearBulkSelection(){document.querySelectorAll('input.bulk-chk').forEach(c=>{c.checked=false;});document.getElementById('bulk-bar').classList.remove('visible');}
+function toggleSelectAll(masterChk){document.querySelectorAll('input.bulk-chk[data-idx]').forEach(chk=>{if(!chk.disabled)chk.checked=masterChk.checked;});onBulkChkChange();}
+function openBulkModal(){
+  const sel=getSelectedWorkers();if(!sel.length)return;
+  const mgrSel=document.getElementById('bulk-manager');mgrSel.innerHTML='<option value="">Select manager…</option>';
+  Object.keys(MANAGERS).forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;mgrSel.appendChild(opt);});
+  bPinBuffer='';updateBPinDots();
+  document.getElementById('bulk-pin-error').style.display='none';
+  document.getElementById('bulk-setup').style.display='block';
+  document.getElementById('bulk-progress').style.display='none';
+  document.getElementById('bulk-done-btn').style.display='none';
+  document.getElementById('bulk-modal-title').textContent=`Clock Out ${sel.length} Worker${sel.length!==1?'s':''}`;
+  document.getElementById('bulk-modal').classList.add('open');
+}
+function closeBulkModal(){document.getElementById('bulk-modal').classList.remove('open');bPinBuffer='';}
+function handleBulkOverlayClick(e){if(e.target===document.getElementById('bulk-modal'))closeBulkModal();}
+function bpinKey(digit){if(bPinBuffer.length>=4)return;bPinBuffer+=digit;updateBPinDots();if(bPinBuffer.length===4)verifyBulkPin();}
+function bpinBackspace(){bPinBuffer=bPinBuffer.slice(0,-1);updateBPinDots();}
+function updateBPinDots(){for(let i=0;i<4;i++)document.getElementById(`bdot-${i}`).classList.toggle('filled',i<bPinBuffer.length);}
+function verifyBulkPin(){
+  const mgrName=document.getElementById('bulk-manager').value,phase=document.getElementById('bulk-phase').value;
+  const errEl=document.getElementById('bulk-pin-error');errEl.style.display='none';
+  if(!mgrName){errEl.textContent='Please select a manager.';errEl.style.display='block';bPinBuffer='';updateBPinDots();return;}
+  if(!phase){errEl.textContent='Please select a phase.';errEl.style.display='block';bPinBuffer='';updateBPinDots();return;}
+  const mgr=MANAGERS[mgrName];if(!mgr||mgr.pin!==bPinBuffer){errEl.textContent='Incorrect PIN.';errEl.style.display='block';bPinBuffer='';updateBPinDots();return;}
+  runBulkClockOut(mgrName,phase);
+}
+async function runBulkClockOut(manager,phase){
+  const selected=getSelectedWorkers();
+  document.getElementById('bulk-setup').style.display='none';
+  document.getElementById('bulk-progress').style.display='block';
+  const listEl=document.getElementById('bulk-progress-list'),labelEl=document.getElementById('bulk-progress-label');
+  listEl.innerHTML=selected.map(w=>`<div class="bulk-progress-item" id="bp-${w.idx}"><span class="bp-icon" id="bp-icon-${w.idx}">⏳</span><span class="bp-name">${escHtml(w.name)}</span><span class="bp-status" id="bp-status-${w.idx}">Waiting…</span></div>`).join('');
+  let done=0,failed=0;
+  for(const worker of selected){
+    const iconEl=document.getElementById(`bp-icon-${worker.idx}`),statusEl=document.getElementById(`bp-status-${worker.idx}`);
+    try{
+      const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(manager)}&room=Clock%20Out&phase=${encodeURIComponent(phase)}&event=${encodeURIComponent(worker.eventName||'General')}`;
+      const text=await(await fetch(url)).text();
+      if(text.startsWith('ERROR')||text.startsWith('DUPLICATE')){iconEl.textContent='⚠️';statusEl.textContent=text.split('|')[0];failed++;}
+      else{iconEl.textContent='✅';statusEl.textContent='Clocked out';setRowClockStatus(worker.idx,'clocked-out');setScanBtn(worker.idx,'out');allWorkers[worker.idx].scanLogged=true;done++;}
+    }catch(e){iconEl.textContent='❌';statusEl.textContent='Network error';failed++;}
+  }
+  labelEl.textContent=`Done — ${done} clocked out${failed>0?`, ${failed} failed`:''}`;
+  document.getElementById('bulk-done-btn').style.display='block';
+  clearBulkSelection();
+}
 </script>
 </body>
 </html>
