@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIT · Labor Order</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; min-height: 100vh; color: #1a1a1a; }
+  header { background: #1a1a1a; color: #fff; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header-left  { display: flex; align-items: center; gap: 1rem; }
+  .logo         { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.5; }
+  .header-title { font-size: 15px; font-weight: 600; }
+  .header-right { display: flex; align-items: center; gap: 0.75rem; }
+  .order-id-lbl { font-size: 11px; opacity: 0.4; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+  .status-pill  { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .st-draft     { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+  .st-submitted { background: #22c55e; color: #fff; }
+  .btn-hdr { padding: 0.4rem 1rem; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1px solid transparent; white-space: nowrap; font-family: inherit; }
+  .btn-hdr-ghost   { background: transparent; border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.7); }
+  .btn-hdr-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .btn-hdr-primary { background: #fff; color: #1a1a1a; }
+  .btn-hdr-primary:hover { opacity: 0.88; }
+  .btn-hdr-primary:disabled { opacity: 0.35; cursor: default; }
+
+  /* Controls bar */
+  .controls { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+  .cg { display: flex; flex-direction: column; gap: 4px; }
+  .cg label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
+  .cg select, .cg input[type="date"], .cg input[type="text"] { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; appearance: none; -webkit-appearance: none; min-width: 180px; font-family: inherit; }
+  .cg input[type="text"] { cursor: text; }
+  .cg select:focus, .cg input:focus, .cg textarea:focus { outline: none; border-color: #1a1a1a; background: #fff; }
+  .cg select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M5 6L0 0h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.6rem center; padding-right: 1.8rem; }
+  .cg textarea { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; background: #fafafa; color: #1a1a1a; min-width: 220px; resize: none; font-family: inherit; line-height: 1.5; }
+  .req { color: #dc2626; }
+
+  /* Summary bar */
+  .summary-bar { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 0.7rem 1.5rem; display: none; gap: 2rem; flex-wrap: wrap; align-items: center; }
+  .summary-bar.visible { display: flex; }
+  .sstat { display: flex; flex-direction: column; gap: 2px; }
+  .sstat .sl  { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
+  .sstat .sv  { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .sstat .sv.green { color: #15803d; }
+  .sstat .sv.amber { color: #d97706; }
+  .sdiv { width: 1px; height: 32px; background: #e5e5e5; }
+
+  /* Main */
+  .main { padding: 1.5rem; max-width: 1300px; margin: 0 auto; padding-bottom: 5rem; }
+
+  /* Section — matches billing-report day-header style */
+  .order-section { margin-bottom: 2rem; }
+  .section-hdr { display: flex; align-items: center; gap: 1rem; background: #1a1a1a; color: #fff; padding: 0.75rem 1rem; border-radius: 10px 10px 0 0; flex-wrap: wrap; }
+  .section-title { font-size: 14px; font-weight: 700; }
+  .section-sub   { font-size: 11px; opacity: 0.5; }
+  .section-acts  { margin-left: auto; display: flex; gap: 0.6rem; }
+  .btn-add { padding: 0.35rem 0.85rem; background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+  .btn-add:hover { background: rgba(255,255,255,0.28); }
+
+  /* Tables — matches shift-table pattern */
+  .tscroll { overflow-x: auto; }
+  .otbl { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+  .otbl thead tr { background: #f8f8f8; }
+  .otbl th { padding: 0.5rem 0.75rem; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; border-bottom: 1px solid #e5e5e5; white-space: nowrap; }
+  .otbl th.c { text-align: center; }
+  .otbl tbody tr { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
+  .otbl tbody tr:last-child { border-bottom: none; }
+  .otbl tbody tr:hover { background: #fafafa; }
+  .otbl td { padding: 0.4rem 0.5rem; font-size: 13px; vertical-align: middle; }
+  .td-n  { font-size: 11px; color: #ccc; text-align: center; width: 28px; padding-left: 0.65rem; font-variant-numeric: tabular-nums; }
+  .td-a  { width: 32px; text-align: center; }
+  .empt  { text-align: center; padding: 2rem; color: #bbb; font-size: 13px; }
+
+  /* Inline inputs — same pattern as event-intelligence worker table */
+  .ti   { width: 100%; background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 0.28rem 0.4rem; font-size: 13px; color: #1a1a1a; font-family: inherit; transition: all 0.15s; }
+  .ti:hover  { border-color: #ddd; background: #fafafa; }
+  .ti:focus  { outline: none; border-color: #1a1a1a; background: #fff; }
+  .ti::placeholder { color: #ccc; }
+  .ti.perr   { border-color: #fca5a5 !important; }
+  .tsel { width: 100%; background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 0.28rem 1.3rem 0.28rem 0.4rem; font-size: 13px; color: #1a1a1a; font-family: inherit; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%23bbb' d='M4 5L0 0h8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.38rem center; transition: all 0.15s; }
+  .tsel:hover, .tsel:focus { border-color: #ddd; background-color: #fafafa; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%23bbb' d='M4 5L0 0h8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.38rem center; }
+  .tsel:focus { outline: none; border-color: #1a1a1a; background-color: #fff; }
+  .tsel option { background: #fff; }
+
+  /* Confirmation pills — matches billing-report */
+  .cpill { width: 100%; padding: 0.22rem 0.35rem; border-radius: 20px; font-size: 11px; font-weight: 600; text-align: center; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: none; border: 1px solid transparent; font-family: inherit; }
+  .cp-Confirmed { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  .cp-Reminded  { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+  .cp-Declined  { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .cp-Pending   { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }
+  .cpill option { background: #fff; }
+
+  /* Gear category dot */
+  .cdot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .cAudio    { background: #3b82f6; }
+  .cVideo    { background: #8b5cf6; }
+  .cLighting { background: #f59e0b; }
+  .cStaging  { background: #22c55e; }
+  .cPower    { background: #ef4444; }
+  .cRigging  { background: #14b8a6; }
+  .cOther    { background: #94a3b8; }
+
+  /* Delete row button */
+  .btn-del { background: none; border: 1px solid transparent; border-radius: 5px; color: #ddd; cursor: pointer; font-size: 15px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .btn-del:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+
+  /* Bottom bar — same as billing-report */
+  .bbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px); border-top: 1px solid #e5e5e5; padding: 0.65rem 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+  .bstats { font-size: 12px; color: #888; display: flex; gap: 1.5rem; }
+  .bstats b { color: #1a1a1a; font-weight: 600; }
+  .bright { margin-left: auto; display: flex; gap: 0.5rem; }
+  .btn-bot { padding: 0.5rem 1rem; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; border: 1px solid transparent; white-space: nowrap; }
+  .btn-bot-ghost   { background: none; border-color: #ddd; color: #555; }
+  .btn-bot-ghost:hover   { border-color: #1a1a1a; color: #1a1a1a; }
+  .btn-bot-primary { background: #1a1a1a; color: #fff; }
+  .btn-bot-primary:hover { opacity: 0.8; }
+  .btn-bot-primary:disabled { opacity: 0.35; cursor: default; }
+
+  /* Toast — matches billing-report */
+  .toast { position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%) translateY(8px); background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.55rem 1rem; font-size: 13px; color: #555; opacity: 0; pointer-events: none; transition: all 0.2s; z-index: 600; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .toast.show    { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: #bbf7d0; color: #15803d; }
+  .toast.error   { border-color: #fecaca; color: #b91c1c; }
+
+  .spinner-inline { display: inline-block; width: 14px; height: 14px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    .controls { flex-direction: column; }
+    .cg select, .cg input, .cg textarea { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="logo">VIT</span>
+    <span class="header-title">Labor Order</span>
+    <span class="order-id-lbl" id="hdr-id"></span>
+  </div>
+  <div class="header-right">
+    <span class="status-pill st-draft" id="hdr-status">Draft</span>
+    <button class="btn-hdr btn-hdr-ghost" onclick="exportJSON()">{ } JSON</button>
+    <button class="btn-hdr btn-hdr-primary" id="btn-submit-hdr" onclick="submitOrder()">Submit Order</button>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="cg">
+    <label>Event Name <span class="req">*</span></label>
+    <input type="text" id="f-event" placeholder="e.g. ADP - Jorge" autocomplete="off" oninput="autoSave();updateSummary()">
+  </div>
+  <div class="cg">
+    <label>Client</label>
+    <input type="text" id="f-client" placeholder="Client name" oninput="autoSave()">
+  </div>
+  <div class="cg">
+    <label>Date <span class="req">*</span></label>
+    <input type="date" id="f-date" oninput="autoSave();updateOrderId();updateSummary()">
+  </div>
+  <div class="cg">
+    <label>Phase</label>
+    <select id="f-phase" onchange="autoSave()">
+      <option value="">Select…</option>
+      <option>Load In</option><option>Set Build</option>
+      <option>Rehearsal</option><option>Show Day</option><option>Strike</option>
+    </select>
+  </div>
+  <div class="cg">
+    <label>Supervisor</label>
+    <select id="f-supervisor" onchange="autoSave()">
+      <option value="">Select…</option>
+      <option>Chad AVS</option><option>Geo AVS</option><option>Jorge Rendon</option>
+      <option>Peter Meza</option><option>Jasmine Biondi</option><option>John AVS</option>
+    </select>
+  </div>
+  <div class="cg">
+    <label>Location <span class="req">*</span></label>
+    <select id="f-location" onchange="autoSave();updateSummary()">
+      <option value="">Select location…</option>
+      <option>FL - Signia by Hilton Orlando Bonnet Creek - 1760</option>
+      <option>FL - Orlando World Center - 9060</option>
+      <option>FL - Hilton Orlando - 1759</option>
+      <option>FL - Caribe Royale Orlando - 4006</option>
+    </select>
+  </div>
+  <div class="cg">
+    <label>Primary Room</label>
+    <select id="f-room" onchange="autoSave()">
+      <option value="">Select room…</option>
+      <option>Loading Dock/BoneYard</option><option>Ballroom</option><option>Breakouts</option>
+      <option>Poolside</option><option>Grand Sierra BR</option><option>Palms BR</option>
+      <option>Hibiscus</option><option>Caribbean BR</option><option>Extra Team</option>
+      <option>Offices</option><option>HOT Rooms</option><option>Everywhere</option>
+    </select>
+  </div>
+  <div class="cg">
+    <label>Notes</label>
+    <textarea id="f-notes" rows="2" placeholder="Client instructions, requirements…" oninput="autoSave()"></textarea>
+  </div>
+</div>
+
+<div class="summary-bar" id="summary-bar">
+  <div class="sstat"><span class="sl">Workers</span><span class="sv" id="sv-workers">0</span></div>
+  <div class="sdiv"></div>
+  <div class="sstat"><span class="sl">Gear Items</span><span class="sv" id="sv-gear">0</span></div>
+  <div class="sdiv"></div>
+  <div class="sstat"><span class="sl">Confirmed</span><span class="sv green" id="sv-confirmed">0</span></div>
+  <div class="sdiv"></div>
+  <div class="sstat"><span class="sl">Pending</span><span class="sv amber" id="sv-pending">0</span></div>
+  <div class="sdiv"></div>
+  <div class="sstat"><span class="sl">Est. Hours</span><span class="sv" id="sv-hours">—</span></div>
+</div>
+
+<div class="main">
+
+  <!-- Workers -->
+  <div class="order-section">
+    <div class="section-hdr">
+      <span class="section-title">Workers</span>
+      <span class="section-sub" id="wlbl">0 workers</span>
+      <div class="section-acts">
+        <button class="btn-add" onclick="addWorker()">+ Add Worker</button>
+      </div>
+    </div>
+    <div class="tscroll">
+      <table class="otbl">
+        <thead><tr>
+          <th style="width:28px">#</th>
+          <th style="width:155px">Position</th>
+          <th style="width:185px">Worker Name</th>
+          <th style="width:115px">Phone</th>
+          <th style="width:110px">Booked Time</th>
+          <th style="width:68px" class="c">Pay / hr</th>
+          <th style="width:148px">Room / Area</th>
+          <th>Description / Notes</th>
+          <th style="width:112px" class="c">Confirmation</th>
+          <th style="width:32px"></th>
+        </tr></thead>
+        <tbody id="wtbody"><tr><td colspan="10" class="empt">No workers added yet — click + Add Worker above.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gear -->
+  <div class="order-section">
+    <div class="section-hdr">
+      <span class="section-title">Gear &amp; Equipment</span>
+      <span class="section-sub" id="glbl">0 items</span>
+      <div class="section-acts">
+        <button class="btn-add" onclick="addGear()">+ Add Item</button>
+      </div>
+    </div>
+    <div class="tscroll">
+      <table class="otbl">
+        <thead><tr>
+          <th style="width:28px">#</th>
+          <th style="width:105px">Category</th>
+          <th style="width:240px">Item / Description</th>
+          <th style="width:70px" class="c">Qty</th>
+          <th style="width:148px">Assigned Room</th>
+          <th>Specs / Notes</th>
+          <th style="width:32px"></th>
+        </tr></thead>
+        <tbody id="gtbody"><tr><td colspan="7" class="empt">No gear added yet — click + Add Item above.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="bbar">
+  <div class="bstats">
+    <span><b id="bs-w">0</b> workers</span>
+    <span><b id="bs-g">0</b> gear</span>
+    <span><b id="bs-c">0</b> confirmed</span>
+    <span id="bs-iss" style="color:#dc2626;display:none"><b id="bs-in">0</b> issues</span>
+  </div>
+  <div class="bright">
+    <button class="btn-bot btn-bot-ghost" onclick="exportJSON()">{ } Export JSON</button>
+    <button class="btn-bot btn-bot-ghost" onclick="clearOrder()">Clear</button>
+    <button class="btn-bot btn-bot-primary" id="btn-submit-bot" onclick="submitOrder()">Submit Order</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<datalist id="wnames"></datalist>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
+
+const POSITIONS = ['A1','A2','A3','L1','L2','V1','GAV','GAV/Power','GAV/Truss',
+  'GAV/Truss Bolters','GAV/Trucks','Breakout Tech','Breakout Set/Strike',
+  'Power Assist','Computer Tech','Projectionist','PC/Lead Supervisor',
+  'Equipment Coordinator','Cam Op','Record Op'];
+
+const ROOMS = ['Loading Dock/BoneYard','Ballroom','Breakouts','Poolside',
+  'Grand Sierra BR','Palms BR','Hibiscus','Caribbean BR',
+  'Extra Team','Offices','HOT Rooms','Everywhere'];
+
+const GCATS = ['Audio','Video','Lighting','Staging','Power','Rigging','Other'];
+
+const GPRESET = {
+  Audio:    ['Line Array','Subwoofer','Stage Monitor','DI Box','Wireless Mic','IEM System','Mixing Console','Cable Run - Audio'],
+  Video:    ['LED Wall Panel','Projector','Projection Screen','Camera','Video Switcher','IMAG Monitor','Confidence Monitor'],
+  Lighting: ['LED Par','Moving Head','Ellipsoidal','Haze Machine','Followspot','Dimmer Rack','DMX Controller'],
+  Staging:  ['Stage Deck (4x8)','Truss Segment','Pipe & Drape','Podium','Riser','Backdrop'],
+  Power:    ['Generator','Power Distro','Cable Run - Power','Breakout Box'],
+  Rigging:  ['Motor (1-ton)','Motor (half-ton)','Shackle','Span Set','Safety Cable'],
+  Other:    []
+};
+
+let workers = [], gear = [], wSeq = 0, gSeq = 0;
+let workerDir = [];   // from Workers tab
+let orderId   = '';
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (!document.getElementById('f-date').value)
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  updateOrderId();
+  loadWorkerDir();
+  loadSaved();
+  updateSummary();
+});
+
+// ── Worker directory for name autocomplete ────────────────────────────────────
+async function loadWorkerDir() {
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getWorkerNames`);
+    const d = await r.json();
+    workerDir = d.workers || [];
+    const dl = document.getElementById('wnames');
+    if (dl) dl.innerHTML = workerDir.map(w => `<option value="${eh(w.name)}">`).join('');
+  } catch(e) {}
+}
+
+function findWorker(name) {
+  return workerDir.find(w => w.name.toLowerCase() === name.toLowerCase()) || null;
+}
+
+// ── Order ID ──────────────────────────────────────────────────────────────────
+function updateOrderId() {
+  if (!orderId) {
+    const d = document.getElementById('f-date').value;
+    orderId  = (d ? 'ORD-' + d.replace(/-/g,'').slice(2) : 'ORD') +
+               '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+  }
+  document.getElementById('hdr-id').textContent = orderId;
+}
+
+// ── Workers ───────────────────────────────────────────────────────────────────
+function addWorker(d = {}) {
+  workers.push({ id: ++wSeq,
+    position: d.position || '', name: d.name || '', phone: d.phone || '',
+    bookedTime: d.bookedTime || d.booked_time || '',
+    pay: d.pay || d.pay_rate || '', room: d.room || '',
+    description: d.description || d.notes || '',
+    confirmation: d.confirmation || 'Pending' });
+  renderW(); autoSave();
+}
+
+function removeWorker(id) { workers = workers.filter(w => w.id !== id); renderW(); autoSave(); }
+
+function uw(id, f, v) {
+  const w = workers.find(w => w.id === id); if (w) w[f] = v;
+  if (f === 'phone') {
+    const el = document.getElementById(`wp${id}`);
+    if (el) el.classList.toggle('perr', v.length > 0 && v.length !== 10);
+  }
+  if (f === 'confirmation') {
+    const el = document.getElementById(`wc${id}`);
+    if (el) el.className = `cpill tsel cp-${v}`;
+  }
+  autoSave(); updateSummary();
+}
+
+function onNameChange(id, name) {
+  uw(id, 'name', name);
+  const found = findWorker(name); if (!found) return;
+  const w = workers.find(w => w.id === id);
+  if (found.phone && w && !w.phone) {
+    const el = document.getElementById(`wp${id}`);
+    if (el && !el.value) { el.value = found.phone; uw(id, 'phone', found.phone); }
+  }
+}
+
+function renderW() {
+  const tb = document.getElementById('wtbody');
+  if (!workers.length) {
+    tb.innerHTML = '<tr><td colspan="10" class="empt">No workers added yet — click + Add Worker above.</td></tr>';
+    document.getElementById('wlbl').textContent = '0 workers';
+    updateSummary(); return;
+  }
+  tb.innerHTML = workers.map((w, i) => `<tr>
+    <td class="td-n">${i+1}</td>
+    <td><select class="tsel" onchange="uw(${w.id},'position',this.value)">
+      <option value="">—</option>
+      ${POSITIONS.map(p=>`<option value="${p}"${w.position===p?' selected':''}>${p}</option>`).join('')}
+    </select></td>
+    <td><input class="ti" list="wnames" value="${eh(w.name)}" placeholder="Full name"
+      oninput="onNameChange(${w.id},this.value)"></td>
+    <td><input class="ti${w.phone&&w.phone.length>0&&w.phone.length!==10?' perr':''}" id="wp${w.id}"
+      value="${eh(w.phone)}" placeholder="10 digits" maxlength="10"
+      oninput="uw(${w.id},'phone',this.value.replace(/\\D/g,'').slice(0,10));this.value=this.value.replace(/\\D/g,'').slice(0,10)"></td>
+    <td><input class="ti" value="${eh(w.bookedTime)}" placeholder="8am-6pm"
+      oninput="uw(${w.id},'bookedTime',this.value)"></td>
+    <td><input class="ti" value="${eh(w.pay)}" type="number" min="0" max="999"
+      style="text-align:center;width:52px" placeholder="—"
+      oninput="uw(${w.id},'pay',this.value)"></td>
+    <td><select class="tsel" onchange="uw(${w.id},'room',this.value)">
+      <option value="">—</option>
+      ${ROOMS.map(r=>`<option value="${r}"${w.room===r?' selected':''}>${r}</option>`).join('')}
+    </select></td>
+    <td><input class="ti" value="${eh(w.description)}" placeholder="Notes, gear, instructions…"
+      oninput="uw(${w.id},'description',this.value)"></td>
+    <td><select class="cpill tsel cp-${w.confirmation}" id="wc${w.id}"
+      onchange="uw(${w.id},'confirmation',this.value)">
+      ${['Pending','Confirmed','Reminded','Declined'].map(s=>
+        `<option value="${s}"${w.confirmation===s?' selected':''}>${s}</option>`).join('')}
+    </select></td>
+    <td class="td-a"><button class="btn-del" onclick="removeWorker(${w.id})" title="Remove">×</button></td>
+  </tr>`).join('');
+  const n = workers.length;
+  document.getElementById('wlbl').textContent = `${n} worker${n!==1?'s':''}`;
+  updateSummary();
+}
+
+// ── Gear ──────────────────────────────────────────────────────────────────────
+function addGear(d = {}) {
+  gear.push({ id: ++gSeq, category: d.category || '', item: d.item || d.name || '',
+    qty: d.qty || d.quantity || 1, room: d.room || '', notes: d.notes || d.specs || '' });
+  renderG(); autoSave();
+}
+
+function removeGear(id) { gear = gear.filter(g => g.id !== id); renderG(); autoSave(); }
+
+function ug(id, f, v) {
+  const g = gear.find(g => g.id === id); if (g) g[f] = v;
+  if (f === 'category') {
+    const dl = document.getElementById(`gdl${id}`);
+    if (dl) dl.innerHTML = (GPRESET[v]||[]).map(x=>`<option value="${x}">`).join('');
+    const dot = document.getElementById(`gdot${id}`);
+    if (dot) dot.className = `cdot c${v||'Other'}`;
+  }
+  autoSave(); updateSummary();
+}
+
+function renderG() {
+  const tb = document.getElementById('gtbody');
+  if (!gear.length) {
+    tb.innerHTML = '<tr><td colspan="7" class="empt">No gear added yet — click + Add Item above.</td></tr>';
+    document.getElementById('glbl').textContent = '0 items';
+    updateSummary(); return;
+  }
+  tb.innerHTML = gear.map((g, i) => `<tr>
+    <td class="td-n">${i+1}</td>
+    <td><select class="tsel" onchange="ug(${g.id},'category',this.value)">
+      <option value="">—</option>
+      ${GCATS.map(c=>`<option value="${c}"${g.category===c?' selected':''}>${c}</option>`).join('')}
+    </select></td>
+    <td><div style="display:flex;align-items:center;gap:5px">
+      <span class="cdot c${g.category||'Other'}" id="gdot${g.id}"></span>
+      <input class="ti" value="${eh(g.item)}" placeholder="Item name…" list="gdl${g.id}" style="flex:1"
+        oninput="ug(${g.id},'item',this.value)">
+      <datalist id="gdl${g.id}">${(GPRESET[g.category]||[]).map(x=>`<option value="${x}">`).join('')}</datalist>
+    </div></td>
+    <td><input class="ti" value="${g.qty}" type="number" min="1"
+      style="text-align:center;width:52px" oninput="ug(${g.id},'qty',parseInt(this.value)||1)"></td>
+    <td><select class="tsel" onchange="ug(${g.id},'room',this.value)">
+      <option value="">—</option>
+      ${ROOMS.map(r=>`<option value="${r}"${g.room===r?' selected':''}>${r}</option>`).join('')}
+    </select></td>
+    <td><input class="ti" value="${eh(g.notes)}" placeholder="Specs, serial, condition…"
+      oninput="ug(${g.id},'notes',this.value)"></td>
+    <td class="td-a"><button class="btn-del" onclick="removeGear(${g.id})" title="Remove">×</button></td>
+  </tr>`).join('');
+  const n = gear.length;
+  document.getElementById('glbl').textContent = `${n} item${n!==1?'s':''}`;
+  updateSummary();
+}
+
+// ── Summary ───────────────────────────────────────────────────────────────────
+function updateSummary() {
+  const confirmed = workers.filter(w => w.confirmation === 'Confirmed').length;
+  const pending   = workers.filter(w => w.confirmation === 'Pending').length;
+  let estHrs = 0;
+  workers.forEach(w => {
+    if (!w.bookedTime) return;
+    const p = w.bookedTime.split('-'); if (p.length !== 2) return;
+    const s = ptime(p[0].trim()), e = ptime(p[1].trim());
+    if (s === 9999 || e === 9999) return;
+    let d = e - s; if (d <= 0) d += 1440;
+    estHrs += d / 60;
+  });
+  document.getElementById('sv-workers').textContent   = workers.length;
+  document.getElementById('sv-gear').textContent      = gear.length;
+  document.getElementById('sv-confirmed').textContent = confirmed;
+  document.getElementById('sv-pending').textContent   = pending;
+  document.getElementById('sv-hours').textContent     = estHrs > 0 ? Math.round(estHrs*10)/10 : '—';
+  document.getElementById('bs-w').textContent = workers.length;
+  document.getElementById('bs-g').textContent = gear.length;
+  document.getElementById('bs-c').textContent = confirmed;
+  const iss = validate(true);
+  const issEl = document.getElementById('bs-iss');
+  if (iss > 0) { issEl.style.display = 'inline'; document.getElementById('bs-in').textContent = iss; }
+  else issEl.style.display = 'none';
+  const hasContent = workers.length > 0 || gear.length > 0 ||
+    document.getElementById('f-event').value || document.getElementById('f-location').value;
+  document.getElementById('summary-bar').classList.toggle('visible', !!hasContent);
+}
+
+function validate(countOnly = false) {
+  const iss = [];
+  if (!document.getElementById('f-event').value.trim()) iss.push('Event name required');
+  if (!document.getElementById('f-date').value)         iss.push('Date required');
+  if (!document.getElementById('f-location').value)     iss.push('Location required');
+  workers.forEach((w, i) => {
+    if (!w.name.trim())  iss.push(`Worker ${i+1}: name required`);
+    if (!w.position)     iss.push(`Worker ${i+1} (${w.name||'unnamed'}): position required`);
+    if (w.phone && w.phone.length !== 10) iss.push(`Worker ${i+1} (${w.name}): phone must be 10 digits`);
+    if (!w.bookedTime)   iss.push(`Worker ${i+1} (${w.name||'unnamed'}): booked time required`);
+  });
+  return countOnly ? iss.length : iss;
+}
+
+function getOrderData() {
+  return {
+    order_id: orderId, source: 'manual',
+    event_name:   document.getElementById('f-event').value.trim(),
+    client:       document.getElementById('f-client').value.trim(),
+    date:         document.getElementById('f-date').value,
+    phase:        document.getElementById('f-phase').value,
+    supervisor:   document.getElementById('f-supervisor').value,
+    location:     document.getElementById('f-location').value,
+    primary_room: document.getElementById('f-room').value,
+    notes:        document.getElementById('f-notes').value.trim(),
+    created_at:   new Date().toISOString(),
+    workers: workers.map(w => ({
+      position: w.position, name: w.name, phone: w.phone,
+      booked_time: w.bookedTime, pay_rate: w.pay ? parseInt(w.pay) : null,
+      room: w.room, description: w.description, confirmation: w.confirmation
+    })),
+    gear: gear.map(g => ({
+      category: g.category, item: g.item, qty: g.qty, room: g.room, notes: g.notes
+    }))
+  };
+}
+
+// ── Persistence ───────────────────────────────────────────────────────────────
+let saveT = null;
+function autoSave() {
+  clearTimeout(saveT);
+  saveT = setTimeout(async () => {
+    try { localStorage.setItem('vit_lo', JSON.stringify(getOrderData())); } catch(e) {}
+    await saveToBE('Draft');
+  }, 1500);
+}
+
+async function saveToBE(status) {
+  const d = getOrderData();
+  if (!d.event_name && !d.location) return;
+  try {
+    const p = new URLSearchParams({
+      action: 'saveLaborOrder', orderId: d.order_id,
+      eventName: d.event_name, client: d.client, date: d.date,
+      phase: d.phase, supervisor: d.supervisor, location: d.location,
+      primaryRoom: d.primary_room, notes: d.notes, status, source: 'manual',
+      workersJson: JSON.stringify(d.workers),
+      gearJson:    JSON.stringify(d.gear),
+    });
+    await fetch(`${SCRIPT_URL}?${p.toString()}`);
+  } catch(e) {}
+}
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem('vit_lo'); if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.order_id)     orderId = d.order_id;
+    if (d.event_name)   document.getElementById('f-event').value     = d.event_name;
+    if (d.client)       document.getElementById('f-client').value    = d.client;
+    if (d.date)         document.getElementById('f-date').value      = d.date;
+    if (d.phase)        document.getElementById('f-phase').value     = d.phase;
+    if (d.supervisor)   document.getElementById('f-supervisor').value= d.supervisor;
+    if (d.location)     document.getElementById('f-location').value  = d.location;
+    if (d.primary_room) document.getElementById('f-room').value      = d.primary_room;
+    if (d.notes)        document.getElementById('f-notes').value     = d.notes;
+    if (d.workers) d.workers.forEach(w => addWorker(w));
+    if (d.gear)    d.gear.forEach(g => addGear(g));
+    updateOrderId();
+  } catch(e) {}
+}
+
+function clearOrder() {
+  if (!confirm('Clear the entire order? This cannot be undone.')) return;
+  workers = []; gear = []; wSeq = 0; gSeq = 0; orderId = '';
+  ['f-event','f-client','f-date','f-phase','f-supervisor','f-location','f-room','f-notes']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('hdr-id').textContent = '';
+  const sp = document.getElementById('hdr-status');
+  sp.className = 'status-pill st-draft'; sp.textContent = 'Draft';
+  renderW(); renderG();
+  try { localStorage.removeItem('vit_lo'); } catch(e) {}
+  updateSummary(); toast('Order cleared');
+}
+
+function exportJSON() {
+  const j = JSON.stringify(getOrderData(), null, 2);
+  navigator.clipboard.writeText(j)
+    .then(() => toast('JSON copied to clipboard', 'success'))
+    .catch(() => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([j], {type:'application/json'}));
+      a.download = `labor-order-${document.getElementById('f-date').value||'draft'}.json`;
+      a.click();
+    });
+}
+
+async function submitOrder() {
+  const iss = validate(false);
+  if (iss.length) { alert('Fix these before submitting:\n\n' + iss.map(i=>'• '+i).join('\n')); return; }
+  const btns = [document.getElementById('btn-submit-hdr'), document.getElementById('btn-submit-bot')];
+  btns.forEach(b => { if(b){b.disabled=true;b.innerHTML='<span class="spinner-inline"></span>Submitting…';} });
+  try {
+    await saveToBE('Submitted');
+    const sp = document.getElementById('hdr-status');
+    sp.className = 'status-pill st-submitted'; sp.textContent = 'Submitted';
+    try { localStorage.removeItem('vit_lo'); } catch(e) {}
+    toast(`${workers.length} workers submitted`, 'success');
+  } catch(e) { toast('Submission failed — check connection', 'error'); }
+  btns.forEach(b => { if(b){b.disabled=false;b.textContent='Submit Order';} });
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function ptime(s) {
+  if (!s) return 9999;
+  const m = s.match(/^(\d+)(?::(\d+))?\s*(am|pm)?/i); if (!m) return 9999;
+  let h = parseInt(m[1]); const mn = parseInt(m[2]||0), ap = (m[3]||'').toLowerCase();
+  if (ap==='pm'&&h!==12) h+=12; if (ap==='am'&&h===12) h=0;
+  return h*60+mn;
+}
+function eh(s) {
+  if (s===null||s===undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast show ${type}`;
+  setTimeout(() => { el.className = 'toast'; }, 3000);
+}
+</script>
+</body>
+</html>
