@@ -734,7 +734,7 @@ async function saveTag(idx){
   const tagVal=input.value.trim(),supervisor=document.getElementById('supervisor-name').value.trim()||sessionStorage.getItem('vit_supervisor')||'Supervisor';
   if(!tagVal){showToast('Enter a tag number first.','error');return;}const tagId=tagVal.padStart(3,'0');input.value=tagId;const worker=allWorkers[idx];if(!worker)return;
   btn.textContent='Saving…';btn.classList.add('saving');btn.disabled=true;dot.className='status-dot saving';conflictEl.style.display='none';
-  try{const url=`${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName||'')}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=false`;const text=await(await fetch(url)).text();
+  try{const url=`${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=false`;const text=await(await fetch(url)).text();
   if(text.startsWith('CONFLICT:')){const existing=text.replace('CONFLICT:','').trim();input.classList.add('conflict');dot.className='status-dot conflict';btn.textContent='Override';btn.classList.remove('saving');btn.classList.add('conflict');btn.disabled=false;conflictEl.textContent=`Already assigned to ${existing} — click Override to reassign`;conflictEl.style.display='block';document.getElementById(`row-${idx}`).classList.add('conflict-row');showToast(`Tag ${tagId} already assigned to ${existing}`,'warning');btn.onclick=()=>saveTagForce(idx,tagId,worker,supervisor);return;}
   if(text.includes('ERROR')){showToast(text,'error');btn.textContent='Save Tag';btn.classList.remove('saving');btn.disabled=false;dot.className='status-dot unsaved';return;}
   allWorkers[idx].tagId=tagId;finalizeSave(idx,tagId,worker.name);}
@@ -744,7 +744,7 @@ async function saveTag(idx){
 async function saveTagForce(idx,tagId,worker,supervisor){
   const btn=document.getElementById(`savebtn-${idx}`),dot=document.getElementById(`dot-${idx}`),conflictEl=document.getElementById(`conflict-${idx}`);
   btn.textContent='Saving…';btn.classList.remove('conflict');btn.classList.add('saving');btn.disabled=true;dot.className='status-dot saving';
-  try{const url=`${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&eventName=${encodeURIComponent(worker.eventName||'')}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=true`;const text=await(await fetch(url)).text();
+  try{const url=`${SCRIPT_URL}?action=assignTag&tagId=${encodeURIComponent(tagId)}&workerName=${encodeURIComponent(worker.name)}&position=${encodeURIComponent(worker.position||'')}&phone=${encodeURIComponent(worker.phone||'')}&supervisor=${encodeURIComponent(supervisor)}&force=true`;const text=await(await fetch(url)).text();
   if(text.includes('ERROR')){showToast(text,'error');btn.textContent='Retry';btn.classList.remove('saving');btn.disabled=false;dot.className='status-dot unsaved';return;}
   allWorkers[idx].tagId=tagId;conflictEl.style.display='none';document.getElementById(`row-${idx}`).classList.remove('conflict-row','assigned');document.getElementById(`tag-${idx}`).classList.remove('conflict');finalizeSave(idx,tagId,worker.name);showToast(`Tag ${tagId} → ${worker.name} (overridden)`,'success');}
   catch(e){showToast('Save failed.','error');btn.textContent='Retry';btn.classList.remove('saving');btn.disabled=false;dot.className='status-dot unsaved';}
@@ -779,7 +779,7 @@ function showModalError(msg){const err=document.getElementById('modal-pin-error'
 
 async function submitModalScan(){
   const worker=allWorkers[modalWorkerIdx];if(!worker)return;const logBtn=document.getElementById('modal-log-btn');logBtn.textContent='Logging…';logBtn.disabled=true;
-  try{const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(document.getElementById('modal-manager').value)}&room=${encodeURIComponent(document.getElementById('modal-room').value)}&phase=${encodeURIComponent(document.getElementById('modal-phase').value)}&event=${encodeURIComponent(worker.eventName||'General')}`;const text=await(await fetch(url)).text();
+  try{const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(document.getElementById('modal-manager').value)}&room=${encodeURIComponent(document.getElementById('modal-room').value)}&phase=${encodeURIComponent(document.getElementById('modal-phase').value)}`;const text=await(await fetch(url)).text();
   document.getElementById('modal-confirm').style.display='none';document.getElementById('modal-result').style.display='block';
   if(text.includes('DUPLICATE')){document.getElementById('modal-result-icon').textContent='⚠️';document.getElementById('modal-result-title').textContent='Already scanned';document.getElementById('modal-result-msg').textContent='Scanned in the last 60 seconds.';}
   else if(text.includes('ERROR')){document.getElementById('modal-result-icon').textContent='❌';document.getElementById('modal-result-title').textContent='Could not log';document.getElementById('modal-result-msg').textContent=text;}
@@ -1004,7 +1004,7 @@ async function runBulkClockOut(manager,phase){
   for(const worker of selected){
     const iconEl=document.getElementById(`bp-icon-${worker.idx}`),statusEl=document.getElementById(`bp-status-${worker.idx}`);
     try{
-      const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(manager)}&room=Clock%20Out&phase=${encodeURIComponent(phase)}&event=${encodeURIComponent(worker.eventName||'General')}`;
+      const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(manager)}&room=Clock%20Out&phase=${encodeURIComponent(phase)}`;
       const text=await(await fetch(url)).text();
       if(text.startsWith('ERROR')||text.startsWith('DUPLICATE')){iconEl.textContent='⚠️';statusEl.textContent=text.split('|')[0];failed++;}
       else{iconEl.textContent='✅';statusEl.textContent='Clocked out';setRowClockStatus(worker.idx,'clocked-out');setScanBtn(worker.idx,'out');allWorkers[worker.idx].scanLogged=true;done++;}
