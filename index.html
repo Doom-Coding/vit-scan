@@ -452,7 +452,16 @@
       </div>
       <div class="stars-sub" id="stars-sub"></div>
     </div>
-    <button class="done-btn" onclick="reset()">Done</button>
+    <button class="done-btn" id="done-btn" onclick="handleDone()">Done</button>
+  </div>
+
+  <!-- Thank you screen -->
+  <div id="view-thankyou" class="result-wrap" style="display:none;">
+    <div style="font-size:60px;line-height:1;margin-bottom:12px;">🙏</div>
+    <div style="font-size:26px;font-weight:700;letter-spacing:-0.02em;color:#1a1a1a;margin-bottom:8px;">Thank you!</div>
+    <div style="font-size:14px;color:#aaa;line-height:1.7;text-align:center;max-width:260px;">
+      Your feedback has been recorded.<br>You can close this browser window.
+    </div>
   </div>
   <!-- Submit loading overlay -->
   <div id="submit-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
@@ -483,6 +492,7 @@ let pinBuffer    = '';
 let selectedAction = '';   // 'Clock IN' or 'Clock Out'
 let workerData   = null;
 let ratingDone   = false;
+let isDone       = false;  // once true, nothing can navigate away
 const PIN_LEN    = 4;
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
@@ -688,6 +698,14 @@ async function submitRating(stars) {
   } catch(e) {}
 }
 
+function handleDone() {
+  isDone = true; // lock — nothing can navigate away after this
+  document.getElementById('view-result').style.display = 'none';
+  const ty = document.getElementById('view-thankyou');
+  ty.style.display = 'flex';
+  ty.classList.add('visible');
+}
+
 // ── Reset → go back to scan UI ────────────────────────────────────────────────
 function reset() {
   document.getElementById('view-result').classList.remove('visible');
@@ -702,13 +720,19 @@ function reset() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function show(id) {
-  ['view-loading','view-notag','view-main','view-result'].forEach(v => {
+  if (isDone) return; // thank-you screen is final — nothing can navigate away
+  ['view-loading','view-notag','view-main','view-result','view-thankyou'].forEach(v => {
     const el = document.getElementById(v);
-    if (v === 'view-result') return; // result uses its own display logic
+    if (v === 'view-result' || v === 'view-thankyou') return;
     el.style.display = (v === id) ? '' : 'none';
   });
   if (id !== 'view-result') {
     document.getElementById('view-result').classList.remove('visible');
+    document.getElementById('view-result').style.display = 'none';
+  }
+  if (id !== 'view-thankyou') {
+    document.getElementById('view-thankyou').style.display = 'none';
+    document.getElementById('view-thankyou').classList.remove('visible');
   }
 }
 
