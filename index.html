@@ -314,7 +314,7 @@
   .badge-red   { background: #fee2e2; color: #991b1b; }
   .badge-red::before   { background: #dc2626; }
 
-  .result-msg { font-size: 13px; color: #999; max-width: 280px; line-height: 1.6; }
+  .result-msg { font-size: 13px; color: #999; max-width: 280px; line-height: 1.6; white-space: pre-line; }
 
   /* ── Star rating ── */
   .stars-wrap {
@@ -515,10 +515,14 @@ function renderCard(d) {
 
   if (!d.assigned) {
     card.innerHTML = `
-      <div class="worker-card-name" style="color:#dc2626;">No Tag Assigned</div>
+      <div class="worker-card-name" style="color:#888;font-size:18px;">Tag Not Assigned</div>
       <div class="worker-card-position" style="margin-bottom:10px;">Tag ${esc(d.tagId || TAG_ID)}</div>
       <div class="card-rows">
         <div class="card-row"><span class="ck">Date</span><span class="cv">${today}</span></div>
+      </div>
+      <div style="margin-top:12px;padding:10px 0 2px;font-size:12px;color:#aaa;line-height:1.6;">
+        This tag hasn't been assigned to a worker yet. Please verify with your supervisor or text
+        <strong style="color:#555;">John Seboria at 404-922-8608</strong>.
       </div>`;
     return;
   }
@@ -597,7 +601,11 @@ async function verifyAndSubmit() {
     if (text.includes('DUPLICATE')) {
       showResult('duplicate', '', 'This tag was scanned in the last 60 seconds.');
     } else if (text.includes('ERROR')) {
-      showResult('error', '', text.replace('ERROR:', '').trim());
+      let msg = text.replace('ERROR:', '').trim();
+      if (msg.toLowerCase().includes('not scheduled')) {
+        msg += '\n\nPlease verify this person is scheduled to work with you today by texting John Seboria at 404-922-8608.';
+      }
+      showResult('error', '', msg);
     } else {
       const workerName = text.split('|')[0].trim();
       showResult('success', workerName, selectedAction);
@@ -612,9 +620,9 @@ async function verifyAndSubmit() {
 
 // ── Result ────────────────────────────────────────────────────────────────────
 function showResult(status, name, detail) {
-  const icon    = { success: '✅', duplicate: '⚠️', error: '❌' }[status];
-  const badgeCls= { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-red' }[status];
-  const badgeTxt= { success: 'Logged', duplicate: 'Duplicate', error: 'Error' }[status];
+  const icon    = { success: '✅', duplicate: '⚠️', error: '🔔' }[status];
+  const badgeCls= { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-amber' }[status];
+  const badgeTxt= { success: 'Logged', duplicate: 'Duplicate', error: 'Heads Up' }[status];
 
   document.getElementById('r-icon').textContent   = icon;
   const rb = document.getElementById('r-badge');
