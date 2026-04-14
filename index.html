@@ -691,7 +691,9 @@ function showResult(status, name, detail) {
   }
 
   show('view-result');
-  document.getElementById('view-result').classList.add('visible');
+  const resultEl = document.getElementById('view-result');
+  resultEl.style.display = 'flex'; // override inline style set by show()
+  resultEl.classList.add('visible');
 }
 
 // ── Stars ─────────────────────────────────────────────────────────────────────
