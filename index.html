@@ -10,9 +10,9 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   html, body {
-    height: 100%;
+    min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #1a1a1a;
+    background: #f5f5f3;
     color: #1a1a1a;
     overscroll-behavior: none;
   }
@@ -21,756 +21,688 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    min-height: 100vh;
-    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+    padding: env(safe-area-inset-top, 16px) 0 env(safe-area-inset-bottom, 24px);
   }
 
-  .card {
-    background: #fff;
+  .page {
     width: 100%;
-    max-width: 480px;
+    max-width: 460px;
+    padding: 1.75rem 1.5rem 3rem;
     min-height: 100vh;
-    padding: 2rem 1.5rem 3rem;
   }
 
   .logo {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.14em;
-    color: #aaa;
+    color: #bbb;
     text-transform: uppercase;
     margin-bottom: 2rem;
   }
 
-  h2 { font-size: 22px; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: -0.02em; }
-
-  .subtitle { font-size: 14px; color: #888; margin-bottom: 2rem; line-height: 1.55; }
-  .center   { text-align: center; }
-
-  label {
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
-    color: #aaa;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 6px;
+  /* ── Loading / No-tag states ── */
+  .state-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 14px;
+    text-align: center;
   }
 
-  input, select {
+  .state-icon { font-size: 52px; line-height: 1; }
+
+  .state-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    letter-spacing: -0.02em;
+  }
+
+  .state-sub { font-size: 14px; color: #999; line-height: 1.6; max-width: 280px; }
+
+  .spinner-ring {
+    width: 40px; height: 40px;
+    border: 3px solid #e5e5e5;
+    border-top-color: #999;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Main content fade-in ── */
+  .main-content {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .main-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Manager dropdown ── */
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  select {
     width: 100%;
     padding: 0.85rem 1rem;
     border: 1.5px solid #e5e5e5;
     border-radius: 12px;
     font-size: 16px;
-    margin-bottom: 1.25rem;
-    background: #fafafa;
+    background: #fff;
     color: #1a1a1a;
     appearance: none;
     -webkit-appearance: none;
-    transition: border-color 0.15s, background 0.15s;
     font-family: inherit;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.15s;
   }
 
-  input:focus, select:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  input[type="password"] { letter-spacing: 0.2em; }
+  select:focus { outline: none; border-color: #1a1a1a; }
 
-  .btn {
-    width: 100%;
-    padding: 1rem;
-    border-radius: 14px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    border: none;
-    transition: opacity 0.15s, transform 0.1s;
-    font-family: inherit;
-    letter-spacing: -0.01em;
-  }
-
-  .btn:active   { transform: scale(0.97); opacity: 0.85; }
-  .btn-primary  { background: #1a1a1a; color: #fff; }
-  .btn-secondary{ background: #f0f0f0; color: #1a1a1a; margin-top: 0.75rem; }
-  .btn:disabled { opacity: 0.45; cursor: default; }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 99px;
+  /* ── Worker card ── */
+  .worker-card {
+    background: #fff;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 16px;
+    padding: 1.25rem 1.25rem 1rem;
     margin-bottom: 1.25rem;
   }
 
-  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .badge-green { background: #dcfce7; color: #166534; }
-  .badge-green::before { background: #16a34a; }
-  .badge-amber { background: #fef3c7; color: #92400e; }
-  .badge-amber::before { background: #d97706; }
-  .badge-red   { background: #fee2e2; color: #991b1b; }
-  .badge-red::before { background: #dc2626; }
-
-  .info-box { background: #f8f8f8; border-radius: 12px; padding: 0.25rem 0.75rem; margin: 1rem 0; }
-  .info-row {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 14px; padding: 7px 0; border-bottom: 1px solid #f0f0f0;
-  }
-  .info-row:last-child { border-bottom: none; }
-  .info-row .key { color: #999; font-size: 13px; }
-  .info-row .val { font-weight: 600; font-size: 14px; text-align: right; max-width: 65%; }
-
-  /* ── Worker info card on PIN screen ── */
-  .worker-card {
-    background: #f8f8f8;
-    border-radius: 14px;
-    padding: 1.1rem 1.25rem;
-    margin-bottom: 1.5rem;
-    border: 1.5px solid #e5e5e5;
-  }
-
   .worker-card-name {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 4px;
     letter-spacing: -0.02em;
+    color: #1a1a1a;
+    margin-bottom: 2px;
   }
 
   .worker-card-position {
     font-size: 13px;
     color: #888;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
 
-  .worker-card-rows { display: flex; flex-direction: column; gap: 6px; }
+  .card-rows { display: flex; flex-direction: column; gap: 0; }
 
-  .worker-card-row {
-    display: flex; align-items: center; justify-content: space-between;
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #f2f2f2;
     font-size: 13px;
   }
 
-  .worker-card-row .wk { color: #aaa; font-size: 12px; }
-  .worker-card-row .wv { font-weight: 600; color: #333; text-align: right; }
+  .card-row:last-child { border-bottom: none; }
+  .card-row .ck { color: #bbb; font-size: 12px; }
+  .card-row .cv { font-weight: 600; color: #333; text-align: right; }
 
+  /* ── Status pill ── */
   .status-pill {
     display: inline-flex; align-items: center; gap: 5px;
-    font-size: 12px; font-weight: 700; padding: 4px 10px;
-    border-radius: 99px;
+    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 99px; text-transform: uppercase; letter-spacing: 0.04em;
   }
 
   .status-pill::before {
     content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
   }
 
-  .pill-in  { background: #dcfce7; color: #166534; }
-  .pill-in::before  { background: #16a34a; animation: pulse 1.8s infinite; }
-  .pill-out { background: #f1f5f9; color: #64748b; }
-  .pill-out::before { background: #94a3b8; }
-  .pill-unknown { background: #f8f8f8; color: #aaa; }
-  .pill-unknown::before { background: #ccc; }
+  .pill-in     { background: #dcfce7; color: #166534; }
+  .pill-in::before     { background: #16a34a; animation: blink 1.8s infinite; }
+  .pill-out    { background: #eff6ff; color: #1d4ed8; }
+  .pill-out::before    { background: #3b82f6; }
+  .pill-lunch  { background: #fef9c3; color: #854d0e; }
+  .pill-lunch::before  { background: #ca8a04; animation: blink 1.8s infinite; }
+  .pill-none   { background: #f4f4f5; color: #71717a; }
+  .pill-none::before   { background: #a1a1aa; }
 
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  .worker-card-loading {
-    text-align: center; color: #bbb; font-size: 13px; padding: 0.5rem 0;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-
-  .session-bar {
-    background: #f5f5f5; border-radius: 12px; padding: 0.75rem 1rem;
-    margin-bottom: 1.75rem; display: flex; align-items: center;
-    justify-content: space-between; gap: 8px;
-  }
-  .session-bar .info { min-width: 0; }
-  .session-bar .sname { font-weight: 700; font-size: 14px; display: block; }
-  .session-bar .sroom { color: #666; font-size: 13px; }
-  .room-tag {
-    display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px;
-    border-radius: 99px; background: #dbeafe; color: #1e40af; margin-left: 6px; white-space: nowrap;
-  }
-  .session-bar button {
-    flex-shrink: 0; background: #e5e5e5; border: none; font-size: 12px;
-    font-weight: 600; color: #555; cursor: pointer; padding: 6px 12px;
-    border-radius: 8px; font-family: inherit;
-  }
-
-  .big-icon { font-size: 56px; text-align: center; margin: 0.75rem 0 1.25rem; line-height: 1; }
-
-  .worker-name-result {
-    font-size: 24px; font-weight: 700; text-align: center;
-    margin: 0.4rem 0 1.25rem; letter-spacing: -0.02em;
-  }
-
-  .error-msg {
-    background: #fee2e2; color: #991b1b; border-radius: 10px;
-    padding: 0.75rem 1rem; font-size: 13px; margin-bottom: 1.25rem;
-    display: none; line-height: 1.5;
-  }
-
-  .screen { display: none; }
-  .screen.active { display: block; }
-
-  .spinner {
-    display: inline-block; width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
-    border-radius: 50%; animation: spin 0.7s linear infinite;
-    vertical-align: middle; margin-right: 8px;
-  }
-
-  .spinner-sm {
-    display: inline-block; width: 14px; height: 14px;
-    border: 2px solid #ddd; border-top-color: #999;
-    border-radius: 50%; animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .pin-dots { display: flex; gap: 14px; justify-content: center; margin: 1.25rem 0; }
-
-  .pin-dot {
-    width: 16px; height: 16px; border-radius: 50%; border: 2px solid #ccc;
-    background: transparent; transition: background 0.15s, border-color 0.15s, transform 0.1s;
-  }
-  .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; transform: scale(1.1); }
-
-  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 0.5rem; }
-
-  .numpad button {
-    padding: 1.1rem 0; border: 1.5px solid #e5e5e5; border-radius: 14px;
-    font-size: 22px; font-weight: 500; background: #fafafa; cursor: pointer;
-    color: #1a1a1a; transition: background 0.1s, transform 0.08s; font-family: inherit;
-  }
-  .numpad button:active { background: #e5e5e5; transform: scale(0.95); }
-  .numpad button.del   { font-size: 18px; color: #888; }
-  .numpad button.empty { visibility: hidden; }
-
-  .room-toggle {
+  /* ── Clock IN / OUT toggle ── */
+  .clock-toggle {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
   }
 
-  .room-btn {
-    padding: 0.85rem 1rem;
+  .clock-btn {
+    padding: 0.9rem 1rem;
     border: 1.5px solid #e5e5e5;
     border-radius: 12px;
     font-size: 15px;
-    font-weight: 600;
-    background: #fafafa;
-    color: #888;
+    font-weight: 700;
+    background: #fff;
+    color: #aaa;
     cursor: pointer;
     transition: all 0.15s;
     font-family: inherit;
+    letter-spacing: -0.01em;
   }
 
-  .room-btn:active { transform: scale(0.97); }
+  .clock-btn:active { transform: scale(0.97); }
 
-  .room-btn.selected {
-    background: #1a1a1a;
-    border-color: #1a1a1a;
+  .clock-btn.active-in {
+    background: #166534;
+    border-color: #166534;
     color: #fff;
   }
 
-  .room-btn.selected-in  { background: #166534; border-color: #166534; color: #fff; }
-  .room-btn.selected-out { background: #991b1b; border-color: #991b1b; color: #fff; }
-    background: #f5f5f5; border-radius: 12px; padding: 0.85rem 1rem;
-    font-size: 13px; color: #888; text-align: center; margin-top: 0.75rem; line-height: 1.5;
+  .clock-btn.active-out {
+    background: #991b1b;
+    border-color: #991b1b;
+    color: #fff;
   }
 
-  .stars-section {
-    margin: 1.5rem 0 0.25rem; padding: 1.25rem 1rem 1rem;
-    background: #f8f8f8; border-radius: 14px; border: 1.5px solid #e5e5e5;
+  /* ── PIN numpad ── */
+  .pin-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 12px;
   }
-  .stars-label {
+
+  .pin-dots {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .pin-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    background: transparent;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+  }
+
+  .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; transform: scale(1.15); }
+
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+  }
+
+  .numpad button {
+    padding: 1rem 0;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 13px;
+    font-size: 22px;
+    font-weight: 500;
+    background: #fff;
+    cursor: pointer;
+    color: #1a1a1a;
+    transition: background 0.1s, transform 0.08s;
+    font-family: inherit;
+  }
+
+  .numpad button:active { background: #e5e5e5; transform: scale(0.95); }
+  .numpad button.del   { font-size: 17px; color: #888; }
+  .numpad button.empty { visibility: hidden; }
+
+  /* ── Error banner ── */
+  .error-banner {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    margin-bottom: 1.25rem;
+    display: none;
+    line-height: 1.5;
+  }
+
+  /* ── Result screen ── */
+  .result-wrap {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    gap: 10px;
+    padding: 2rem 0;
+  }
+
+  .result-wrap.visible { display: flex; }
+
+  .result-icon { font-size: 60px; line-height: 1; margin-bottom: 4px; }
+
+  .result-name {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #1a1a1a;
+  }
+
+  .result-action {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .result-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 700; padding: 4px 12px;
+    border-radius: 99px; margin-bottom: 6px;
+  }
+
+  .result-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-green::before { background: #16a34a; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-amber::before { background: #d97706; }
+  .badge-red   { background: #fee2e2; color: #991b1b; }
+  .badge-red::before   { background: #dc2626; }
+
+  .result-msg { font-size: 13px; color: #999; max-width: 280px; line-height: 1.6; }
+
+  /* ── Star rating ── */
+  .stars-wrap {
+    background: #fff;
+    border: 1.5px solid #e5e5e5;
+    border-radius: 14px;
+    padding: 1.1rem 1rem 0.9rem;
+    width: 100%;
+    max-width: 300px;
+    margin-top: 6px;
+  }
+
+  .stars-title {
     font-size: 11px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.07em; color: #aaa; margin-bottom: 12px; text-align: center;
-  }
-  .stars-row { display: flex; justify-content: center; gap: 6px; }
-  .star-btn {
-    font-size: 40px; background: none; border: none; cursor: pointer;
-    color: #e2e8f0; line-height: 1; transition: color 0.12s, transform 0.1s;
-    padding: 4px 2px; font-family: inherit;
-  }
-  .star-btn.filled { color: #f59e0b; }
-  .star-btn:active { transform: scale(0.85); }
-  .stars-caption {
-    text-align: center; font-size: 13px; font-weight: 600;
-    color: #555; margin-top: 10px; min-height: 20px;
-  }
-  .stars-skip {
-    display: block; text-align: center; font-size: 12px; color: #bbb;
-    margin-top: 10px; cursor: pointer; background: none; border: none;
-    font-family: inherit; padding: 4px; width: 100%;
+    letter-spacing: 0.08em; color: #bbb; text-align: center; margin-bottom: 10px;
   }
 
-  @media (min-width: 480px) {
-    body { padding: 2rem 1rem; background: #f0f0ee; }
-    .card { min-height: auto; border-radius: 20px; border: 1px solid #e5e5e5; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+  .stars-row { display: flex; justify-content: center; gap: 4px; }
+
+  .star-btn {
+    font-size: 36px; background: none; border: none; cursor: pointer;
+    color: #e5e5e5; line-height: 1; transition: color 0.12s, transform 0.1s;
+    padding: 2px; font-family: inherit;
+  }
+
+  .star-btn.lit { color: #f59e0b; }
+  .star-btn:active { transform: scale(0.82); }
+
+  .stars-sub {
+    text-align: center; font-size: 12px; font-weight: 600;
+    color: #aaa; margin-top: 8px; min-height: 16px;
+  }
+
+  .stars-sub.done { color: #16a34a; }
+
+  .done-btn {
+    width: 100%; padding: 0.95rem;
+    background: #1a1a1a; color: #fff;
+    border: none; border-radius: 13px;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    margin-top: 1.5rem;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .done-btn:active { transform: scale(0.97); opacity: 0.85; }
+
+  @media (min-width: 460px) {
+    body { background: #eaeae8; padding-top: 2rem; }
+    .page {
+      min-height: auto;
+      border-radius: 20px;
+      background: #f5f5f3;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+      margin: 0 1rem;
+    }
   }
 </style>
 </head>
 <body>
-<div class="card">
+<div class="page">
   <div class="logo">VIT · Event Intelligence</div>
 
-  <!-- ── SCREEN 1: Setup ── -->
-  <div class="screen active" id="screen-setup">
-    <h2>Manager setup</h2>
-    <p class="subtitle">Enter your details once. They'll be saved for this session.</p>
-    <div class="error-msg" id="setup-error"></div>
-    <label>Your name</label>
-    <select id="setup-name">
+  <!-- Loading -->
+  <div id="view-loading" class="state-center">
+    <div class="spinner-ring"></div>
+    <div class="state-sub">Looking up tag…</div>
+  </div>
+
+  <!-- No tag in URL -->
+  <div id="view-notag" class="state-center" style="display:none;">
+    <div class="state-icon">📲</div>
+    <div class="state-title">Scan a tag</div>
+    <div class="state-sub">Hold your phone near an NFC tag to get started.</div>
+  </div>
+
+  <!-- Main scan UI -->
+  <div id="view-main" class="main-content" style="display:none;">
+
+    <label class="field-label">Manager</label>
+    <select id="mgr-select">
       <option value="">Select manager…</option>
     </select>
-    <div class="room-toggle" id="room-toggle">
-      <button class="room-btn" id="room-btn-in"  onclick="selectRoom('Clock IN')">Clock In</button>
-      <button class="room-btn" id="room-btn-out" onclick="selectRoom('Clock Out')">Clock Out</button>
-    </div>
-    <label>PIN</label>
-    <div class="pin-dots" style="justify-content:flex-start;gap:12px;margin-bottom:1rem;">
-      <div class="pin-dot" id="sdot-0"></div>
-      <div class="pin-dot" id="sdot-1"></div>
-      <div class="pin-dot" id="sdot-2"></div>
-      <div class="pin-dot" id="sdot-3"></div>
-    </div>
-    <div class="numpad">
-      <button onclick="setupPinKey('1')">1</button>
-      <button onclick="setupPinKey('2')">2</button>
-      <button onclick="setupPinKey('3')">3</button>
-      <button onclick="setupPinKey('4')">4</button>
-      <button onclick="setupPinKey('5')">5</button>
-      <button onclick="setupPinKey('6')">6</button>
-      <button onclick="setupPinKey('7')">7</button>
-      <button onclick="setupPinKey('8')">8</button>
-      <button onclick="setupPinKey('9')">9</button>
-      <button class="empty"></button>
-      <button onclick="setupPinKey('0')">0</button>
-      <button class="del" onclick="setupPinBackspace()">⌫</button>
-    </div>
-  </div>
 
-  <!-- ── SCREEN 2: Ready ── -->
-  <div class="screen" id="screen-ready">
-    <div class="session-bar">
-      <div class="info">
-        <span class="sname" id="ready-name"></span>
-        <span class="sroom"><span id="ready-room"></span></span>
-      </div>
-    </div>
-    <div class="big-icon">📲</div>
-    <h2 class="center">Ready to scan</h2>
-    <p class="subtitle center">Go back to your phone's home screen and scan a tag. Keep this page open in the background between scans.</p>
-  </div>
-
-  <!-- ── SCREEN 3: PIN verify ── -->
-  <div class="screen" id="screen-pin">
-    <div class="session-bar">
-      <div class="info">
-        <span class="sname" id="pin-name"></span>
-        <span class="sroom"><span id="pin-room"></span></span>
-      </div>
-    </div>
-
-    <!-- Worker info card — always shown first -->
     <div class="worker-card" id="worker-card">
-      <div class="worker-card-loading"><span class="spinner-sm"></span> Looking up worker…</div>
+      <!-- populated by renderCard() -->
     </div>
 
-    <!-- PIN section — hidden until worker info has loaded -->
-    <div id="pin-section" style="display:none;">
-      <div class="error-msg" id="pin-error"></div>
-      <div class="pin-dots">
-        <div class="pin-dot" id="dot-0"></div>
-        <div class="pin-dot" id="dot-1"></div>
-        <div class="pin-dot" id="dot-2"></div>
-        <div class="pin-dot" id="dot-3"></div>
-      </div>
-      <div class="numpad">
-        <button onclick="pinKey('1')">1</button>
-        <button onclick="pinKey('2')">2</button>
-        <button onclick="pinKey('3')">3</button>
-        <button onclick="pinKey('4')">4</button>
-        <button onclick="pinKey('5')">5</button>
-        <button onclick="pinKey('6')">6</button>
-        <button onclick="pinKey('7')">7</button>
-        <button onclick="pinKey('8')">8</button>
-        <button onclick="pinKey('9')">9</button>
-        <button class="empty"></button>
-        <button onclick="pinKey('0')">0</button>
-        <button class="del" onclick="pinBackspace()">⌫</button>
-      </div>
+    <div class="clock-toggle">
+      <button class="clock-btn" id="btn-in"  onclick="selectAction('Clock IN')">Clock In</button>
+      <button class="clock-btn" id="btn-out" onclick="selectAction('Clock Out')">Clock Out</button>
+    </div>
+
+    <div class="error-banner" id="error-banner"></div>
+
+    <div class="pin-label">Manager PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+
+    <div class="numpad">
+      <button onclick="pk('1')">1</button><button onclick="pk('2')">2</button><button onclick="pk('3')">3</button>
+      <button onclick="pk('4')">4</button><button onclick="pk('5')">5</button><button onclick="pk('6')">6</button>
+      <button onclick="pk('7')">7</button><button onclick="pk('8')">8</button><button onclick="pk('9')">9</button>
+      <button class="empty"></button><button onclick="pk('0')">0</button><button class="del" onclick="pb()">⌫</button>
     </div>
   </div>
 
-  <!-- ── SCREEN 4: Result ── -->
-  <div class="screen" id="screen-result">
-    <div class="big-icon" id="result-icon"></div>
-    <span class="badge" id="result-badge"></span>
-    <div class="worker-name-result" id="result-worker-name"></div>
-    <h2 id="result-title"></h2>
-    <p class="subtitle" id="result-msg"></p>
-
-    <div class="info-box">
-      <div class="info-row"><span class="key">Tag</span><span class="val" id="result-tagid"></span></div>
-      <div class="info-row"><span class="key">Room</span><span class="val" id="result-room"></span></div>
-      <div class="info-row"><span class="key">Time</span><span class="val" id="result-time"></span></div>
-    </div>
-
-    <!-- Star rating — Clock IN and Clock Out only -->
-    <div class="stars-section" id="stars-section" style="display:none;">
-      <div class="stars-label">Rate this worker's performance</div>
+  <!-- Result -->
+  <div id="view-result" class="result-wrap">
+    <div class="result-icon" id="r-icon"></div>
+    <div class="result-badge" id="r-badge"></div>
+    <div class="result-name"  id="r-name"></div>
+    <div class="result-action" id="r-action"></div>
+    <div class="result-msg"   id="r-msg"></div>
+    <div class="stars-wrap" id="stars-wrap" style="display:none;">
+      <div class="stars-title">Rate this worker</div>
       <div class="stars-row">
-        <button class="star-btn" id="star-1" onclick="setStar(1)">★</button>
-        <button class="star-btn" id="star-2" onclick="setStar(2)">★</button>
-        <button class="star-btn" id="star-3" onclick="setStar(3)">★</button>
-        <button class="star-btn" id="star-4" onclick="setStar(4)">★</button>
-        <button class="star-btn" id="star-5" onclick="setStar(5)">★</button>
+        <button class="star-btn" id="s1" onclick="rateStar(1)">★</button>
+        <button class="star-btn" id="s2" onclick="rateStar(2)">★</button>
+        <button class="star-btn" id="s3" onclick="rateStar(3)">★</button>
+        <button class="star-btn" id="s4" onclick="rateStar(4)">★</button>
+        <button class="star-btn" id="s5" onclick="rateStar(5)">★</button>
       </div>
-      <div class="stars-caption" id="stars-caption"></div>
-      <button class="stars-skip" id="stars-skip" onclick="skipRating()">Skip rating</button>
+      <div class="stars-sub" id="stars-sub"></div>
     </div>
-
-    <button class="btn btn-primary" onclick="nextScan()" style="margin-top:1.25rem;">Done</button>
+    <button class="done-btn" onclick="reset()">Done</button>
   </div>
 
 </div>
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
+const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
+const STAR_LABELS = ['','Poor','Fair','Good','Great','Excellent'];
 
-// ── Managers — Rob Jones at top, others below ─────────────────────────────────
 const MANAGERS = {
-  'Rob Jones':     { pin: '8608' },
-  'Peter Meza':    { pin: '8608' },
-  'Geo AVS':       { pin: '8608' },
-  'Jasmine Biondi':{ pin: '8608' },
-  'John AVS':      { pin: '8608' },
-  'Jorge Rendon':  { pin: '8608' },
-  'Chad AVS':      { pin: '8608' },
+  'Rob Jones':     '8608',
+  'Peter Meza':    '8608',
+  'Geo AVS':       '8608',
+  'Jasmine Biondi':'8608',
+  'John AVS':      '8608',
+  'Jorge Rendon':  '8608',
+  'Chad AVS':      '8608',
 };
 
-// ── Rooms — Clock IN and Clock Out only ───────────────────────────────────────
-const ALL_ROOMS = ['Clock IN', 'Clock Out'];
-
-const STAR_LABELS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
-
-// ── Tag params from NFC URL ───────────────────────────────────────────────────
 const params  = new URLSearchParams(window.location.search);
 const TAG_UID = params.get('uid')   || '';
 const TAG_ID  = params.get('tagId') || '';
 
-let pinBuffer       = '';
-let currentStar     = 0;
-let ratingSubmitted = false;
-const PIN_LENGTH    = 4;
+let pinBuffer    = '';
+let selectedAction = '';   // 'Clock IN' or 'Clock Out'
+let workerData   = null;
+let ratingDone   = false;
+const PIN_LEN    = 4;
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Populate setup dropdowns
-  const nameSelect = document.getElementById('setup-name');
+  if (!TAG_ID) { show('view-notag'); return; }
+  populateManagers();
+  loadWorker();
+});
+
+function populateManagers() {
+  const sel = document.getElementById('mgr-select');
   Object.keys(MANAGERS).forEach(name => {
     const opt = document.createElement('option');
     opt.value = name; opt.textContent = name;
-    nameSelect.appendChild(opt);
+    sel.appendChild(opt);
   });
-
-  // Room buttons are static — no population needed
-
-  const session = loadSession();
-  if (TAG_UID && TAG_ID) {
-    if (session) { showPinScreen(session); }
-    else         { showScreen('screen-setup'); }
-  } else {
-    if (session) { showReady(); }
-    else         { showScreen('screen-setup'); }
-  }
-});
-
-// ── Room toggle ───────────────────────────────────────────────────────────────
-let selectedRoom = '';
-
-function selectRoom(room) {
-  selectedRoom = room;
-  document.getElementById('room-btn-in').className  = 'room-btn' + (room === 'Clock IN'  ? ' selected-in'  : '');
-  document.getElementById('room-btn-out').className = 'room-btn' + (room === 'Clock Out' ? ' selected-out' : '');
-  // Clear any room error and re-attempt submit if PIN is already full
-  document.getElementById('setup-error').style.display = 'none';
-  if (setupPinBuffer.length === PIN_LENGTH) submitSetup();
 }
 
-// ── Setup PIN numpad ──────────────────────────────────────────────────────────
-let setupPinBuffer = '';
-
-function setupPinKey(digit) {
-  if (setupPinBuffer.length >= PIN_LENGTH) return;
-  setupPinBuffer += digit; updateSetupDots();
-  if (setupPinBuffer.length === PIN_LENGTH) submitSetup();
-}
-
-function setupPinBackspace() {
-  setupPinBuffer = setupPinBuffer.slice(0, -1); updateSetupDots();
-}
-
-function updateSetupDots() {
-  for (let i = 0; i < PIN_LENGTH; i++)
-    document.getElementById('sdot-' + i).classList.toggle('filled', i < setupPinBuffer.length);
-}
-
-// ── Setup ─────────────────────────────────────────────────────────────────────
-function submitSetup() {
-  const name = document.getElementById('setup-name').value.trim();
-  const room = selectedRoom;
-  const pin  = setupPinBuffer;
-  const err  = document.getElementById('setup-error');
-
-  err.style.display = 'none';
-  if (!name) { showError(err, 'Please select your name.'); setupPinBuffer = ''; updateSetupDots(); return; }
-  if (!room) { showError(err, 'Please select Clock In or Clock Out.');   setupPinBuffer = ''; updateSetupDots(); return; }
-
-  const mgr = MANAGERS[name];
-  if (!mgr || mgr.pin !== pin) {
-    showError(err, 'Incorrect PIN. Please try again.');
-    setupPinBuffer = ''; updateSetupDots(); return;
-  }
-
-  saveSession(name, room);
-  setupPinBuffer = '';
-  if (TAG_UID && TAG_ID) { showPinScreen({ name, room }); }
-  else                   { showReady(); }
-}
-
-// ── Session ───────────────────────────────────────────────────────────────────
-function saveSession(name, room) {
-  localStorage.setItem('vit_session', JSON.stringify({ name, room, ts: Date.now() }));
-}
-
-function loadSession() {
+// ── Load worker info then reveal UI ───────────────────────────────────────────
+async function loadWorker() {
+  show('view-loading');
   try {
-    const s = JSON.parse(localStorage.getItem('vit_session'));
-    if (!s) return null;
-    if (Date.now() - s.ts > 12 * 60 * 60 * 1000) { localStorage.removeItem('vit_session'); return null; }
-    return s;
-  } catch { return null; }
-}
-
-function clearSession() { localStorage.removeItem('vit_session'); showScreen('screen-setup'); }
-
-// ── Screens ───────────────────────────────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
-}
-
-function showReady() {
-  const s = loadSession();
-  if (!s) { showScreen('screen-setup'); return; }
-  history.replaceState({}, '', window.location.pathname);
-  document.getElementById('ready-name').textContent = s.name;
-  document.getElementById('ready-room').textContent = s.room;
-  resetRating();
-  showScreen('screen-ready');
-}
-
-function showPinScreen(session) {
-  document.getElementById('pin-name').textContent = session.name;
-  document.getElementById('pin-room').textContent = session.room;
-  pinBuffer = '';
-  updatePinDots();
-  document.getElementById('pin-error').style.display = 'none';
-  // Hide PIN section until worker info has loaded
-  document.getElementById('pin-section').style.display = 'none';
-  // Reset worker card to loading state
-  document.getElementById('worker-card').innerHTML =
-    '<div class="worker-card-loading"><span class="spinner-sm"></span> Looking up worker…</div>';
-  showScreen('screen-pin');
-  if (TAG_ID) fetchWorkerInfo(TAG_ID);
-}
-
-function cancelScan() { pinBuffer = ''; showReady(); }
-
-// ── Fetch worker info for the card ────────────────────────────────────────────
-async function fetchWorkerInfo(tagId) {
-  try {
-    const res  = await fetch(`${SCRIPT_URL}?action=getTagStatus&tagId=${encodeURIComponent(tagId)}`);
-    const data = await res.json();
-    renderWorkerCard(data);
+    const res  = await fetch(`${SCRIPT_URL}?action=getTagStatus&tagId=${encodeURIComponent(TAG_ID)}`);
+    workerData = await res.json();
   } catch(e) {
-    document.getElementById('worker-card').innerHTML =
-      '<div class="worker-card-loading" style="color:#dc2626;">Could not load worker info.</div>';
+    workerData = { assigned: false, tagId: TAG_ID, error: true };
   }
-  // Reveal PIN section regardless of outcome — manager can still proceed
-  document.getElementById('pin-section').style.display = 'block';
+
+  renderCard(workerData);
+  autoSelectAction(workerData);
+
+  show('view-main');
+  // Small delay so display:block is painted before transition fires
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('view-main').classList.add('visible');
+  }));
 }
 
-function renderWorkerCard(d) {
+// ── Render worker card ────────────────────────────────────────────────────────
+function renderCard(d) {
   const card = document.getElementById('worker-card');
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
   if (!d.assigned) {
     card.innerHTML = `
       <div class="worker-card-name" style="color:#dc2626;">No Tag Assigned</div>
-      <div class="worker-card-position">Tag ${d.tagId || TAG_ID} is not assigned to any worker.</div>`;
+      <div class="worker-card-position" style="margin-bottom:10px;">Tag ${esc(d.tagId || TAG_ID)}</div>
+      <div class="card-rows">
+        <div class="card-row"><span class="ck">Date</span><span class="cv">${today}</span></div>
+      </div>`;
     return;
   }
 
-  const statusClass = d.status === 'clocked_in' ? 'pill-in'
-                    : d.status === 'clocked_out' ? 'pill-out'
-                    : 'pill-unknown';
-  const statusLabel = d.status === 'clocked_in'     ? 'Clocked In'
-                    : d.status === 'clocked_out'    ? 'Clocked Out'
-                    : d.status === 'at_lunch'       ? 'At Lunch'
-                    : 'Not Clocked In';
+  const statusMap = {
+    clocked_in:     ['pill-in',    'Clocked In'],
+    clocked_out:    ['pill-out',   'Clocked Out'],
+    at_lunch:       ['pill-lunch', 'At Lunch'],
+    not_clocked_in: ['pill-none',  'Not Clocked In'],
+  };
+  const [pillClass, pillLabel] = statusMap[d.status] || statusMap['not_clocked_in'];
 
   card.innerHTML = `
     <div class="worker-card-name">${esc(d.workerName)}</div>
     <div class="worker-card-position">${esc(d.position || '—')}</div>
-    <div class="worker-card-rows">
-      <div class="worker-card-row">
-        <span class="wk">Room / Area</span>
-        <span class="wv">${esc(d.event || '—')}</span>
-      </div>
-      <div class="worker-card-row">
-        <span class="wk">Booked</span>
-        <span class="wv">${esc(d.bookedTime || '—')}</span>
-      </div>
-      <div class="worker-card-row">
-        <span class="wk">Status</span>
-        <span class="wv"><span class="status-pill ${statusClass}">${statusLabel}</span></span>
-      </div>
-      ${d.lastScanTime ? `<div class="worker-card-row"><span class="wk">Last scan</span><span class="wv">${esc(d.lastScanRoom)} · ${esc(d.lastScanTime)}</span></div>` : ''}
+    <div class="card-rows">
+      <div class="card-row"><span class="ck">Tag</span><span class="cv">${esc(d.tagId || TAG_ID)}</span></div>
+      <div class="card-row"><span class="ck">Date</span><span class="cv">${today}</span></div>
+      <div class="card-row"><span class="ck">Room</span><span class="cv">${esc(d.room || '—')}</span></div>
+      <div class="card-row"><span class="ck">Status</span><span class="cv"><span class="status-pill ${pillClass}">${pillLabel}</span></span></div>
+      ${d.lastScanTime ? `<div class="card-row"><span class="ck">Last scan</span><span class="cv">${esc(d.lastScanRoom)} · ${esc(d.lastScanTime)}</span></div>` : ''}
     </div>`;
 }
 
-// ── PIN ───────────────────────────────────────────────────────────────────────
-function pinKey(digit) {
-  if (pinBuffer.length >= PIN_LENGTH) return;
-  pinBuffer += digit; updatePinDots();
-  if (pinBuffer.length === PIN_LENGTH) verifyAndSubmit();
+// ── Auto-select Clock In or Clock Out based on status ─────────────────────────
+function autoSelectAction(d) {
+  if (!d.assigned) return;
+  // If clocked in → pre-select Clock Out. Otherwise → pre-select Clock In.
+  const action = (d.status === 'clocked_in' || d.status === 'at_lunch') ? 'Clock Out' : 'Clock IN';
+  selectAction(action);
 }
 
-function pinBackspace() { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
-
-function updatePinDots() {
-  for (let i = 0; i < PIN_LENGTH; i++)
-    document.getElementById('dot-' + i).classList.toggle('filled', i < pinBuffer.length);
+function selectAction(action) {
+  selectedAction = action;
+  document.getElementById('btn-in').className  = 'clock-btn' + (action === 'Clock IN'  ? ' active-in'  : '');
+  document.getElementById('btn-out').className = 'clock-btn' + (action === 'Clock Out' ? ' active-out' : '');
+  hideBanner();
 }
 
-// ── Verify PIN then immediately submit ────────────────────────────────────────
+// ── PIN numpad ────────────────────────────────────────────────────────────────
+function pk(digit) {
+  if (pinBuffer.length >= PIN_LEN) return;
+  pinBuffer += digit; updateDots();
+  if (pinBuffer.length === PIN_LEN) verifyAndSubmit();
+}
+
+function pb() { pinBuffer = pinBuffer.slice(0, -1); updateDots(); }
+
+function updateDots() {
+  for (let i = 0; i < PIN_LEN; i++)
+    document.getElementById('d' + i).classList.toggle('filled', i < pinBuffer.length);
+}
+
+// ── Verify PIN and submit ─────────────────────────────────────────────────────
 async function verifyAndSubmit() {
-  const session = loadSession();
-  if (!session) { clearSession(); return; }
+  const mgrName = document.getElementById('mgr-select').value;
 
-  const mgr = MANAGERS[session.name];
-  if (!mgr || mgr.pin !== pinBuffer) {
-    showError(document.getElementById('pin-error'), 'Incorrect PIN. Try again.');
-    pinBuffer = ''; updatePinDots(); return;
+  if (!mgrName)        { showBanner('Please select a manager.'); pinBuffer = ''; updateDots(); return; }
+  if (!selectedAction) { showBanner('Select Clock In or Clock Out first.'); pinBuffer = ''; updateDots(); return; }
+
+  const pin = MANAGERS[mgrName];
+  if (!pin || pin !== pinBuffer) {
+    showBanner('Incorrect PIN. Try again.');
+    pinBuffer = ''; updateDots(); return;
   }
 
-  // PIN correct — submit immediately
-  document.getElementById('pin-error').style.display = 'none';
-  // Dim numpad to signal submission in progress
-  document.querySelectorAll('.numpad button').forEach(b => b.disabled = true);
+  hideBanner();
+  disableNumpad(true);
 
-  await logScan(session);
-
-  document.querySelectorAll('.numpad button').forEach(b => b.disabled = false);
-}
-
-// ── Log scan ──────────────────────────────────────────────────────────────────
-async function logScan(session) {
-  const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(session.name)}&room=${encodeURIComponent(session.room)}&phase=General`;
+  const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(mgrName)}&room=${encodeURIComponent(selectedAction)}&phase=General`;
 
   try {
     const res  = await fetch(url);
     const text = await res.text();
     if (text.includes('DUPLICATE')) {
-      showResult('duplicate', session.room, '');
+      showResult('duplicate', '', 'This tag was scanned in the last 60 seconds.');
     } else if (text.includes('ERROR')) {
-      showResult('error', session.room, text);
+      showResult('error', '', text.replace('ERROR:', '').trim());
     } else {
-      const parts      = text.split('|');
-      const workerName = parts.length > 1 ? parts[0].trim() : '';
-      showResult('success', session.room, workerName);
+      const workerName = text.split('|')[0].trim();
+      showResult('success', workerName, selectedAction);
     }
   } catch(e) {
-    showResult('error', session.room, 'Connection error. Check your network.');
+    showResult('error', '', 'Connection error. Check your network.');
   }
+
+  disableNumpad(false);
+  pinBuffer = ''; updateDots();
 }
 
 // ── Result ────────────────────────────────────────────────────────────────────
-function showResult(status, room, payload) {
-  const icons  = { success: '✅', duplicate: '⚠️', error: '❌' };
-  const badges = { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-red' };
-  const labels = { success: 'Logged', duplicate: 'Duplicate', error: 'Error' };
-  const titles = { success: 'Scan logged!', duplicate: 'Already scanned', error: 'Could not log' };
-  const defaultMsgs = {
-    success:   'Scan logged successfully.',
-    duplicate: 'This tag was scanned in the last 60 seconds.',
-    error:     'Something went wrong. Check your connection.',
-  };
+function showResult(status, name, detail) {
+  const icon    = { success: '✅', duplicate: '⚠️', error: '❌' }[status];
+  const badgeCls= { success: 'badge-green', duplicate: 'badge-amber', error: 'badge-red' }[status];
+  const badgeTxt= { success: 'Logged', duplicate: 'Duplicate', error: 'Error' }[status];
 
-  document.getElementById('result-icon').textContent = icons[status];
-  const badge = document.getElementById('result-badge');
-  badge.className   = 'badge ' + badges[status];
-  badge.textContent = labels[status];
-  document.getElementById('result-title').textContent = titles[status];
+  document.getElementById('r-icon').textContent   = icon;
+  const rb = document.getElementById('r-badge');
+  rb.className = 'result-badge ' + badgeCls;
+  rb.textContent = badgeTxt;
+  document.getElementById('r-name').textContent   = (status === 'success' && name) ? name : (TAG_ID ? 'Tag ' + TAG_ID : '');
+  document.getElementById('r-action').textContent = status === 'success' ? detail : '';
+  document.getElementById('r-msg').textContent    = status !== 'success' ? detail : '';
 
-  const errDetail = (status === 'error' && payload) ? payload.replace('ERROR:', '').trim() : '';
-  document.getElementById('result-msg').textContent = errDetail || defaultMsgs[status];
-
-  const workerName  = status === 'success' ? payload : '';
-  const displayName = (workerName && workerName !== 'Unknown') ? workerName : (TAG_ID ? 'Tag ' + TAG_ID : '');
-  document.getElementById('result-worker-name').textContent = displayName;
-  document.getElementById('result-tagid').textContent = TAG_ID || '—';
-  document.getElementById('result-room').textContent  = room;
-  document.getElementById('result-time').textContent  = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  const isBillingRoom = room === 'Clock IN' || room === 'Clock Out';
-  const starsSection  = document.getElementById('stars-section');
-  if (status === 'success' && TAG_ID && isBillingRoom) {
-    ratingSubmitted = false; currentStar = 0; renderStars(0);
-    document.getElementById('stars-caption').textContent = '';
-    document.getElementById('stars-skip').style.display = 'block';
-    starsSection.style.display = 'block';
+  // Stars on success Clock IN / Clock Out
+  ratingDone = false;
+  const starsWrap = document.getElementById('stars-wrap');
+  if (status === 'success' && TAG_ID) {
+    document.getElementById('stars-sub').textContent = '';
+    document.getElementById('stars-sub').className   = 'stars-sub';
+    renderStars(0);
+    starsWrap.style.display = 'block';
   } else {
-    starsSection.style.display = 'none';
+    starsWrap.style.display = 'none';
   }
 
-  showScreen('screen-result');
+  show('view-result');
+  document.getElementById('view-result').classList.add('visible');
 }
 
-// ── Star rating ───────────────────────────────────────────────────────────────
-function setStar(n) {
-  if (ratingSubmitted) return;
-  currentStar = (currentStar === n) ? 0 : n;
-  renderStars(currentStar);
-  document.getElementById('stars-caption').textContent = currentStar > 0 ? STAR_LABELS[currentStar] : '';
-  if (currentStar > 0) setTimeout(() => submitRating(currentStar), 500);
+// ── Stars ─────────────────────────────────────────────────────────────────────
+function rateStar(n) {
+  if (ratingDone) return;
+  renderStars(n);
+  document.getElementById('stars-sub').textContent = STAR_LABELS[n];
+  setTimeout(() => submitRating(n), 400);
 }
 
-function renderStars(filled) {
+function renderStars(n) {
   for (let i = 1; i <= 5; i++)
-    document.getElementById('star-' + i).classList.toggle('filled', i <= filled);
+    document.getElementById('s' + i).classList.toggle('lit', i <= n);
 }
 
 async function submitRating(stars) {
-  if (ratingSubmitted || !TAG_ID) return;
-  ratingSubmitted = true;
-  document.getElementById('stars-caption').textContent = 'Rating submitted ✓';
-  document.getElementById('stars-skip').style.display  = 'none';
+  if (ratingDone || !TAG_ID) return;
+  ratingDone = true;
+  const sub = document.getElementById('stars-sub');
+  sub.textContent = 'Rating submitted ✓';
+  sub.className   = 'stars-sub done';
   try {
     await fetch(`${SCRIPT_URL}?action=submitRating&tagId=${encodeURIComponent(TAG_ID)}&rating=${stars}`);
-  } catch(e) { console.error('Rating failed', e); }
+  } catch(e) {}
 }
 
-function skipRating()  { ratingSubmitted = true; document.getElementById('stars-section').style.display = 'none'; }
-function resetRating() { currentStar = 0; ratingSubmitted = false; }
-function nextScan()    { resetRating(); showReady(); }
+// ── Reset → go back to scan UI ────────────────────────────────────────────────
+function reset() {
+  document.getElementById('view-result').classList.remove('visible');
+  show('view-main');
+  document.getElementById('mgr-select').value = '';
+  selectAction('');
+  pinBuffer = ''; updateDots();
+  hideBanner();
+  // Reload worker info to reflect updated status
+  loadWorker();
+}
 
-function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
-function esc(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function show(id) {
+  ['view-loading','view-notag','view-main','view-result'].forEach(v => {
+    const el = document.getElementById(v);
+    if (v === 'view-result') return; // result uses its own display logic
+    el.style.display = (v === id) ? '' : 'none';
+  });
+  if (id !== 'view-result') {
+    document.getElementById('view-result').classList.remove('visible');
+  }
+}
+
+function showBanner(msg) {
+  const b = document.getElementById('error-banner');
+  b.textContent = msg; b.style.display = 'block';
+}
+
+function hideBanner() {
+  document.getElementById('error-banner').style.display = 'none';
+}
+
+function disableNumpad(disabled) {
+  document.querySelectorAll('.numpad button').forEach(b => b.disabled = disabled);
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 </script>
 </body>
 </html>
