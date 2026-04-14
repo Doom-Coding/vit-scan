@@ -464,7 +464,7 @@
     </div>
   </div>
   <!-- Submit loading overlay -->
-  <div id="submit-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+  <div id="submit-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
     <div class="spinner-ring" style="border-color:#e5e5e5;border-top-color:#1a1a1a;"></div>
     <div style="font-size:14px;font-weight:600;color:#888;" id="overlay-msg">Logging scan…</div>
   </div>
@@ -491,6 +491,7 @@ const TAG_ID  = params.get('tagId') || '';
 let pinBuffer    = '';
 let selectedAction = '';   // 'Clock IN' or 'Clock Out'
 let workerData   = null;
+let workerStatus = '';  // 'clocked_in' | 'clocked_out' | 'at_lunch' | 'not_clocked_in'
 let ratingDone   = false;
 let isDone       = false;  // once true, nothing can navigate away
 const PIN_LEN    = 4;
@@ -522,6 +523,7 @@ async function loadWorker() {
   }
 
   renderCard(workerData);
+  workerStatus = (workerData && workerData.status) ? workerData.status : '';
   autoSelectAction(workerData);
 
   show('view-main');
@@ -601,59 +603,62 @@ function updateDots() {
 
 // ── Verify PIN and submit ─────────────────────────────────────────────────────
 async function verifyAndSubmit() {
-  const mgrName = document.getElementById('mgr-select').value;
+  try {
+    const mgrName = document.getElementById('mgr-select').value;
 
-  if (!mgrName)        { showBanner('Please select a manager.'); pinBuffer = ''; updateDots(); return; }
-  if (!selectedAction) { showBanner('Select Clock In or Clock Out first.'); pinBuffer = ''; updateDots(); return; }
+    if (!mgrName)        { showBanner('Please select a manager.'); pinBuffer = ''; updateDots(); return; }
+    if (!selectedAction) { showBanner('Select Clock In or Clock Out first.'); pinBuffer = ''; updateDots(); return; }
 
-  const pin = MANAGERS[mgrName];
-  if (!pin || pin !== pinBuffer) {
-    showBanner('Incorrect PIN. Try again.');
-    pinBuffer = ''; updateDots(); return;
-  }
+    const pin = MANAGERS[mgrName];
+    if (!pin || pin !== pinBuffer) {
+      showBanner('Incorrect PIN. Try again.');
+      pinBuffer = ''; updateDots(); return;
+    }
 
-  hideBanner();
+    hideBanner();
 
-  // ── Block if status on card conflicts with selected action ────────────────
-  const statusPill = document.querySelector('.status-pill');
-  if (statusPill) {
-    const statusText = statusPill.textContent.trim().toLowerCase();
-    if (selectedAction === 'Clock IN' && statusText === 'clocked in') {
+    // ── Block conflicting actions based on current status ─────────────────
+    if (selectedAction === 'Clock IN' && workerStatus === 'clocked_in') {
       showBanner('This worker is already Clocked In. Please select Clock Out.');
       pinBuffer = ''; updateDots(); return;
     }
-    if (selectedAction === 'Clock Out' && statusText === 'clocked out') {
+    if (selectedAction === 'Clock Out' && workerStatus === 'clocked_out') {
       showBanner('This worker is already Clocked Out.');
       pinBuffer = ''; updateDots(); return;
     }
-  }
 
-  showOverlay('Logging scan…');
+    showOverlay('Logging scan…');
 
-  const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(mgrName)}&room=${encodeURIComponent(selectedAction)}&phase=General`;
+    const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(mgrName)}&room=${encodeURIComponent(selectedAction)}&phase=General`;
 
-  try {
-    const res  = await fetch(url);
-    const text = await res.text();
-    hideOverlay();
-    if (text.includes('DUPLICATE')) {
-      showResult('duplicate', '', 'This tag was scanned in the last 60 seconds.');
-    } else if (text.includes('ERROR')) {
-      let msg = text.replace('ERROR:', '').trim();
-      if (msg.toLowerCase().includes('not scheduled')) {
-        msg += '\n\nPlease verify this person is scheduled to work with you today by texting John Seboria at 404-922-8608.';
+    try {
+      const res  = await fetch(url);
+      const text = await res.text();
+      hideOverlay();
+      if (text.includes('DUPLICATE')) {
+        showResult('duplicate', '', 'This tag was scanned in the last 60 seconds.');
+      } else if (text.includes('ERROR')) {
+        let msg = text.replace('ERROR:', '').trim();
+        if (msg.toLowerCase().includes('not scheduled')) {
+          msg += '\n\nPlease verify this person is scheduled to work with you today by texting John Seboria at 404-922-8608.';
+        }
+        showResult('error', '', msg);
+      } else {
+        const workerName = text.split('|')[0].trim();
+        showResult('success', workerName, selectedAction);
       }
-      showResult('error', '', msg);
-    } else {
-      const workerName = text.split('|')[0].trim();
-      showResult('success', workerName, selectedAction);
+    } catch(e) {
+      hideOverlay();
+      showResult('error', '', 'Connection error. Check your network.');
     }
+
+    pinBuffer = ''; updateDots();
+
   } catch(e) {
     hideOverlay();
-    showResult('error', '', 'Connection error. Check your network.');
+    showBanner('Something went wrong. Please try again.');
+    pinBuffer = ''; updateDots();
   }
-
-  pinBuffer = ''; updateDots();
 }
 
 // ── Result ────────────────────────────────────────────────────────────────────
