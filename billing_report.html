@@ -207,13 +207,13 @@
 </div>
 
 <div class="policy-key">
-  <strong style="color:#1a1a1a;margin-right:4px;">OT Policy:</strong>
-  <span><span class="flag flag-minimum">MIN</span> ≤ 5 hrs → 5 reg · 5–6 hrs → 5 reg + 1 OT</span>
-  <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 regular</span>
-  <span><span class="flag flag-bumped">BOOKED 10</span> booked for 10 hrs → 10 hr minimum billing</span>
-  <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 = OT</span>
-  <span><span class="flag flag-grace">GRACE</span> clock-in within 15 min · clock-out within 15 min → billed at booked time</span>
-  <span style="color:#aaa;">· &gt;10 hrs excess = OT · OT rounded up to whole hr</span>
+  <strong style="color:#1a1a1a;margin-right:4px;">Billing Policy:</strong>
+  <span><span class="flag flag-minimum">MIN</span> ≤5 hrs → 5 · 5–6 hrs → 6 (1 OT)</span>
+  <span><span class="flag flag-bumped">10HR</span> 6–10 hrs → 10 · &gt;10 hrs → OT per hr</span>
+  <span><span class="flag flag-bumped">BOOKED 10</span> booked 10 hrs → 10 hr minimum</span>
+  <span><span class="flag flag-overnight">OVERNIGHT</span> 00:00–07:00 hrs = OT</span>
+  <span><span class="flag flag-grace">CLOCK IN</span> ≤30 min early → call time · late → nearest :15</span>
+  <span><span class="flag flag-grace">CLOCK OUT</span> 5-hr shifts → nearest :30 · 10-hr shifts → nearest hr (:01–:15 down · :16–:59 up)</span>
 </div>
 
 <div class="summary-bar" id="summary-bar">
