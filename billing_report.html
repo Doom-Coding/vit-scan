@@ -692,7 +692,7 @@ function exportDayCSV(date) {
   downloadCSV([
     ['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],
     ['Date:',`${dayName}, ${date}`],['Workers:',dg.shifts.length],['Generated:',now],
-    ['Grace Window:','Clock-in within 15 min / clock-out within 14 min billed at booked time'],
+    ['Billing Policy:','Clock-in: ≤30 min early → call time / late → nearest :15 | Clock-out: 5-hr shifts → nearest :30 / 10-hr shifts → nearest hr (:01-:15 down / :16-:59 up)'],
     [],headers,...dataRows,[],totals
   ],`VIT_${eventLabel.replace(/[^a-zA-Z0-9]/g,'_')}_${date}`);
 }
@@ -727,7 +727,7 @@ function exportAllCSV() {
   downloadCSV([
     ['VIT Time & Attendance Report'],['Event:',eventLabel],['Location:',location],
     ['Date Range:',`${dateFrom} to ${dateTo}`],['Generated:',now],
-    ['Grace Window:','Clock-in within 15 min / clock-out within 14 min billed at booked time'],
+    ['Billing Policy:','Clock-in: ≤30 min early → call time / late → nearest :15 | Clock-out: 5-hr shifts → nearest :30 / 10-hr shifts → nearest hr (:01-:15 down / :16-:59 up)'],
     [],['SUMMARY'],
     ['Total Days','Total Workers','Total Shifts','Total Actual Hrs','Billable Reg Hrs','Billable OT Hrs','Total Billable Hrs'],
     [Object.keys(dayGroups).length,uniqW,reportData.length,r2(sa),r2(sr),r2(so),r2(st)],
