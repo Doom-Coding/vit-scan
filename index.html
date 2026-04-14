@@ -613,6 +613,19 @@ async function verifyAndSubmit() {
   }
 
   hideBanner();
+
+  // ── Check for status conflict before hitting the server ───────────────────
+  if (workerData && workerData.assigned) {
+    if (selectedAction === 'Clock IN' && workerData.status === 'clocked_in') {
+      showBanner(workerData.workerName + ' is already Clocked In. Please select Clock Out.');
+      pinBuffer = ''; updateDots(); return;
+    }
+    if (selectedAction === 'Clock Out' && workerData.status === 'clocked_out') {
+      showBanner(workerData.workerName + ' is already Clocked Out.');
+      pinBuffer = ''; updateDots(); return;
+    }
+  }
+
   showOverlay('Logging scan…');
 
   const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(mgrName)}&room=${encodeURIComponent(selectedAction)}&phase=General`;
