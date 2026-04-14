@@ -100,9 +100,9 @@
   .worker-table tr.clocked-in { background: #dcfce7; }
   .worker-table tr.clocked-out { background: #fee2e2; }
   .worker-table tr.clocked-in td, .worker-table tr.clocked-out td { transition: background 0.4s ease; }
-  .bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 400; background: #1a1a1a; color: #fff; padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 1rem; transform: translateY(100%); transition: transform 0.2s; box-shadow: 0 -4px 24px rgba(0,0,0,0.18); }
+  .bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 400; background: #1a1a1a; color: #fff; padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: center; gap: 1rem; transform: translateY(100%); transition: transform 0.2s; box-shadow: 0 -4px 24px rgba(0,0,0,0.18); }
   .bulk-bar.visible { transform: translateY(0); }
-  .bulk-bar-label { font-size: 14px; font-weight: 600; flex: 1; }
+  .bulk-bar-label { font-size: 14px; font-weight: 600; }
   .bulk-bar-count { background: #22c55e; color: #fff; font-size: 12px; font-weight: 700; border-radius: 99px; padding: 2px 9px; }
   .btn-bulk-co { padding: 0.55rem 1.25rem; background: #ef4444; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
   .btn-bulk-co:hover { opacity: 0.85; }
@@ -436,7 +436,7 @@
       <div class="pin-label">Enter manager PIN</div>
       <div class="modal-error" id="bulk-pin-error"></div>
       <div class="pin-dots"><div class="pin-dot" id="bdot-0"></div><div class="pin-dot" id="bdot-1"></div><div class="pin-dot" id="bdot-2"></div><div class="pin-dot" id="bdot-3"></div></div>
-      <div class="pin-pad">
+      <div class="numpad">
         <button onclick="bpinKey('1')">1</button><button onclick="bpinKey('2')">2</button><button onclick="bpinKey('3')">3</button>
         <button onclick="bpinKey('4')">4</button><button onclick="bpinKey('5')">5</button><button onclick="bpinKey('6')">6</button>
         <button onclick="bpinKey('7')">7</button><button onclick="bpinKey('8')">8</button><button onclick="bpinKey('9')">9</button>
@@ -503,7 +503,9 @@
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
 const LABOR_SHEET_ID='1-ZZCVxUOe99c7C0I7nqai9a56uOOMmySjH76bhjk9ZE';
-const MANAGERS={'Peter Meza':{pin:'8608'},'Geo AVS':{pin:'8608'},'Jasmine Biondi':{pin:'8608'},'John AVS':{pin:'8608'},'Jorge Rendon':{pin:'8608'},'Chad AVS':{pin:'8608'}};
+// ── MANAGERS — loaded dynamically from Managers tab (col A = name, col H = pin)
+// To add a manager or change a PIN, edit the sheet. No code deploy needed.
+const MANAGERS={};
 const ALL_ROOMS=['Loading Dock/Bone Yard','Curacao Breakouts','Bonaire Breakouts','Antigua Breakouts','Grand Sierra BR','Palms BR','Hibiscus','Caribbean BR','Boca Breakouts','Poolside','Clock IN','Lunch OUT','Clock Out'];
 let allWorkers=[],selectedEvents=new Set(),modalWorkerIdx=null,mPinBuffer='';
 const M_PIN_LENGTH=4;
@@ -511,16 +513,30 @@ let siRefreshTimer=null,siCountdownInt=null,siCountdownSecs=60,siLastLocation=''
 let alertQueue=[],alertPopupOpen=false;
 let ccData=null,ccRatings={},ccDismissed=new Set(),ccRefreshTimer=null,ccCountdownInt=null,ccCountdownSecs=60;
 
-window.addEventListener('DOMContentLoaded',()=>{
+async function loadManagers(){
+  try{
+    const res=await fetch(`${SCRIPT_URL}?action=getManagers`);
+    const data=await res.json();
+    if(data.managers&&data.managers.length){
+      data.managers.forEach(m=>{
+        MANAGERS[m.name]={pin:m.pin};
+        const opt=document.createElement('option');opt.value=m.name;opt.textContent=m.name;
+        document.getElementById('modal-manager').appendChild(opt);
+      });
+    }
+  }catch(e){console.error('loadManagers failed',e);}
+}
+
+window.addEventListener('DOMContentLoaded',async()=>{
   const today=new Date(),iso=today.toISOString().split('T')[0];
   document.getElementById('date-select').value=iso;
   document.getElementById('cc-date-select').value=iso;
   document.getElementById('header-date').textContent=today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
   const saved=sessionStorage.getItem('vit_supervisor');
   if(saved) document.getElementById('supervisor-name').value=saved;
-  const mgrSel=document.getElementById('modal-manager'),roomSel=document.getElementById('modal-room');
-  Object.keys(MANAGERS).forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;mgrSel.appendChild(opt);});
+  const roomSel=document.getElementById('modal-room');
   ALL_ROOMS.forEach(r=>{const opt=document.createElement('option');opt.value=r;opt.textContent=r;roomSel.appendChild(opt);});
+  await loadManagers();
   loadLocations();
   document.addEventListener('click',e=>{const panel=document.getElementById('event-panel'),btn=document.getElementById('event-multiselect-btn');if(!panel.contains(e.target)&&!btn.contains(e.target)){panel.classList.remove('open');btn.classList.remove('active');}});
 });
@@ -1005,10 +1021,12 @@ async function runBulkClockOut(manager,phase){
     const iconEl=document.getElementById(`bp-icon-${worker.idx}`),statusEl=document.getElementById(`bp-status-${worker.idx}`);
     try{
       const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(manager)}&room=Clock%20Out&phase=${encodeURIComponent(phase)}`;
-      const text=await(await fetch(url)).text();
-      if(text.startsWith('ERROR')||text.startsWith('DUPLICATE')){iconEl.textContent='⚠️';statusEl.textContent=text.split('|')[0];failed++;}
+      const res=await fetch(url);
+      const text=await res.text();
+      if(text.startsWith('ERROR')){iconEl.textContent='⚠️';statusEl.textContent=text.replace('ERROR:','').trim();failed++;}
+      else if(text.startsWith('DUPLICATE')){iconEl.textContent='⚠️';statusEl.textContent='Already clocked out';failed++;}
       else{iconEl.textContent='✅';statusEl.textContent='Clocked out';setRowClockStatus(worker.idx,'clocked-out');setScanBtn(worker.idx,'out');allWorkers[worker.idx].scanLogged=true;done++;}
-    }catch(e){iconEl.textContent='❌';statusEl.textContent='Network error';failed++;}
+    }catch(e){iconEl.textContent='❌';statusEl.textContent='Network error — '+e.message;failed++;}
   }
   labelEl.textContent=`Done — ${done} clocked out${failed>0?`, ${failed} failed`:''}`;
   document.getElementById('bulk-done-btn').style.display='block';
