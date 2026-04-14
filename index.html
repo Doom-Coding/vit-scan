@@ -614,14 +614,16 @@ async function verifyAndSubmit() {
 
   hideBanner();
 
-  // ── Check for status conflict before hitting the server ───────────────────
-  if (workerData && workerData.assigned) {
-    if (selectedAction === 'Clock IN' && workerData.status === 'clocked_in') {
-      showBanner(workerData.workerName + ' is already Clocked In. Please select Clock Out.');
+  // ── Block if status on card conflicts with selected action ────────────────
+  const statusPill = document.querySelector('.status-pill');
+  if (statusPill) {
+    const statusText = statusPill.textContent.trim().toLowerCase();
+    if (selectedAction === 'Clock IN' && statusText === 'clocked in') {
+      showBanner('This worker is already Clocked In. Please select Clock Out.');
       pinBuffer = ''; updateDots(); return;
     }
-    if (selectedAction === 'Clock Out' && workerData.status === 'clocked_out') {
-      showBanner(workerData.workerName + ' is already Clocked Out.');
+    if (selectedAction === 'Clock Out' && statusText === 'clocked out') {
+      showBanner('This worker is already Clocked Out.');
       pinBuffer = ''; updateDots(); return;
     }
   }
