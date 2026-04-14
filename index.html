@@ -514,7 +514,19 @@ function populateManagers() {
 
 // ── Load worker info then reveal UI ───────────────────────────────────────────
 async function loadWorker() {
-  show('view-loading');
+  // Show UI shell immediately — manager can select name and action while card loads
+  document.getElementById('worker-card').innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;color:#bbb;font-size:13px;padding:0.5rem 0;">' +
+    '<div style="width:18px;height:18px;border:2px solid #e5e5e5;border-top-color:#bbb;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>' +
+    'Looking up worker…</div>';
+  workerStatus = '';
+
+  show('view-main');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('view-main').classList.add('visible');
+  }));
+
+  // Fetch card data in background — UI is already interactive
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getTagStatus&tagId=${encodeURIComponent(TAG_ID)}`);
     workerData = await res.json();
@@ -525,12 +537,6 @@ async function loadWorker() {
   renderCard(workerData);
   workerStatus = (workerData && workerData.status) ? workerData.status : '';
   autoSelectAction(workerData);
-
-  show('view-main');
-  // Small delay so display:block is painted before transition fires
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    document.getElementById('view-main').classList.add('visible');
-  }));
 }
 
 // ── Render worker card ────────────────────────────────────────────────────────
