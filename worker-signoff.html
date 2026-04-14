@@ -1,1313 +1,423 @@
-// Google Apps Script — Full Production Version
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIT · Shift Sign-Off</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #111; color: #fff; min-height: 100vh; }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-var ROOM_CLOCK_IN    = 'Clock IN';
-var LABOR_SHEET_ID   = '1-ZZCVxUOe99c7C0I7nqai9a56uOOMmySjH76bhjk9ZE';
-// ─────────────────────────────────────────────────────────────────────────────
+  header { padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e1e1e; }
+  .logo-wrap { display: flex; align-items: center; gap: 10px; }
+  .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.45; }
+  .logo-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+  .lang-toggle { display: flex; gap: 4px; }
+  .lang-btn { padding: 5px 12px; border: 1px solid #2a2a2a; border-radius: 6px; font-size: 11px; font-weight: 700; background: none; color: #555; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; font-family: inherit; }
+  .lang-btn.active { background: #fff; color: #111; border-color: #fff; }
 
-function doGet(e) {
+  .main { padding: 1.25rem; max-width: 420px; margin: 0 auto; }
 
-  // ── Route action-based requests ───────────────────────────────────────────
-  var action = e.parameter.action || '';
-  if (action === 'getDashboardData') return getDashboardData(e.parameter.date, e.parameter.sheetId, e.parameter.location);
-  if (action === 'submitRating')     return submitRating(e.parameter.workerName, e.parameter.tagId, e.parameter.rating);
-  if (action === 'getLocations')     return getLocations(e.parameter.sheetId);
-  if (action === 'getEvents')        return getEvents(e.parameter.sheetId, e.parameter.location, e.parameter.date);
-  if (action === 'getWorkers')       return getWorkers(e.parameter.sheetId, e.parameter.location, e.parameter.date, e.parameter.eventFilter);
-  if (action === 'assignTag')        return assignTag(e.parameter.tagId, e.parameter.workerName, e.parameter.eventName, e.parameter.position, e.parameter.phone, e.parameter.supervisor, e.parameter.force);
-  if (action === 'getEventList')     return getEventList();
-  if (action === 'getLocationList')  return getLocationList();
-  if (action === 'getBillingData')   return getBillingData(e.parameter.eventFilter, e.parameter.locationFilter, e.parameter.dateFrom, e.parameter.dateTo);
-  if (action === 'getShiftDetails')  return getShiftDetails(e.parameter.tag, e.parameter.date);
-  if (action === 'confirmShift')     return confirmShift(e.parameter.tag, e.parameter.date, e.parameter.response);
-  if (action === 'getClockInStatus') return getClockInStatus(e.parameter.date);
+  /* Loading */
+  .loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5rem 1rem; gap: 1rem; }
+  .spinner { width: 28px; height: 28px; border: 2.5px solid #2a2a2a; border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: #555; }
 
-  // ── Scan logging (NFC scan page) ──────────────────────────────────────────
-  var ss        = SpreadsheetApp.getActiveSpreadsheet();
-  var scanLog   = ss.getSheetByName("Scan Log");
-  var mgrsTab   = ss.getSheetByName("Managers");
-  var assignTab = ss.getSheetByName("Assignments");
+  /* Worker card */
+  .worker-card { background: #1a1a1a; border: 1px solid #242424; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .worker-name { font-size: 22px; font-weight: 700; line-height: 1.2; margin-bottom: 6px; }
+  .worker-date { font-size: 13px; color: #666; margin-bottom: 3px; }
+  .worker-event { font-size: 12px; color: #555; margin-bottom: 10px; }
+  .worker-position-pill { display: inline-flex; align-items: center; gap: 6px; background: #242424; border-radius: 8px; padding: 5px 10px; }
+  .position-icon { font-size: 11px; }
+  .position-text { font-size: 12px; font-weight: 600; color: #ccc; }
 
-  var uid     = e.parameter.uid     || "N/A";
-  var tagId   = e.parameter.tagId   ? String(e.parameter.tagId).padStart(3, '0') : "N/A";
-  var manager = e.parameter.manager || "";
-  var room    = e.parameter.room    || "Unknown";
-  var phase   = e.parameter.phase   || "Unknown";
+  /* Hours card */
+  .hours-card { background: #1a1a1a; border: 1px solid #242424; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 14px; }
 
-  // ── Validate manager ──────────────────────────────────────────────────────
-  var lastRow = mgrsTab.getLastRow();
-  var mgrList = mgrsTab.getRange("A2:A" + lastRow).getValues().flat();
-  if (!mgrList.includes(manager)) {
-    return ContentService.createTextOutput("ERROR: Unauthorized manager.")
-      .setMimeType(ContentService.MimeType.TEXT);
+  .time-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid #1e1e1e; }
+  .time-row:last-of-type { border-bottom: none; }
+  .time-lbl { font-size: 13px; color: #555; padding-top: 2px; }
+  .time-val-wrap { text-align: right; }
+  .time-val { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .time-billed-note { font-size: 11px; color: #d97706; margin-top: 2px; }
+  .time-actual-note { font-size: 11px; color: #3a3a3a; margin-top: 1px; }
+
+  .hours-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #1e1e1e; }
+  .h-box { background: #111; border-radius: 10px; padding: 12px 8px; text-align: center; }
+  .h-box .hval { font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+  .h-box .hlbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #444; }
+  .h-box.reg .hval { color: #22c55e; }
+  .h-box.ot  .hval { color: #f59e0b; }
+  .h-box.tot .hval { color: #fff; }
+
+  /* Expiry bar */
+  .expiry-bar { background: #1a1200; border: 1px solid #2a2000; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #a07020; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; line-height: 1.5; }
+  .expiry-icon { font-size: 14px; flex-shrink: 0; }
+
+  /* Action buttons */
+  .btn-confirm { width: 100%; padding: 1rem; background: #22c55e; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; transition: opacity 0.15s; font-family: inherit; letter-spacing: 0.01em; }
+  .btn-confirm:hover { opacity: 0.88; }
+  .btn-confirm:disabled { opacity: 0.4; cursor: default; }
+  .btn-dispute { width: 100%; padding: 0.85rem; background: none; color: #666; border: 1px solid #242424; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+  .btn-dispute:hover { border-color: #444; color: #ccc; }
+
+  /* Dispute form */
+  .dispute-form { background: #1a1a1a; border: 1px solid #242424; border-radius: 14px; padding: 1.25rem; margin-top: 10px; display: none; }
+  .dispute-form.open { display: block; }
+  .dispute-section-label { font-size: 12px; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; display: block; }
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
+  .type-btn { padding: 0.65rem; border: 1.5px solid #242424; border-radius: 8px; font-size: 13px; font-weight: 600; background: none; color: #666; cursor: pointer; font-family: inherit; transition: all 0.15s; text-align: center; }
+  .type-btn:hover { border-color: #444; color: #aaa; }
+  .type-btn.sel { border-color: #f59e0b; color: #f59e0b; background: #1a1200; }
+  .dispute-textarea { width: 100%; background: #111; border: 1.5px solid #242424; border-radius: 8px; color: #fff; padding: 0.75rem; font-size: 14px; resize: none; font-family: inherit; min-height: 80px; margin-bottom: 1rem; line-height: 1.5; }
+  .dispute-textarea::placeholder { color: #3a3a3a; }
+  .dispute-textarea:focus { outline: none; border-color: #f59e0b; }
+  .btn-submit-dispute { width: 100%; padding: 0.9rem; background: #f59e0b; color: #111; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; font-family: inherit; }
+  .btn-submit-dispute:hover { opacity: 0.88; }
+  .btn-submit-dispute:disabled { opacity: 0.4; cursor: default; }
+
+  /* State screens */
+  .state-screen { padding: 3rem 1rem; text-align: center; }
+  .state-icon { font-size: 56px; margin-bottom: 1rem; }
+  .state-title { font-size: 22px; font-weight: 700; margin-bottom: 0.6rem; }
+  .state-sub { font-size: 14px; color: #555; line-height: 1.7; max-width: 300px; margin: 0 auto; }
+
+  /* Expired shift summary */
+  .expired-summary { background: #1a1a1a; border: 1px solid #242424; border-radius: 14px; padding: 1.25rem; margin-top: 1.5rem; text-align: left; }
+  .exp-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #1e1e1e; font-size: 13px; }
+  .exp-row:last-child { border-bottom: none; }
+  .exp-lbl { color: #555; }
+  .exp-val { font-weight: 600; }
+  .exp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+  .exp-box { text-align: center; background: #111; border-radius: 8px; padding: 10px 4px; }
+  .exp-box .ev { font-size: 20px; font-weight: 800; }
+  .exp-box .el { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 3px; }
+  .exp-box.reg .ev { color: #22c55e; }
+  .exp-box.ot  .ev { color: #f59e0b; }
+  .exp-box.tot .ev { color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-dot"></div>
+    <span class="logo">VIT</span>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+    <button class="lang-btn"        id="btn-es" onclick="setLang('es')">ES</button>
+  </div>
+</header>
+
+<div class="main" id="main">
+  <div class="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Loading your shift…</div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
+
+let shiftData    = null;
+let currentLang  = 'en';
+let selectedType = '';
+
+const S = {
+  en: {
+    loading:        'Loading your shift…',
+    yourShift:      'Your Shift',
+    position:       'Position',
+    event:          'Event',
+    clockIn:        'Clock In',
+    clockOut:       'Clock Out',
+    billedAs:       '→ billed as',
+    actual:         'actual',
+    reg:            'Regular',
+    ot:             'OT',
+    total:          'Total',
+    billingNote:    'How hours are calculated',
+    billingPolicy:  'Clock-in snaps to your scheduled call time if you arrive within 30 minutes early. If you arrive late, it rounds to the nearest 15 minutes. Clock-out rounds to the nearest half hour (5-hr shifts) or nearest full hour (10-hr shifts).',
+    expiresIn:      'Expires in',
+    autoConfirm:    'Auto-confirms if no response.',
+    confirmBtn:     '✓  Confirm My Hours',
+    disputeBtn:     'Something looks wrong',
+    disputeTitle:   'What would you like to dispute?',
+    typeHours:      'Hours',
+    typePosition:   'Position',
+    typeBoth:       'Both',
+    typeOther:      'Other',
+    describeLabel:  'Describe the issue',
+    placeholder:    'Please describe what seems incorrect…',
+    submitDispute:  'Submit Dispute',
+    confirmedTitle: 'Hours Confirmed',
+    confirmedSub:   'Thank you. Your shift hours have been confirmed and recorded.',
+    disputedTitle:  'Dispute Submitted',
+    disputedSub:    'Your dispute has been received. A supervisor will review it and follow up with you.',
+    expiredTitle:   'Link Expired',
+    expiredSub:     'This sign-off link has expired. Your hours have been auto-confirmed as shown below.',
+    alreadyTitle:   'Already Responded',
+    alreadySub:     'You have already submitted a response for this shift.',
+    resolvedTitle:  'Shift Resolved',
+    resolvedSub:    'This shift has been reviewed and resolved by a supervisor.',
+    errorTitle:     'Link Not Found',
+    errorSub:       'This sign-off link is invalid or has expired.',
+    typeRequired:   'Please select what you are disputing.',
+    noteRequired:   'Please describe the issue before submitting.',
+    submitting:     'Submitting…',
+  },
+  es: {
+    loading:        'Cargando tu turno…',
+    yourShift:      'Tu Turno',
+    position:       'Posición',
+    event:          'Evento',
+    clockIn:        'Entrada',
+    clockOut:       'Salida',
+    billedAs:       '→ facturado como',
+    actual:         'real',
+    reg:            'Regular',
+    ot:             'Extra',
+    total:          'Total',
+    billingNote:    'Cómo se calculan las horas',
+    billingPolicy:  'La entrada se ajusta a tu hora programada si llegas con 30 minutos de anticipación o menos. Si llegas tarde, se redondea a los 15 minutos más cercanos. La salida se redondea a la media hora más cercana (turnos de 5 hrs) o a la hora entera más cercana (turnos de 10 hrs).',
+    expiresIn:      'Expira en',
+    autoConfirm:    'Se confirma automáticamente si no hay respuesta.',
+    confirmBtn:     '✓  Confirmar Mis Horas',
+    disputeBtn:     'Algo parece incorrecto',
+    disputeTitle:   '¿Qué deseas disputar?',
+    typeHours:      'Horas',
+    typePosition:   'Posición',
+    typeBoth:       'Ambos',
+    typeOther:      'Otro',
+    describeLabel:  'Describe el problema',
+    placeholder:    'Por favor describe lo que parece incorrecto…',
+    submitDispute:  'Enviar Disputa',
+    confirmedTitle: 'Horas Confirmadas',
+    confirmedSub:   'Gracias. Tus horas de turno han sido confirmadas y registradas.',
+    disputedTitle:  'Disputa Enviada',
+    disputedSub:    'Tu disputa ha sido recibida. Un supervisor la revisará y se comunicará contigo.',
+    expiredTitle:   'Enlace Expirado',
+    expiredSub:     'Este enlace ha expirado. Tus horas han sido confirmadas automáticamente como se muestra.',
+    alreadyTitle:   'Ya Respondiste',
+    alreadySub:     'Ya enviaste una respuesta para este turno.',
+    resolvedTitle:  'Turno Resuelto',
+    resolvedSub:    'Este turno ha sido revisado y resuelto por un supervisor.',
+    errorTitle:     'Enlace No Encontrado',
+    errorSub:       'Este enlace no es válido o ha expirado.',
+    typeRequired:   'Por favor selecciona qué estás disputando.',
+    noteRequired:   'Por favor describe el problema antes de enviar.',
+    submitting:     'Enviando…',
   }
+};
 
-  // ── Duplicate scan guard (60 seconds) ────────────────────────────────────
-  var now     = new Date();
-  var nowMs   = now.getTime();
-  var allRows = scanLog.getDataRange().getValues();
-  for (var i = allRows.length - 1; i > 1; i--) {
-    var r = allRows[i];
-    if (r[0] == uid && r[5] == room) {
-      var rTime = new Date(r[2] + " " + r[3]);
-      if (nowMs - rTime.getTime() < 60000) {
-        return ContentService.createTextOutput("DUPLICATE: 60s cooldown.")
-          .setMimeType(ContentService.MimeType.TEXT);
-      }
-    }
-    if (allRows.length - i > 50) break;
-  }
+function t(k) { return (S[currentLang] || S.en)[k] || S.en[k] || k; }
 
-  // ── Look up worker name and event from Assignments ────────────────────────
-  var assignData = assignTab.getRange("A2:F" + assignTab.getLastRow()).getValues();
-  var workerName = "Unknown";
-  var event      = "General";
-  for (var j = 0; j < assignData.length; j++) {
-    if (String(assignData[j][0]).trim() === String(tagId).trim()) {
-      workerName = String(assignData[j][1] || '').trim() || 'Unknown';
-      event      = String(assignData[j][5] || '').trim() || 'General';
-      break;
-    }
-  }
-
-  // ── Block scan if tag has no worker assigned ─────────────────────────────
-  if (workerName === 'Unknown' || !workerName.trim()) {
-    return ContentService.createTextOutput('ERROR: Tag ' + tagId + ' has no worker assigned. Assign this tag in Sign In first.')
-      .setMimeType(ContentService.MimeType.TEXT);
-  }
-
-  // ── Verify worker is scheduled for today (Clock IN only) ─────────────────
-  var tz       = Session.getScriptTimeZone();
-  var todayStr = Utilities.formatDate(now, tz, 'MM/dd/yyyy');
-
-  if (room === ROOM_CLOCK_IN && workerName !== 'Unknown') {
-    var scheduled = false;
-    try {
-      var laborSS   = SpreadsheetApp.openById(LABOR_SHEET_ID);
-      var laborWS   = laborSS.getSheetByName('Orlando Grid');
-      var laborRows = laborWS.getDataRange().getValues();
-      for (var k = 1; k < laborRows.length; k++) {
-        var lName = String(laborRows[k][6] || '').trim();
-        var lDate = laborRows[k][1];
-        if (!lName || !lDate) continue;
-        if (lName.toLowerCase() !== workerName.toLowerCase()) continue;
-        var lDateObj = lDate instanceof Date ? lDate : new Date(lDate);
-        var lDateStr = Utilities.formatDate(lDateObj, tz, 'MM/dd/yyyy');
-        if (lDateStr === todayStr) { scheduled = true; break; }
-      }
-    } catch(le) {
-      scheduled = true; // fail open — never block scans if Labor Order unreachable
-      Logger.log('Schedule check failed: ' + le.message);
-    }
-    if (!scheduled) {
-      return ContentService.createTextOutput('ERROR: ' + workerName + ' is not scheduled for today.')
-        .setMimeType(ContentService.MimeType.TEXT);
-    }
-  }
-  // ─────────────────────────────────────────────────────────────────────────
-
-  // ── Write scan row ────────────────────────────────────────────────────────
-  var date = Utilities.formatDate(now, tz, "MM/dd/yyyy");
-  var time = Utilities.formatDate(now, tz, "HH:mm");
-  scanLog.appendRow([uid, tagId, date, time, manager, room, phase, event, workerName]);
-
-  return ContentService.createTextOutput(workerName + "|Scan logged successfully!")
-    .setMimeType(ContentService.MimeType.TEXT);
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-es').classList.toggle('active', lang === 'es');
+  document.documentElement.lang = lang;
+  if (shiftData) renderShift(shiftData);
+  else { const el = document.getElementById('loading-text'); if (el) el.textContent = t('loading'); }
 }
 
+function getToken() {
+  return new URLSearchParams(window.location.search).get('token') || '';
+}
 
-// ── Get unique locations ──────────────────────────────────────────────────────
-function getLocations(sheetId) {
+function timeRemaining(expiresAt) {
+  if (!expiresAt) return '';
+  const d    = new Date(expiresAt);
+  const diff = d - Date.now();
+  if (diff <= 0) return '';
+  const hrs  = Math.floor(diff / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+}
+
+function escH(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  // Auto-detect language
+  const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  if (lang.startsWith('es')) setLang('es');
+
+  const token = getToken();
+  if (!token) { renderState('error'); return; }
+
   try {
-    var ss   = SpreadsheetApp.openById(sheetId);
-    var ws   = ss.getSheetByName('Orlando Grid');
-    var data = ws.getRange('A2:A' + ws.getLastRow()).getValues().flat();
-    var locs = [];
-    data.forEach(function(v) {
-      if (v && v !== 'Select Location' && locs.indexOf(v) === -1) locs.push(v);
-    });
-    return ContentService.createTextOutput(JSON.stringify({ locations: locs }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    const res  = await fetch(`${SCRIPT_URL}?action=getShiftForSignoff&token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    if (data.error) { renderState('error', data.error); return; }
+    shiftData = data;
+    renderShift(data);
+  } catch(e) {
+    renderState('error', 'Connection error. Please try again.');
   }
+});
+
+function renderShift(d) {
+  const status = d.status;
+  if (status === 'Confirmed') { renderState('confirmed');            return; }
+  if (status === 'Disputed')  { renderState('disputed');             return; }
+  if (status === 'Resolved')  { renderState('resolved');             return; }
+  if (status === 'Expired')   { renderState('expired', null, d);     return; }
+
+  const dateObj = new Date(d.date.replace(/(\d+)\/(\d+)\/(\d+)/,'$3-$1-$2') + 'T12:00:00');
+  const dateStr = dateObj.toLocaleDateString(currentLang === 'es' ? 'es-US' : 'en-US', { weekday:'long', month:'long', day:'numeric' });
+  const rem     = timeRemaining(d.expiresAt);
+
+  const snappedIn  = d.actualIn  && d.billingIn  && d.actualIn  !== d.billingIn;
+  const snappedOut = d.actualOut && d.billingOut && d.actualOut !== d.billingOut;
+
+  const inHtml = snappedIn
+    ? `<div class="time-val">${escH(d.billingIn)}</div>
+       <div class="time-billed-note">${t('billedAs')} ${escH(d.billingIn)}</div>
+       <div class="time-actual-note">${t('actual')}: ${escH(d.actualIn)}</div>`
+    : `<div class="time-val">${escH(d.actualIn || '—')}</div>`;
+
+  const outHtml = snappedOut
+    ? `<div class="time-val">${escH(d.billingOut)}</div>
+       <div class="time-billed-note">${t('billedAs')} ${escH(d.billingOut)}</div>
+       <div class="time-actual-note">${t('actual')}: ${escH(d.actualOut)}</div>`
+    : `<div class="time-val">${escH(d.actualOut || '—')}</div>`;
+
+  document.getElementById('main').innerHTML = `
+    <div class="worker-card">
+      <div class="worker-name">${escH(d.worker)}</div>
+      <div class="worker-date">${dateStr}</div>
+      <div class="worker-event">${escH(d.event)}</div>
+      ${d.position ? `<div class="worker-position-pill"><span class="position-icon">👷</span><span class="position-text">${escH(d.position)}</span></div>` : ''}
+    </div>
+
+    ${rem ? `<div class="expiry-bar"><span class="expiry-icon">⏱</span><span>${t('expiresIn')} <strong>${rem}</strong> — ${t('autoConfirm')}</span></div>` : ''}
+
+    <div class="hours-card">
+      <div class="card-label">${t('yourShift')}</div>
+      <div class="time-row">
+        <span class="time-lbl">${t('clockIn')}</span>
+        <div class="time-val-wrap">${inHtml}</div>
+      </div>
+      <div class="time-row">
+        <span class="time-lbl">${t('clockOut')}</span>
+        <div class="time-val-wrap">${outHtml}</div>
+      </div>
+      <div class="hours-grid">
+        <div class="h-box reg"><div class="hval">${d.regHrs  ?? '—'}</div><div class="hlbl">${t('reg')}</div></div>
+        <div class="h-box ot" ><div class="hval">${d.otHrs   ?? '—'}</div><div class="hlbl">${t('ot')}</div></div>
+        <div class="h-box tot"><div class="hval">${d.totalHrs ?? '—'}</div><div class="hlbl">${t('total')}</div></div>
+      </div>
+      <details style="margin-top:14px;">
+        <summary style="font-size:11px;color:#555;cursor:pointer;letter-spacing:0.04em;list-style:none;display:flex;align-items:center;gap:5px;">
+          <span style="font-size:10px;color:#444;">ⓘ</span> ${t('billingNote')}
+        </summary>
+        <div style="font-size:12px;color:#3a3a3a;line-height:1.7;margin-top:8px;padding:10px 12px;background:#151515;border-radius:8px;border:1px solid #1e1e1e;">
+          ${t('billingPolicy')}
+        </div>
+      </details>
+    </div>
+
+    <button class="btn-confirm" id="btn-confirm" onclick="confirmHours()">${t('confirmBtn')}</button>
+    <button class="btn-dispute" onclick="toggleDispute()">${t('disputeBtn')}</button>
+
+    <div class="dispute-form" id="dispute-form">
+      <span class="dispute-section-label">${t('disputeTitle')}</span>
+      <div class="type-grid">
+        <button class="type-btn" id="type-Hours"    onclick="pickType('Hours')"   >${t('typeHours')}</button>
+        <button class="type-btn" id="type-Position" onclick="pickType('Position')">${t('typePosition')}</button>
+        <button class="type-btn" id="type-Both"     onclick="pickType('Both')"    >${t('typeBoth')}</button>
+        <button class="type-btn" id="type-Other"    onclick="pickType('Other')"   >${t('typeOther')}</button>
+      </div>
+      <span class="dispute-section-label">${t('describeLabel')}</span>
+      <textarea class="dispute-textarea" id="dispute-note" placeholder="${t('placeholder')}"></textarea>
+      <button class="btn-submit-dispute" id="btn-submit-dispute" onclick="submitDispute()">${t('submitDispute')}</button>
+    </div>
+  `;
 }
 
-
-// ── Get unique events for location + date ─────────────────────────────────────
-function getEvents(sheetId, location, date) {
-  try {
-    var ss     = SpreadsheetApp.openById(sheetId);
-    var ws     = ss.getSheetByName('Orlando Grid');
-    var rows   = ws.getDataRange().getValues();
-    var target = new Date(date + 'T00:00:00');
-    var events = [];
-
-    for (var i = 1; i < rows.length; i++) {
-      var r = rows[i];
-      if (!r[0] || r[0] !== location) continue;
-      var rowDate = r[1] instanceof Date ? r[1] : new Date(r[1]);
-      if (rowDate.toDateString() !== target.toDateString()) continue;
-      var ev = String(r[9] || '').trim();
-      if (ev && events.indexOf(ev) === -1) events.push(ev);
-    }
-
-    events.sort();
-    return ContentService.createTextOutput(JSON.stringify({ events: events }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── Get workers for location + date + optional event filter ───────────────────
-function getWorkers(sheetId, location, date, eventFilter) {
-  try {
-    var ss     = SpreadsheetApp.openById(sheetId);
-    var ws     = ss.getSheetByName('Orlando Grid');
-    var rows   = ws.getDataRange().getValues();
-    var target = new Date(date + 'T00:00:00');
-
-    var assignTab  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Assignments');
-    var assignData = assignTab.getDataRange().getValues();
-    var tagMap     = {};
-    for (var a = 1; a < assignData.length; a++) {
-      var aName = String(assignData[a][1] || '').trim();
-      var aTag  = String(assignData[a][0] || '').trim();
-      if (aName && aTag) tagMap[aName.toLowerCase()] = aTag;
-    }
-
-    var eventFilters = [];
-    if (eventFilter && eventFilter !== '') {
-      eventFilters = eventFilter.split('||').map(function(e) { return e.trim(); });
-    }
-
-    var workers = [];
-    for (var i = 1; i < rows.length; i++) {
-      var r = rows[i];
-      if (!r[0] || r[0] !== location) continue;
-      var rowDate = r[1] instanceof Date ? r[1] : new Date(r[1]);
-      if (rowDate.toDateString() !== target.toDateString()) continue;
-      if (!r[6]) continue;
-      var evName = String(r[9] || '').trim();
-      if (eventFilters.length > 0 && eventFilters.indexOf(evName) === -1) continue;
-
-      var name = String(r[6]).trim();
-
-      var bookedTime = '';
-      if (r[2] instanceof Date) {
-        var bh = r[2].getHours();
-        var bm = r[2].getMinutes();
-        bookedTime = String(bh).padStart(2, '0') + ':' + String(bm).padStart(2, '0');
-      } else {
-        bookedTime = String(r[2] || '').trim();
-      }
-
-      workers.push({
-        idx:        i - 1,
-        name:       name,
-        bookedTime: bookedTime,
-        position:   String(r[5] || '').trim(),
-        room:       String(r[8] || '').trim(),
-        eventName:  evName,
-        phone:      String(r[7] || '').trim(),
-        tagId:      tagMap[name.toLowerCase()] || ''
-      });
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({ workers: workers }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── Assign tag → writes to VIT Assignments tab ────────────────────────────────
-function assignTag(tagId, workerName, eventName, position, phone, supervisor, force) {
-  try {
-    var ss        = SpreadsheetApp.getActiveSpreadsheet();
-    var assignTab = ss.getSheetByName('Assignments');
-    var data      = assignTab.getDataRange().getValues();
-
-    tagId      = String(tagId).padStart(3, '0');
-    force      = (force === 'true');
-    supervisor = supervisor || 'Supervisor';
-
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][0]).trim() === String(tagId).trim()) {
-        var existingName = String(data[i][1] || '').trim();
-        if (existingName && existingName.toLowerCase() !== workerName.toLowerCase() && !force) {
-          return ContentService.createTextOutput('CONFLICT:' + existingName)
-            .setMimeType(ContentService.MimeType.TEXT);
-        }
-        assignTab.getRange(i + 1, 2).setValue(workerName);
-        assignTab.getRange(i + 1, 4).setValue(phone);
-        assignTab.getRange(i + 1, 5).setValue(position);
-        assignTab.getRange(i + 1, 6).setValue(eventName);
-        assignTab.getRange(i + 1, 7).setValue(new Date());
-        assignTab.getRange(i + 1, 8).setValue(supervisor);
-        return ContentService.createTextOutput('Assigned: ' + tagId + ' → ' + workerName)
-          .setMimeType(ContentService.MimeType.TEXT);
-      }
-    }
-
-    assignTab.appendRow([tagId, workerName, '', phone, position, eventName, new Date(), supervisor]);
-    return ContentService.createTextOutput('Assigned: ' + tagId + ' → ' + workerName)
-      .setMimeType(ContentService.MimeType.TEXT);
-
-  } catch(err) {
-    return ContentService.createTextOutput('ERROR: ' + err.message)
-      .setMimeType(ContentService.MimeType.TEXT);
-  }
-}
-
-
-// ── Get unique event names from Scan Log ──────────────────────────────────────
-function getEventList() {
-  try {
-    var ss      = SpreadsheetApp.getActiveSpreadsheet();
-    var scanLog = ss.getSheetByName('Scan Log');
-    var data    = scanLog.getRange('H2:H' + scanLog.getLastRow()).getValues().flat();
-    var events  = [];
-    data.forEach(function(v) {
-      v = String(v || '').trim();
-      if (v && v !== 'General' && events.indexOf(v) === -1) events.push(v);
-    });
-    events.sort();
-    return ContentService.createTextOutput(JSON.stringify({ events: events }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── Get unique locations from Labor Order col A ───────────────────────────────
-function getLocationList() {
-  try {
-    var laborSS = SpreadsheetApp.openById(LABOR_SHEET_ID);
-    var laborWS = laborSS.getSheetByName('Orlando Grid');
-    var data    = laborWS.getRange('A2:A' + laborWS.getLastRow()).getValues().flat();
-
-    var locations = [];
-    data.forEach(function(v) {
-      v = String(v || '').trim();
-      if (v && v !== 'Select Location' && locations.indexOf(v) === -1) locations.push(v);
-    });
-    locations.sort();
-
-    return ContentService.createTextOutput(JSON.stringify({ locations: locations }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── Get billing data ──────────────────────────────────────────────────────────
-function getBillingData(eventFilter, locationFilter, dateFrom, dateTo) {
-  try {
-    var ss      = SpreadsheetApp.getActiveSpreadsheet();
-    var scanLog = ss.getSheetByName('Scan Log');
-
-    var evFilterList = (eventFilter && eventFilter !== '') ? eventFilter.split('|') : [];
-
-    var fromDate = dateFrom ? new Date(dateFrom + 'T00:00:00') : null;
-    var toDate   = dateTo   ? new Date(dateTo   + 'T23:59:59') : null;
-
-    // ── Single labor sheet read: builds positionMap, scheduledCount,
-    //    and in-memory location lookup — eliminates 3 separate reads ────────
-    var positionMap    = {};  // name|date → [{position, bookedTime, location}]
-    var scheduledCount = 0;
-
-    try {
-      var laborSS = SpreadsheetApp.openById(LABOR_SHEET_ID);
-      var laborWS = laborSS.getSheetByName('Orlando Grid');
-      var laborRowsAll = laborWS.getDataRange().getValues();
-
-      for (var p = 1; p < laborRowsAll.length; p++) {
-        var pRow     = laborRowsAll[p];
-        var pLoc     = String(pRow[0] || '').trim();
-        var pName    = String(pRow[6] || '').trim();
-        var pPos     = String(pRow[5] || '').trim();
-        var pEv      = String(pRow[9] || '').trim();
-        var pDateRaw = pRow[1];
-        if (!pName || !pDateRaw) continue;
-
-        // Fix #3: handle booked time stored as a Google Sheets Date object
-        var pBooked;
-        if (pRow[2] instanceof Date) {
-          pBooked = String(pRow[2].getHours()).padStart(2,'0') + ':' +
-                    String(pRow[2].getMinutes()).padStart(2,'0');
-        } else {
-          pBooked = String(pRow[2] || '').trim();
-        }
-
-        var pDateObj = pDateRaw instanceof Date ? pDateRaw : new Date(pDateRaw);
-        if (isNaN(pDateObj.getTime())) continue;
-        var pMo      = pDateObj.getMonth() + 1;
-        var pDay     = pDateObj.getDate();
-        var pYr      = pDateObj.getFullYear();
-        var pDateStr = (pMo < 10 ? '0'+pMo : pMo) + '/' +
-                       (pDay < 10 ? '0'+pDay : pDay) + '/' + pYr;
-
-        // Fix #1: store as array so dual-shift workers don't overwrite each other
-        var pmKey = pName.toLowerCase() + '|' + pDateStr;
-        if (!positionMap[pmKey]) positionMap[pmKey] = [];
-        positionMap[pmKey].push({ position: pPos, bookedTime: pBooked, location: pLoc });
-
-        // Scheduled count — apply all active filters
-        if (locationFilter && locationFilter !== '' && pLoc !== locationFilter) continue;
-        if (evFilterList.length > 0 && evFilterList.indexOf(pEv) === -1) continue;
-        if (fromDate && pDateObj < fromDate) continue;
-        if (toDate   && pDateObj > toDate)   continue;
-        scheduledCount++;
-      }
-    } catch(pe) {
-      // Labor sheet unavailable — position/booked time will show blank
-    }
-
-    // ── Process scan log ──────────────────────────────────────────────────
-    var rows     = scanLog.getDataRange().getValues();
-    var shiftMap = {};
-
-    for (var i = 1; i < rows.length; i++) {
-      var r          = rows[i];
-      var rowDateRaw = r[2];
-      var room       = String(r[5] || '').trim();
-      var eventName  = String(r[7] || '').trim();
-      var workerName = String(r[8] || '').trim();
-
-      if (!workerName || workerName === 'Unknown') continue;
-      if (room !== 'Clock IN' && room !== 'Clock Out') continue;
-
-      // Event filter (pipe-separated multi-event)
-      if (evFilterList.length > 0 && evFilterList.indexOf(eventName) === -1) continue;
-
-      var time = '';
-      if (r[3] instanceof Date) {
-        var th = r[3].getHours();
-        var tm = r[3].getMinutes();
-        time = String(th).padStart(2, '0') + ':' + String(tm).padStart(2, '0');
-      } else {
-        time = String(r[3] || '').trim();
-      }
-
-      var rowDate;
-      if (rowDateRaw instanceof Date) {
-        rowDate = rowDateRaw;
-      } else {
-        rowDate = new Date(String(rowDateRaw));
-      }
-      if (isNaN(rowDate.getTime())) continue;
-
-      // Fix #2: Clock IN uses strict date range; Clock Out gets one extra day
-      // so overnight clock-outs on the following day aren't dropped.
-      if (room === 'Clock IN') {
-        if (fromDate && rowDate < fromDate) continue;
-        if (toDate   && rowDate > toDate)   continue;
-      } else {
-        var clockOutCeiling = toDate ? new Date(toDate.getTime() + 86400000) : null;
-        if (fromDate         && rowDate < fromDate)         continue;
-        if (clockOutCeiling  && rowDate > clockOutCeiling)  continue;
-      }
-
-      var rdMo    = rowDate.getMonth() + 1;
-      var rdDay   = rowDate.getDate();
-      var rdYr    = rowDate.getFullYear();
-      var dateStr = (rdMo < 10 ? '0'+rdMo : rdMo) + '/' + (rdDay < 10 ? '0'+rdDay : rdDay) + '/' + rdYr;
-      var wBase   = workerName.toLowerCase() + '|' + dateStr;
-
-      // Fix #3: Use indexed keys (workerBase|0, workerBase|1 …) so that
-      // workers with two shifts on the same date get separate entries
-      // instead of being merged into one bucket.
-
-      if (room === 'Clock IN') {
-        // Find the first slot that has no Clock IN yet
-        var si = 0;
-        while (shiftMap[wBase + '|' + si] && shiftMap[wBase + '|' + si].clockIns.length > 0) si++;
-        var slotKey = wBase + '|' + si;
-
-        if (!shiftMap[slotKey]) {
-          var pmEntries = positionMap[workerName.toLowerCase() + '|' + dateStr] || [];
-
-          // Fix #1: location filter now uses in-memory positionMap — no extra sheet read
-          if (locationFilter && locationFilter !== '') {
-            var inLoc = false;
-            for (var li = 0; li < pmEntries.length; li++) {
-              if (pmEntries[li].location === locationFilter) { inLoc = true; break; }
-            }
-            if (!inLoc) continue;
-          }
-
-          // Pick the entry whose booked start time is closest to this clock-in
-          var pmEntry = pickPositionEntry(pmEntries, time);
-
-          shiftMap[slotKey] = {
-            workerName:  workerName,
-            date:        dateStr,
-            eventName:   eventName,
-            position:    pmEntry.position   || '',
-            bookedTime:  pmEntry.bookedTime || '',
-            clockIns:    [],
-            clockOuts:   []
-          };
-        }
-        shiftMap[slotKey].clockIns.push(time);
-      }
-
-      if (room === 'Clock Out') {
-        // Flag if this scan is on the extra ceiling day (past toDate).
-        // Ceiling-day clock-outs are ONLY valid if they close an open
-        // overnight shift from the previous day — otherwise discard them
-        // so they don't bleed into the report as orphan entries.
-        var isExtraDay = toDate && rowDate > toDate;
-
-        // 1. Check previous day for an open overnight shift
-        var prevDate    = new Date(rowDate.getTime() - 86400000);
-        var pvMo        = prevDate.getMonth() + 1;
-        var pvDay       = prevDate.getDate();
-        var pvYr        = prevDate.getFullYear();
-        var prevDateStr = (pvMo < 10 ? '0'+pvMo : pvMo) + '/' + (pvDay < 10 ? '0'+pvDay : pvDay) + '/' + pvYr;
-        var prevBase    = workerName.toLowerCase() + '|' + prevDateStr;
-
-        var openPrevKey = null;
-        var psi = 0;
-        while (shiftMap[prevBase + '|' + psi]) {
-          if (shiftMap[prevBase + '|' + psi].clockIns.length > 0 &&
-              shiftMap[prevBase + '|' + psi].clockOuts.length === 0) {
-            openPrevKey = prevBase + '|' + psi; break;
-          }
-          psi++;
-        }
-
-        if (openPrevKey) {
-          shiftMap[openPrevKey].clockOuts.push(time);
-        } else if (!isExtraDay) {
-          // Only process same-day and orphan clock-outs within the normal date range.
-          // Ceiling-day scans that didn't match an overnight shift are discarded.
-
-          // 2. Find the open same-day shift (first slot with in but no out)
-          var openSameDayKey = null;
-          var csi = 0;
-          while (shiftMap[wBase + '|' + csi]) {
-            if (shiftMap[wBase + '|' + csi].clockIns.length > 0 &&
-                shiftMap[wBase + '|' + csi].clockOuts.length === 0) {
-              openSameDayKey = wBase + '|' + csi; break;
-            }
-            csi++;
-          }
-
-          if (openSameDayKey) {
-            shiftMap[openSameDayKey].clockOuts.push(time);
-          } else {
-            // 3. Orphan clock out — attach to slot 0, creating it if needed
-            var fallbackKey = wBase + '|0';
-            if (!shiftMap[fallbackKey]) {
-              var pmFbEntries = positionMap[workerName.toLowerCase() + '|' + dateStr] || [];
-              var pmFb        = pickPositionEntry(pmFbEntries, '');
-              shiftMap[fallbackKey] = {
-                workerName: workerName, date: dateStr, eventName: eventName,
-                position: pmFb.position || '', bookedTime: pmFb.bookedTime || '',
-                clockIns: [], clockOuts: []
-              };
-            }
-            shiftMap[fallbackKey].clockOuts.push(time);
-          }
-        }
-      }
-    }
-
-    var results = [];
-    Object.values(shiftMap).forEach(function(shift) {
-      var clockIn  = shift.clockIns.length  > 0 ? shift.clockIns[0]                           : null;
-      var clockOut = shift.clockOuts.length > 0 ? shift.clockOuts[shift.clockOuts.length - 1] : null;
-
-      // ── 15-minute grace window snap ───────────────────────────────────
-      // If actual clock-in is ≤15 min early  → bill from booked start
-      // If actual clock-out is ≤15 min late  → bill to booked end
-      // Actual times are preserved for display; only billing times are adjusted.
-      var billingClockIn  = clockIn;
-      var billingClockOut = clockOut;
-      var snappedIn       = false;
-      var snappedOut      = false;
-      var GRACE           = 15;
-
-      if (clockIn && clockOut && shift.bookedTime) {
-        var btp    = parseBookedTimeParts(shift.bookedTime);
-        var ciMins = timeToMins(clockIn);
-        var coMins = timeToMins(clockOut);
-
-        if (btp && ciMins !== null && coMins !== null) {
-          // Snap early clock-in within grace first
-          if (ciMins < btp.start && btp.start - ciMins <= GRACE) {
-            billingClockIn = minsToHHMM(btp.start);
-            snappedIn = true;
-          }
-
-          // Recalculate coAdj using the billing clock-in (post-snap) so that
-          // midnight-start shifts (btp.start=0) where the worker clocked in at
-          // 23:55 and got snapped to 00:00 are correctly treated as same-day.
-          var billingCiMins = timeToMins(billingClockIn);
-          var coAdj = (billingCiMins !== null && coMins < billingCiMins)
-            ? coMins + 1440
-            : coMins;
-          var bEnd  = btp.end < btp.start ? btp.end + 1440 : btp.end;
-
-          // Snap late clock-out within grace (14 min for clock-out)
-          if (coAdj > bEnd && coAdj - bEnd <= 14) {
-            billingClockOut = minsToHHMM(bEnd % 1440);
-            snappedOut = true;
-          }
-        }
-      }
-
-      var hours = (billingClockIn && billingClockOut) ? calculateBillingHours(billingClockIn, billingClockOut, shift.bookedTime) : null;
-
-      // Actual hours always use real scan times, never snapped
-      var actualHours = null;
-      if (clockIn && clockOut) {
-        var inM  = timeToMins(clockIn);
-        var outM = timeToMins(clockOut);
-        if (inM !== null && outM !== null) {
-          if (outM <= inM) outM += 1440;
-          actualHours = rnd((outM - inM) / 60);
-        }
-      }
-
-      var incomplete   = !clockIn || !clockOut;
-      var clockOutDate = shift.date;
-      if (hours && hours.crossesMidnight) {
-        var d = new Date(shift.date.replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2'));
-        d.setDate(d.getDate() + 1);
-        clockOutDate = (d.getMonth() + 1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(-2);
-      }
-
-      results.push({
-        workerName:      shift.workerName,
-        position:        shift.position,
-        bookedTime:      shift.bookedTime,
-        date:            shift.date,
-        eventName:       shift.eventName,
-        clockIn:         clockIn        || '—',
-        clockOut:        clockOut       || '—',
-        billingClockIn:  billingClockIn || clockIn || '—',
-        billingClockOut: billingClockOut || clockOut || '—',
-        snappedIn:       snappedIn,
-        snappedOut:      snappedOut,
-        clockInDate:     shift.date,
-        clockOutDate:    clockOutDate,
-        actualHours:     actualHours,
-        regularHours:    hours ? hours.regularHours : null,
-        otHours:         hours ? hours.otHours      : null,
-        totalHours:      hours ? hours.totalHours   : null,
-        incomplete:      incomplete
-      });
-    });
-
-    results.sort(function(a, b) {
-      if (a.date < b.date) return -1;
-      if (a.date > b.date) return 1;
-      return a.workerName.localeCompare(b.workerName);
-    });
-
-    return ContentService.createTextOutput(JSON.stringify({ shifts: results, scheduledCount: scheduledCount }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── OT calculation engine ─────────────────────────────────────────────────────
-// bookedTime is the raw booked time string (e.g. "8am-6pm") used to:
-//   1. Apply the 10-hour booked minimum (if booked = 10 hrs, floor billing at 10)
-//   2. Future policy extensions
-function calculateBillingHours(clockInStr, clockOutStr, bookedTime) {
-  var inMins  = timeToMins(clockInStr);
-  var outMins = timeToMins(clockOutStr);
-  if (inMins === null || outMins === null) return null;
-
-  var crossesMidnight = false;
-  if (outMins <= inMins) { outMins += 1440; crossesMidnight = true; }
-
-  var workedMins = outMins - inMins;
-  var workedHrs  = workedMins / 60;
-  var flags      = [];
-
-  // ── Overnight OT window: 00:00–07:00 ─────────────────────────────────────
-  // Only fires when the shift physically crosses midnight (e.g. 10pm–3am).
-  // Day workers who happen to arrive before 7am do NOT get overnight OT —
-  // that is only for genuine overnight shifts (crossesMidnight = true).
-  var overnightOtMins = 0;
-  if (crossesMidnight) {
-    var otWindowStart = 1440;
-    var otWindowEnd   = 1440 + 420; // 07:00 next day
-    var overlapStart  = Math.max(inMins, otWindowStart);
-    var overlapEnd    = Math.min(outMins, otWindowEnd);
-    if (overlapEnd > overlapStart) {
-      overnightOtMins = overlapEnd - overlapStart;
-      flags.push('overnight');
-    }
-  }
-
-  // ── Fix #7: 10-hour booked minimum ───────────────────────────────────────
-  var bookedHrs = null;
-  if (bookedTime) {
-    var btp2 = parseBookedTimeParts(bookedTime);
-    if (btp2) {
-      var dur = btp2.end - btp2.start;
-      if (dur <= 0) dur += 1440;
-      bookedHrs = dur / 60;
-    }
-  }
-
-  var effectiveWorkedHrs = workedHrs;
-  if (bookedHrs === 10 && workedHrs < 10) {
-    effectiveWorkedHrs = 10;
-    // 'bumped' flag will be pushed by the 6-10 bracket below
-  }
-
-  var overnightOtHrs = overnightOtMins / 60;
-  var regHrs, otHrs, totalPayHrs;
-
-  if (effectiveWorkedHrs <= 5) {
-    // Minimum 5-hour guarantee. OT ceiled to whole hour, reg = total − OT.
-    totalPayHrs = 5;
-    otHrs       = Math.ceil(overnightOtHrs);
-    regHrs      = totalPayHrs - otHrs;
-    if (workedHrs < 5) flags.push('minimum');
-
-  } else if (effectiveWorkedHrs > 5 && effectiveWorkedHrs < 6) {
-    // Guarantee 6 total with at least 1 OT. Ceil to whole hour.
-    totalPayHrs = 6;
-    otHrs       = Math.ceil(Math.max(1, overnightOtHrs));
-    regHrs      = totalPayHrs - otHrs;
-    flags.push('minimum');
-
-  } else if (effectiveWorkedHrs >= 6 && effectiveWorkedHrs <= 10) {
-    // Bumped to 10 hours. OT ceiled to whole hour, reg = 10 − OT.
-    totalPayHrs = 10;
-    otHrs       = Math.ceil(overnightOtHrs);
-    regHrs      = totalPayHrs - otHrs;
-    if (workedHrs < 10) flags.push('bumped');
-
-  } else {
-    // Over 10 hours — excess is OT plus overnight OT. Both ceiled.
-    otHrs       = Math.ceil((workedHrs - 10) + overnightOtHrs);
-    totalPayHrs = Math.ceil(workedHrs);
-    regHrs      = totalPayHrs - otHrs;
-  }
-
-  return {
-    regularHours:    rnd(regHrs),
-    otHours:         rnd(otHrs),
-    totalHours:      rnd(totalPayHrs),
-    crossesMidnight: crossesMidnight,
-    flags:           flags
+function renderState(type, msg, data) {
+  const cfg = {
+    confirmed: { icon:'✅', title: t('confirmedTitle'), sub: t('confirmedSub') },
+    disputed:  { icon:'🚩', title: t('disputedTitle'),  sub: t('disputedSub')  },
+    resolved:  { icon:'✔️', title: t('resolvedTitle'),  sub: t('resolvedSub')  },
+    expired:   { icon:'⏰', title: t('expiredTitle'),   sub: t('expiredSub')   },
+    already:   { icon:'✓',  title: t('alreadyTitle'),   sub: t('alreadySub')   },
+    error:     { icon:'❌', title: t('errorTitle'),      sub: escH(msg) || t('errorSub') },
   };
+  const c = cfg[type] || cfg.error;
+
+  let extra = '';
+  if (type === 'expired' && data) {
+    extra = `<div class="expired-summary">
+      <div class="exp-row"><span class="exp-lbl">${t('clockIn')}</span><span class="exp-val">${escH(data.billingIn)}</span></div>
+      <div class="exp-row"><span class="exp-lbl">${t('clockOut')}</span><span class="exp-val">${escH(data.billingOut)}</span></div>
+      <div class="exp-grid">
+        <div class="exp-box reg"><div class="ev">${data.regHrs ?? '—'}</div><div class="el">${t('reg')}</div></div>
+        <div class="exp-box ot" ><div class="ev">${data.otHrs  ?? '—'}</div><div class="el">${t('ot')}</div></div>
+        <div class="exp-box tot"><div class="ev">${data.totalHrs ?? '—'}</div><div class="el">${t('total')}</div></div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('main').innerHTML = `
+    <div class="state-screen">
+      <div class="state-icon">${c.icon}</div>
+      <div class="state-title">${c.title}</div>
+      <div class="state-sub">${c.sub}</div>
+      ${extra}
+    </div>`;
 }
 
+function toggleDispute() {
+  const f = document.getElementById('dispute-form');
+  if (f) f.classList.toggle('open');
+}
 
-// ── Submit performance rating — averages against existing score ───────────────
-function submitRating(workerName, tagId, rating) {
+function pickType(type) {
+  selectedType = type;
+  ['Hours','Position','Both','Other'].forEach(k => {
+    const b = document.getElementById('type-' + k);
+    if (b) b.classList.toggle('sel', k === type);
+  });
+}
+
+async function confirmHours() {
+  const btn = document.getElementById('btn-confirm');
+  if (btn) { btn.disabled = true; btn.textContent = t('submitting'); }
   try {
-    var ss         = SpreadsheetApp.getActiveSpreadsheet();
-    var assignTab  = ss.getSheetByName('Assignments');
-    var ratingsTab = ss.getSheetByName('Ratings');
-
-    var assignData = assignTab.getDataRange().getValues();
-    if (/^\d+$/.test(String(workerName).trim())) {
-      var paddedTag = String(workerName).padStart(3, '0');
-      for (var t = 1; t < assignData.length; t++) {
-        if (String(assignData[t][0]).trim() === paddedTag) {
-          var resolved = String(assignData[t][1] || '').trim();
-          if (resolved) { tagId = paddedTag; workerName = resolved; break; }
-        }
-      }
-    }
-
-    if (!tagId || String(tagId).trim() === '') {
-      for (var a = 1; a < assignData.length; a++) {
-        var aName = String(assignData[a][1] || '').trim();
-        if (aName.toLowerCase() === workerName.toLowerCase()) {
-          tagId = String(assignData[a][0] || '').trim();
-          break;
-        }
-      }
-    }
-
-    tagId = tagId ? String(tagId).padStart(3, '0') : '';
-
-    if (!ratingsTab) {
-      ratingsTab = ss.insertSheet('Ratings');
-      ratingsTab.getRange(1, 1, 1, 6).setValues([
-        ['Worker Name', 'Tag ID', 'Times Rated', 'Average Rating', 'Last Rated', 'Rating History']
-      ]);
-      ratingsTab.getRange(1, 1, 1, 6)
-        .setFontWeight('bold')
-        .setBackground('#1a1a1a')
-        .setFontColor('#ffffff');
-    }
-
-    var data  = ratingsTab.getDataRange().getValues();
-    var rVal  = parseFloat(rating);
-    var found = false;
-
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][0] || '').trim().toLowerCase() === workerName.toLowerCase().trim()) {
-        var times    = parseInt(data[i][2]  || 0);
-        var avg      = parseFloat(data[i][3] || 0);
-        var history  = String(data[i][5]    || '');
-        var newTimes = times + 1;
-        var newAvg   = Math.round(((avg * times) + rVal) / newTimes * 100) / 100;
-        ratingsTab.getRange(i + 1, 2).setValue(tagId);
-        ratingsTab.getRange(i + 1, 3).setValue(newTimes);
-        ratingsTab.getRange(i + 1, 4).setValue(newAvg);
-        ratingsTab.getRange(i + 1, 5).setValue(new Date());
-        ratingsTab.getRange(i + 1, 6).setValue(history ? history + ',' + rVal : String(rVal));
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) {
-      ratingsTab.appendRow([workerName, tagId, 1, rVal, new Date(), String(rVal)]);
-    }
-
-    return ContentService.createTextOutput('OK')
-      .setMimeType(ContentService.MimeType.TEXT);
-
-  } catch(err) {
-    return ContentService.createTextOutput('ERROR: ' + err.message)
-      .setMimeType(ContentService.MimeType.TEXT);
+    const res  = await fetch(`${SCRIPT_URL}?action=submitSignoff&token=${encodeURIComponent(getToken())}&status=Confirmed&disputeType=&disputeNote=`);
+    const data = await res.json();
+    if (data.error) { alert(data.error); if (btn) { btn.disabled = false; btn.textContent = t('confirmBtn'); } return; }
+    renderState('confirmed');
+  } catch(e) {
+    alert('Connection error. Please try again.');
+    if (btn) { btn.disabled = false; btn.textContent = t('confirmBtn'); }
   }
 }
 
-
-// ── Get dashboard data for Command Center ─────────────────────────────────────
-function getDashboardData(date, sheetId, location) {
+async function submitDispute() {
+  if (!selectedType) { alert(t('typeRequired')); return; }
+  const note = document.getElementById('dispute-note');
+  if (!note || !note.value.trim()) { alert(t('noteRequired')); return; }
+  const btn = document.getElementById('btn-submit-dispute');
+  if (btn) { btn.disabled = true; btn.textContent = t('submitting'); }
   try {
-    var ss      = SpreadsheetApp.getActiveSpreadsheet();
-    var scanLog = ss.getSheetByName('Scan Log');
-
-    var target    = date ? new Date(date + 'T00:00:00') : new Date();
-    var targetStr = (target.getMonth()+1) + '/' + target.getDate() + '/' + target.getFullYear();
-
-    var laborRows       = [];
-    var scheduledByRoom = {};
-    var totalScheduled  = 0;
-    try {
-      var laborSS = SpreadsheetApp.openById(sheetId || LABOR_SHEET_ID);
-      var laborWS = laborSS.getSheetByName('Orlando Grid');
-      laborRows   = laborWS.getDataRange().getValues();
-      for (var p = 1; p < laborRows.length; p++) {
-        var lRow     = laborRows[p];
-        var lLoc     = String(lRow[0] || '').trim();
-        var lRoom    = String(lRow[8] || '').trim();
-        var lDateRaw = lRow[1];
-        if (!lRoom || !lDateRaw) continue;
-        if (location && lLoc !== location) continue;
-        var lDate = lDateRaw instanceof Date ? lDateRaw : new Date(lDateRaw);
-        if (isNaN(lDate.getTime())) continue;
-        var lDateStr = (lDate.getMonth()+1) + '/' + lDate.getDate() + '/' + lDate.getFullYear();
-        if (lDateStr !== targetStr) continue;
-        if (!scheduledByRoom[lRoom]) scheduledByRoom[lRoom] = 0;
-        scheduledByRoom[lRoom]++;
-        totalScheduled++;
-      }
-    } catch(le) { Logger.log('Labor sheet error: ' + le.message); }
-
-    var scanRows  = scanLog.getDataRange().getValues();
-    var workerMap = {};
-
-    for (var i = 1; i < scanRows.length; i++) {
-      var sr       = scanRows[i];
-      var srWorker = String(sr[8] || '').trim();
-      var srRoom   = String(sr[5] || '').trim();
-      if (!srWorker || srWorker === 'Unknown') continue;
-
-      var srDateRaw = sr[2];
-      var srDate    = srDateRaw instanceof Date ? srDateRaw : new Date(String(srDateRaw));
-      if (isNaN(srDate.getTime())) continue;
-      var srDateStr = (srDate.getMonth()+1) + '/' + srDate.getDate() + '/' + srDate.getFullYear();
-      if (srDateStr !== targetStr) continue;
-
-      var timeStr = '';
-      if (sr[3] instanceof Date) {
-        timeStr = String(sr[3].getHours()).padStart(2,'0') + ':' + String(sr[3].getMinutes()).padStart(2,'0');
-      } else {
-        timeStr = String(sr[3] || '').trim();
-      }
-
-      var key = srWorker.toLowerCase();
-      if (!workerMap[key]) workerMap[key] = { name: srWorker, scans: [] };
-      workerMap[key].scans.push({ room: srRoom, time: timeStr });
-    }
-
-    var workerStatuses = {};
-
-    Object.keys(workerMap).forEach(function(key) {
-      var entry        = workerMap[key];
-      var scans        = entry.scans;
-      var clockIn      = null;
-      var clockOut     = null;
-      var lunchOut     = null;
-      var lastRoomScan = null;
-      var lastRoomTime = null;
-
-      scans.forEach(function(s) {
-        if      (s.room === 'Clock IN')  { clockIn      = s.time; }
-        else if (s.room === 'Clock Out') { clockOut     = s.time; }
-        else if (s.room === 'Lunch OUT') { lunchOut = s.time; lastRoomScan = null; }
-        else {
-          lastRoomScan = s.room;
-          lastRoomTime = s.time;
-          lunchOut     = null;
-        }
-      });
-
-      var status    = 'not_in';
-      var alertType = null;
-      var minsSince = null;
-
-      if (clockIn) {
-        if (clockOut && !lastRoomTimeAfter(scans, clockOut)) {
-          status = 'clocked_out';
-        } else if (lunchOut) {
-          status    = 'on_lunch';
-          minsSince = getMinsSince(lunchOut);
-          if (minsSince >= 60) alertType = 'lunch_overdue';
-        } else {
-          status = 'active';
-          if (!lastRoomTime) {
-            minsSince = getMinsSince(clockIn);
-            if (minsSince >= 15) alertType = 'no_scan';
-          } else {
-            minsSince = getMinsSince(lastRoomTime);
-            if (minsSince >= 120) alertType = 'no_scan';
-          }
-        }
-      }
-
-      workerStatuses[key] = {
-        name:      entry.name,
-        status:    status,
-        clockIn:   clockIn,
-        clockOut:  clockOut,
-        lunchOut:  lunchOut,
-        lastRoom:  lastRoomScan || (status === 'clocked_out' ? '—' : status === 'not_in' ? '—' : null),
-        lastScan:  lastRoomTime || clockIn || '—',
-        minsSince: minsSince,
-        alert:     alertType
-      };
-    });
-
-    if (laborRows.length > 1) {
-      var nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-      for (var lx = 1; lx < laborRows.length; lx++) {
-        var lxRow  = laborRows[lx];
-        var lxName = String(lxRow[6] || '').trim();
-        var lxLoc  = String(lxRow[0] || '').trim();
-        var lxDate = lxRow[1];
-        if (!lxName || !lxDate) continue;
-        if (location && lxLoc !== location) continue;
-        var lxDateObj = lxDate instanceof Date ? lxDate : new Date(lxDate);
-        if (isNaN(lxDateObj.getTime())) continue;
-        var lxDateStr = (lxDateObj.getMonth()+1) + '/' + lxDateObj.getDate() + '/' + lxDateObj.getFullYear();
-        if (lxDateStr !== targetStr) continue;
-
-        var callTimeMins = parseCallTime(String(lxRow[2] || ''));
-        if (callTimeMins === null) continue;
-
-        var lxKey = lxName.toLowerCase();
-        var ws    = workerStatuses[lxKey];
-
-        if (!ws || ws.status === 'not_in') {
-          if (nowMins - callTimeMins >= 30) {
-            if (!workerStatuses[lxKey]) {
-              workerStatuses[lxKey] = {
-                name: lxName, status: 'not_in', clockIn: null, clockOut: null,
-                lunchOut: null, lastRoom: '—', lastScan: '—', minsSince: nowMins - callTimeMins, alert: null
-              };
-            }
-            workerStatuses[lxKey].alert    = 'never_clocked_in';
-            workerStatuses[lxKey].callTime = minsToTimeStr(callTimeMins);
-            workerStatuses[lxKey].minsLate = nowMins - callTimeMins;
-          }
-        } else if (ws && ws.clockIn) {
-          var clockInMins = timeToMins(ws.clockIn);
-          if (clockInMins !== null && clockInMins - callTimeMins >= 15) {
-            if (!ws.alert) {
-              ws.alert    = 'late_clock_in';
-              ws.callTime = minsToTimeStr(callTimeMins);
-              ws.lateBy   = clockInMins - callTimeMins;
-            }
-          }
-        }
-      }
-    }
-
-    var roomMap = {};
-    Object.values(workerStatuses).forEach(function(ws) {
-      var r = ws.lastRoom;
-      if (!r || r === '—' || r === 'No room scan' || r === null) return;
-      if (!roomMap[r]) roomMap[r] = [];
-      if (ws.status === 'active') {
-        roomMap[r].push({
-          name:      ws.name,
-          status:    ws.status,
-          lastScan:  ws.lastScan,
-          clockIn:   ws.clockIn,
-          minsSince: ws.minsSince
-        });
-      }
-    });
-
-    var rooms = Object.keys(roomMap).sort().map(function(roomName) {
-      return {
-        name:    roomName,
-        present: roomMap[roomName].length,
-        workers: roomMap[roomName]
-      };
-    });
-
-    var activeCount = 0, lunchCount = 0, outCount = 0;
-    Object.values(workerStatuses).forEach(function(ws) {
-      if      (ws.status === 'active')      activeCount++;
-      else if (ws.status === 'on_lunch')    lunchCount++;
-      else if (ws.status === 'clocked_out') outCount++;
-    });
-
-    var alerts = [];
-    Object.values(workerStatuses).forEach(function(ws) {
-      if (ws.alert) {
-        alerts.push({
-          type:     ws.alert,
-          name:     ws.name,
-          room:     ws.lastRoom,
-          mins:     ws.minsSince || ws.minsLate || 0,
-          clockIn:  ws.clockIn,
-          lunchOut: ws.lunchOut,
-          callTime: ws.callTime || null,
-          lateBy:   ws.lateBy   || null
-        });
-      }
-    });
-    alerts.sort(function(a, b) { return (b.mins||0) - (a.mins||0); });
-
-    return ContentService.createTextOutput(JSON.stringify({
-      rooms:   rooms,
-      summary: {
-        scheduled:  totalScheduled,
-        clockedIn:  activeCount + lunchCount,
-        active:     activeCount,
-        onLunch:    lunchCount,
-        clockedOut: outCount
-      },
-      alerts:  alerts,
-      workers: Object.values(workerStatuses),
-      asOf:    Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'h:mm a')
-    })).setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    const res  = await fetch(`${SCRIPT_URL}?action=submitSignoff&token=${encodeURIComponent(getToken())}&status=Disputed&disputeType=${encodeURIComponent(selectedType)}&disputeNote=${encodeURIComponent(note.value.trim())}`);
+    const data = await res.json();
+    if (data.error) { alert(data.error); if (btn) { btn.disabled = false; btn.textContent = t('submitDispute'); } return; }
+    renderState('disputed');
+  } catch(e) {
+    alert('Connection error. Please try again.');
+    if (btn) { btn.disabled = false; btn.textContent = t('submitDispute'); }
   }
 }
-
-
-// ── Get shift details for AVS Confirmation page ───────────────────────────────
-function getShiftDetails(tag, date) {
-  try {
-    var laborSS  = SpreadsheetApp.openById(LABOR_SHEET_ID);
-    var laborWS  = laborSS.getSheetByName('Orlando Grid');
-    var rows     = laborWS.getDataRange().getValues();
-
-    var targetParts = date.split('/');
-    if (targetParts.length < 3) {
-      return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid date format.' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    var target = new Date(parseInt(targetParts[2]), parseInt(targetParts[0]) - 1, parseInt(targetParts[1]));
-
-    var workerName = '';
-    var shifts     = [];
-    var existing   = null;
-
-    for (var i = 1; i < rows.length; i++) {
-      var r     = rows[i];
-      var rName = String(r[6] || '').trim();
-      if (!rName || rName.toLowerCase() !== tag.toLowerCase()) continue;
-
-      var rDateRaw = r[1];
-      var rDate    = rDateRaw instanceof Date ? rDateRaw : new Date(rDateRaw);
-      if (isNaN(rDate.getTime())) continue;
-      if (rDate.toDateString() !== target.toDateString()) continue;
-
-      workerName = rName;
-      if (!existing && r[10]) existing = String(r[10]).trim();
-
-      shifts.push({
-        location:    String(r[0] || '').trim(),
-        time:        String(r[2] || '').trim(),
-        description: String(r[3] || '').trim(),
-        position:    String(r[5] || '').trim(),
-        room:        String(r[8] || '').trim(),
-        event:       String(r[9] || '').trim()
-      });
-    }
-
-    if (!workerName) {
-      return ContentService.createTextOutput(JSON.stringify({ error: 'No shift found for this link. Contact your supervisor.' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({
-      workerName: workerName,
-      shifts:     shifts,
-      existing:   existing || null
-    })).setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── Write confirmation response to Orlando Grid col K ────────────────────────
-function confirmShift(tag, date, response) {
-  try {
-    var laborSS = SpreadsheetApp.openById(LABOR_SHEET_ID);
-    var laborWS = laborSS.getSheetByName('Orlando Grid');
-    var rows    = laborWS.getDataRange().getValues();
-
-    var targetParts = date.split('/');
-    if (targetParts.length < 3) {
-      return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid date format.' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    var target = new Date(parseInt(targetParts[2]), parseInt(targetParts[0]) - 1, parseInt(targetParts[1]));
-
-    var status     = response === 'Y' ? 'Confirmed' : 'Denied';
-    var workerName = '';
-    var updated    = 0;
-
-    for (var i = 1; i < rows.length; i++) {
-      var r     = rows[i];
-      var rName = String(r[6] || '').trim();
-      if (!rName || rName.toLowerCase() !== tag.toLowerCase()) continue;
-
-      var rDateRaw = r[1];
-      var rDate    = rDateRaw instanceof Date ? rDateRaw : new Date(rDateRaw);
-      if (isNaN(rDate.getTime())) continue;
-      if (rDate.toDateString() !== target.toDateString()) continue;
-
-      workerName = rName;
-      laborWS.getRange(i + 1, 11).setValue(status);
-      updated++;
-    }
-
-    if (!updated) {
-      return ContentService.createTextOutput(JSON.stringify({ error: 'No matching shift found to update.' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({
-      status:     status,
-      workerName: workerName,
-      updated:    updated
-    })).setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── Get clock in/out status by tag ID for Sign In page ───────────────────────
-function getClockInStatus(date) {
-  try {
-    var ss        = SpreadsheetApp.getActiveSpreadsheet();
-    var scanLog   = ss.getSheetByName('Scan Log');
-    var tz        = Session.getScriptTimeZone();
-    var target    = date ? new Date(date + 'T00:00:00') : new Date();
-    var targetStr = Utilities.formatDate(target, tz, 'MM/dd/yyyy');
-
-    var rows   = scanLog.getDataRange().getValues();
-    var tagMap = {};
-
-    for (var i = 1; i < rows.length; i++) {
-      var r          = rows[i];
-      var tagId      = String(r[1] || '').trim();
-      var room       = String(r[5] || '').trim();
-      var rowDateRaw = r[2];
-      var rowDate    = rowDateRaw instanceof Date ? rowDateRaw : new Date(String(rowDateRaw));
-      if (isNaN(rowDate.getTime())) continue;
-      var rowDateStr = Utilities.formatDate(rowDate, tz, 'MM/dd/yyyy');
-      if (rowDateStr !== targetStr) continue;
-      if (!tagId || tagId === 'N/A') continue;
-
-      if (/^\d+(\.\d+)?$/.test(tagId)) {
-        tagId = String(parseInt(tagId, 10)).padStart(3, '0');
-      }
-
-      var timeStr = '';
-      if (r[3] instanceof Date) {
-        timeStr = String(r[3].getHours()).padStart(2, '0') + ':' + String(r[3].getMinutes()).padStart(2, '0');
-      } else {
-        timeStr = String(r[3] || '').trim();
-      }
-
-      if (!tagMap[tagId]) tagMap[tagId] = { clockIns: [], clockOuts: [], roomScans: [] };
-      if (room === 'Clock IN')  tagMap[tagId].clockIns.push(timeStr);
-      if (room === 'Clock Out') tagMap[tagId].clockOuts.push(timeStr);
-
-      // Track all non-clock room scans in order so the frontend can find
-      // the most recent one after the worker's matched clock-in
-      var skipRooms = ['Clock IN', 'Clock Out', 'Lunch OUT', 'Unknown', 'N/A', ''];
-      if (skipRooms.indexOf(room) === -1) {
-        tagMap[tagId].roomScans.push({ room: room, time: timeStr });
-      }
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({ tags: tagMap }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function timeToMins(str) {
-  if (!str || str === '—') return null;
-  if (str instanceof Date) { return str.getHours() * 60 + str.getMinutes(); }
-  var parts = String(str).trim().split(':');
-  if (parts.length < 2) return null;
-  var h = parseInt(parts[0]);
-  var m = parseInt(parts[1]);
-  if (isNaN(h) || isNaN(m)) return null;
-  return h * 60 + m;
-}
-
-function rnd(n) { return Math.round(n * 100) / 100; }
-
-function getMinsSince(timeStr) {
-  if (!timeStr || timeStr === '—') return 0;
-  var parts = String(timeStr).split(':');
-  if (parts.length < 2) return 0;
-  var h = parseInt(parts[0]);
-  var m = parseInt(parts[1]);
-  if (isNaN(h) || isNaN(m)) return 0;
-  var now  = new Date();
-  var then = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
-  return Math.max(0, Math.floor((now.getTime() - then.getTime()) / 60000));
-}
-
-function lastRoomTimeAfter(scans, clockOutTime) {
-  var pastClockOut = false;
-  for (var i = 0; i < scans.length; i++) {
-    if (scans[i].time === clockOutTime) { pastClockOut = true; continue; }
-    if (pastClockOut) {
-      var r = scans[i].room;
-      if (r !== 'Clock IN' && r !== 'Clock Out' && r !== 'Lunch OUT') return true;
-    }
-  }
-  return false;
-}
-
-// ── Parse call time string e.g. "9am-7pm" or "09:00" → minutes since midnight ─
-function parseCallTime(str) {
-  if (!str) return null;
-  str = String(str).trim().toLowerCase();
-  var start = str.split('-')[0].trim();
-  var match = start.match(/^(\d+)(?::(\d+))?\s*(am|pm)?/);
-  if (!match) return null;
-  var h    = parseInt(match[1]);
-  var m    = parseInt(match[2] || 0);
-  var ampm = match[3] || '';
-  if (ampm === 'pm' && h !== 12) h += 12;
-  if (ampm === 'am' && h === 12) h = 0;
-  return h * 60 + m;
-}
-
-// ── Convert minutes since midnight → "9:00 AM" display string ────────────────
-function minsToTimeStr(m) {
-  var h    = Math.floor(m / 60);
-  var min  = m % 60;
-  var ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return h + ':' + String(min).padStart(2, '0') + ' ' + ampm;
-}
-
-// ── Convert minutes since midnight → "HH:MM" 24-hour string ──────────────────
-function minsToHHMM(totalMins) {
-  var h   = Math.floor(totalMins / 60) % 24;
-  var min = totalMins % 60;
-  return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
-}
-
-// ── Parse booked time string e.g. "8am-6pm", "10pm-3am", "4:30pm-9:30pm" ────
-// Returns { start, end } in minutes since midnight, or null if unparseable.
-function parseBookedTimeParts(str) {
-  if (!str) return null;
-  str = String(str).trim();
-  // Split on the LAST hyphen so "10pm-3am" → ["10pm", "3am"]
-  var sep = str.lastIndexOf('-');
-  if (sep < 1) return null;
-  var start = parseTimeStrToMins(str.substring(0, sep).trim());
-  var end   = parseTimeStrToMins(str.substring(sep + 1).trim());
-  if (start === null || end === null) return null;
-  return { start: start, end: end };
-}
-
-// ── Parse a time string like "8am", "10pm", "4:30pm", "14:00" → minutes ──────
-function parseTimeStrToMins(str) {
-  if (!str) return null;
-  str = String(str).toLowerCase().trim();
-  var match = str.match(/^(\d+)(?::(\d+))?\s*(am|pm)?/);
-  if (!match) return null;
-  var h    = parseInt(match[1]);
-  var m    = parseInt(match[2] || 0);
-  var ampm = match[3] || '';
-  if (ampm === 'pm' && h !== 12) h += 12;
-  if (ampm === 'am' && h === 12) h = 0;
-  return h * 60 + m;
-}
-
-// ── Pick the best positionMap entry for a given clock-in time ─────────────────
-// For workers with a single shift the day, just returns that entry.
-// For dual-shift workers, finds the entry whose booked start is closest
-// to the actual clock-in time so each slot gets the right booked time.
-function pickPositionEntry(entries, clockInTimeStr) {
-  if (!entries || entries.length === 0) return {};
-  if (entries.length === 1) return entries[0];
-
-  var ciMins = timeToMins(clockInTimeStr);
-  if (ciMins === null) return entries[0];
-
-  var best = entries[0];
-  var bestDiff = Infinity;
-  for (var e = 0; e < entries.length; e++) {
-    var btp = parseBookedTimeParts(entries[e].bookedTime);
-    if (!btp) continue;
-    var diff = Math.abs(btp.start - ciMins);
-    if (diff > 720) diff = 1440 - diff; // handle midnight wraparound
-    if (diff < bestDiff) { bestDiff = diff; best = entries[e]; }
-  }
-  return best;
-}
+</script>
+</body>
+</html>
