@@ -359,12 +359,10 @@
         <span class="sname" id="ready-name"></span>
         <span class="sroom"><span id="ready-room"></span></span>
       </div>
-      <button onclick="clearSession()">Switch</button>
     </div>
     <div class="big-icon">📲</div>
     <h2 class="center">Ready to scan</h2>
     <p class="subtitle center">Go back to your phone's home screen and scan a tag. Keep this page open in the background between scans.</p>
-    <div class="hint-box">Tap "Switch" to change your room between scans.</div>
   </div>
 
   <!-- ── SCREEN 3: PIN verify ── -->
@@ -374,39 +372,37 @@
         <span class="sname" id="pin-name"></span>
         <span class="sroom"><span id="pin-room"></span></span>
       </div>
-      <button onclick="clearSession()">Switch</button>
     </div>
 
-    <!-- Worker info card — populated when tag is scanned -->
+    <!-- Worker info card — always shown first -->
     <div class="worker-card" id="worker-card">
       <div class="worker-card-loading"><span class="spinner-sm"></span> Looking up worker…</div>
     </div>
 
-    <div class="error-msg" id="pin-error"></div>
-
-    <div class="pin-dots">
-      <div class="pin-dot" id="dot-0"></div>
-      <div class="pin-dot" id="dot-1"></div>
-      <div class="pin-dot" id="dot-2"></div>
-      <div class="pin-dot" id="dot-3"></div>
+    <!-- PIN section — hidden until worker info has loaded -->
+    <div id="pin-section" style="display:none;">
+      <div class="error-msg" id="pin-error"></div>
+      <div class="pin-dots">
+        <div class="pin-dot" id="dot-0"></div>
+        <div class="pin-dot" id="dot-1"></div>
+        <div class="pin-dot" id="dot-2"></div>
+        <div class="pin-dot" id="dot-3"></div>
+      </div>
+      <div class="numpad">
+        <button onclick="pinKey('1')">1</button>
+        <button onclick="pinKey('2')">2</button>
+        <button onclick="pinKey('3')">3</button>
+        <button onclick="pinKey('4')">4</button>
+        <button onclick="pinKey('5')">5</button>
+        <button onclick="pinKey('6')">6</button>
+        <button onclick="pinKey('7')">7</button>
+        <button onclick="pinKey('8')">8</button>
+        <button onclick="pinKey('9')">9</button>
+        <button class="empty"></button>
+        <button onclick="pinKey('0')">0</button>
+        <button class="del" onclick="pinBackspace()">⌫</button>
+      </div>
     </div>
-
-    <div class="numpad">
-      <button onclick="pinKey('1')">1</button>
-      <button onclick="pinKey('2')">2</button>
-      <button onclick="pinKey('3')">3</button>
-      <button onclick="pinKey('4')">4</button>
-      <button onclick="pinKey('5')">5</button>
-      <button onclick="pinKey('6')">6</button>
-      <button onclick="pinKey('7')">7</button>
-      <button onclick="pinKey('8')">8</button>
-      <button onclick="pinKey('9')">9</button>
-      <button class="empty"></button>
-      <button onclick="pinKey('0')">0</button>
-      <button class="del" onclick="pinBackspace()">⌫</button>
-    </div>
-
-    <button class="btn btn-secondary" onclick="cancelScan()" style="margin-top:1.25rem;">Cancel</button>
   </div>
 
   <!-- ── SCREEN 4: Result ── -->
@@ -584,14 +580,12 @@ function showPinScreen(session) {
   pinBuffer = '';
   updatePinDots();
   document.getElementById('pin-error').style.display = 'none';
-
-  // Reset worker card to loading state then fetch
+  // Hide PIN section until worker info has loaded
+  document.getElementById('pin-section').style.display = 'none';
+  // Reset worker card to loading state
   document.getElementById('worker-card').innerHTML =
     '<div class="worker-card-loading"><span class="spinner-sm"></span> Looking up worker…</div>';
-
   showScreen('screen-pin');
-
-  // Fetch worker info if we have a tag
   if (TAG_ID) fetchWorkerInfo(TAG_ID);
 }
 
@@ -607,6 +601,8 @@ async function fetchWorkerInfo(tagId) {
     document.getElementById('worker-card').innerHTML =
       '<div class="worker-card-loading" style="color:#dc2626;">Could not load worker info.</div>';
   }
+  // Reveal PIN section regardless of outcome — manager can still proceed
+  document.getElementById('pin-section').style.display = 'block';
 }
 
 function renderWorkerCard(d) {
