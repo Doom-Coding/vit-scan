@@ -214,15 +214,14 @@
     margin-right: 8px;
   }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Loading state for manager fetch */
   .setup-loading {
-    text-align: center;
-    color: #aaa;
     font-size: 13px;
+    color: #aaa;
     padding: 0.5rem 0 1.25rem;
+    text-align: center;
   }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .pin-dots { display: flex; gap: 14px; justify-content: center; margin: 1.5rem 0; }
 
@@ -348,7 +347,7 @@
     <div class="error-msg" id="setup-error"></div>
 
     <label>Your name</label>
-    <div id="setup-name-loading" class="setup-loading" style="display:none;">Loading managers…</div>
+    <div class="setup-loading" id="setup-loading" style="display:none;">Loading managers…</div>
     <select id="setup-name">
       <option value="">Select manager…</option>
     </select>
@@ -444,7 +443,7 @@
       <div class="info-row"><span class="key">Manager</span><span class="val" id="confirm-manager"></span></div>
       <div class="info-row"><span class="key">Room</span><span class="val" id="confirm-room"></span></div>
       <div class="info-row"><span class="key">Phase</span><span class="val" id="confirm-phase"></span></div>
-      <!-- Event resolved server-side from Orlando Grid — not available before scan fires -->
+      <!-- Event resolved server-side from Orlando Grid — not known before scan fires -->
       <div class="info-row"><span class="key">Event</span><span class="val muted">From your schedule</span></div>
     </div>
 
@@ -489,9 +488,8 @@
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
 
-// ── Room list — billing scan types at top for quick access ────────────────────
-// Lunch OUT tracks movement/absence — not used in billing calculations.
-// All other rooms are location scans logged for tracking only.
+// ── Room list — billing types at top for quick access ─────────────────────────
+// Lunch OUT tracks movement/absence only — not used in billing calculations.
 const ALL_ROOMS = [
   'Clock IN', 'Clock Out', 'Lunch OUT',
   'Loading Dock/Bone Yard', 'Grand Sierra BR', 'Palms BR',
@@ -502,11 +500,11 @@ const ALL_ROOMS = [
 const STAR_LABELS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
 
 // ── MANAGERS — loaded dynamically from Managers tab (col A = name, col H = pin)
-// Hardcoding removed. To add/change a manager or PIN, edit the Managers sheet.
+// To add/change a manager or PIN, edit the sheet. No code deploy needed.
 const MANAGERS = {};
 
 // ── Tag params from NFC URL ───────────────────────────────────────────────────
-// Event name is NOT read from the URL — resolved server-side from Orlando Grid.
+// Event name is NOT read from URL — resolved server-side from Orlando Grid.
 const params  = new URLSearchParams(window.location.search);
 const TAG_UID = params.get('uid')   || '';
 const TAG_ID  = params.get('tagId') || '';
@@ -516,14 +514,16 @@ let currentStar     = 0;
 let ratingSubmitted = false;
 const PIN_LENGTH    = 4;
 
-// ── Load managers from sheet then boot ────────────────────────────────────────
+// ── Load managers from sheet ──────────────────────────────────────────────────
 async function loadManagers() {
-  const nameSelect   = document.getElementById('setup-name');
-  const loadingEl    = document.getElementById('setup-name-loading');
-  const setupBtn     = document.getElementById('setup-btn');
-  nameSelect.style.display  = 'none';
-  loadingEl.style.display   = 'block';
-  setupBtn.disabled         = true;
+  const nameSelect = document.getElementById('setup-name');
+  const loadingEl  = document.getElementById('setup-loading');
+  const setupBtn   = document.getElementById('setup-btn');
+
+  nameSelect.style.display = 'none';
+  loadingEl.style.display  = 'block';
+  setupBtn.disabled        = true;
+
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getManagers`);
     const data = await res.json();
@@ -538,6 +538,7 @@ async function loadManagers() {
   } catch(e) {
     console.error('loadManagers failed', e);
   }
+
   nameSelect.style.display = '';
   loadingEl.style.display  = 'none';
   setupBtn.disabled        = false;
@@ -668,7 +669,7 @@ function showConfirmScreen(managerName, room, phase) {
   document.getElementById('confirm-manager').textContent = managerName;
   document.getElementById('confirm-room').textContent    = room;
   document.getElementById('confirm-phase').textContent   = phase || '—';
-  // Event row is static — resolved server-side from Orlando Grid at scan time
+  // Event row is static — server resolves from Orlando Grid at scan time
   showScreen('screen-confirm');
 }
 
@@ -691,7 +692,6 @@ async function logScan() {
     if (text.includes('DUPLICATE')) {
       showResult('duplicate', session.room, phase, '');
     } else if (text.includes('ERROR')) {
-      // Show the actual server error so the manager knows the real reason
       showResult('error', session.room, phase, text);
     } else {
       const parts      = text.split('|');
@@ -724,11 +724,11 @@ function showResult(status, room, phase, payload) {
   badge.textContent = labels[status];
   document.getElementById('result-title').textContent = titles[status];
 
-  // Show actual error detail from server if available
+  // Show actual server error text when available
   const errDetail = (status === 'error' && payload) ? payload.replace('ERROR:', '').trim() : '';
   document.getElementById('result-msg').textContent = errDetail || defaultMsgs[status];
 
-  // Worker name — only meaningful on success
+  // Worker name only meaningful on success
   const workerName  = status === 'success' ? payload : '';
   const displayName = (workerName && workerName !== 'Unknown') ? workerName : (TAG_ID ? 'Tag ' + TAG_ID : '');
   document.getElementById('result-worker-name').textContent = displayName;
