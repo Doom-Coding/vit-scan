@@ -258,6 +258,14 @@
   .numpad button:active { background: #e5e5e5; transform: scale(0.95); }
   .numpad button.del   { font-size: 17px; color: #888; }
   .numpad button.empty { visibility: hidden; }
+  .numpad button.submit-btn {
+    background: #166534;
+    border-color: #166534;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .numpad button.submit-btn:active { background: #14532d; }
 
   /* ── Error banner ── */
   .error-banner {
@@ -422,7 +430,7 @@
       <button onclick="pk('1')">1</button><button onclick="pk('2')">2</button><button onclick="pk('3')">3</button>
       <button onclick="pk('4')">4</button><button onclick="pk('5')">5</button><button onclick="pk('6')">6</button>
       <button onclick="pk('7')">7</button><button onclick="pk('8')">8</button><button onclick="pk('9')">9</button>
-      <button class="empty"></button><button onclick="pk('0')">0</button><button class="del" onclick="pb()">⌫</button>
+      <button class="del" onclick="pb()">⌫</button><button onclick="pk('0')">0</button><button class="submit-btn" onclick="verifyAndSubmit()">✓</button>
     </div>
   </div>
 
@@ -434,7 +442,7 @@
     <div class="result-action" id="r-action"></div>
     <div class="result-msg"   id="r-msg"></div>
     <div class="stars-wrap" id="stars-wrap" style="display:none;">
-      <div class="stars-title">Rate this worker</div>
+      <div class="stars-title" id="stars-title">Rate this worker</div>
       <div class="stars-row">
         <button class="star-btn" id="s1" onclick="rateStar(1)">★</button>
         <button class="star-btn" id="s2" onclick="rateStar(2)">★</button>
@@ -445,6 +453,11 @@
       <div class="stars-sub" id="stars-sub"></div>
     </div>
     <button class="done-btn" onclick="reset()">Done</button>
+  </div>
+  <!-- Submit loading overlay -->
+  <div id="submit-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+    <div class="spinner-ring" style="border-color:#e5e5e5;border-top-color:#1a1a1a;"></div>
+    <div style="font-size:14px;font-weight:600;color:#888;" id="overlay-msg">Logging scan…</div>
   </div>
 
 </div>
@@ -567,7 +580,6 @@ function selectAction(action) {
 function pk(digit) {
   if (pinBuffer.length >= PIN_LEN) return;
   pinBuffer += digit; updateDots();
-  if (pinBuffer.length === PIN_LEN) verifyAndSubmit();
 }
 
 function pb() { pinBuffer = pinBuffer.slice(0, -1); updateDots(); }
@@ -591,13 +603,14 @@ async function verifyAndSubmit() {
   }
 
   hideBanner();
-  disableNumpad(true);
+  showOverlay('Logging scan…');
 
   const url = `${SCRIPT_URL}?uid=${encodeURIComponent(TAG_UID)}&tagId=${encodeURIComponent(TAG_ID)}&manager=${encodeURIComponent(mgrName)}&room=${encodeURIComponent(selectedAction)}&phase=General`;
 
   try {
     const res  = await fetch(url);
     const text = await res.text();
+    hideOverlay();
     if (text.includes('DUPLICATE')) {
       showResult('duplicate', '', 'This tag was scanned in the last 60 seconds.');
     } else if (text.includes('ERROR')) {
@@ -611,10 +624,10 @@ async function verifyAndSubmit() {
       showResult('success', workerName, selectedAction);
     }
   } catch(e) {
+    hideOverlay();
     showResult('error', '', 'Connection error. Check your network.');
   }
 
-  disableNumpad(false);
   pinBuffer = ''; updateDots();
 }
 
@@ -632,13 +645,16 @@ function showResult(status, name, detail) {
   document.getElementById('r-action').textContent = status === 'success' ? detail : '';
   document.getElementById('r-msg').textContent    = status !== 'success' ? detail : '';
 
-  // Stars on success Clock IN / Clock Out
+  // Stars on success — contextual label based on Clock IN vs Clock Out
   ratingDone = false;
   const starsWrap = document.getElementById('stars-wrap');
   if (status === 'success' && TAG_ID) {
     document.getElementById('stars-sub').textContent = '';
     document.getElementById('stars-sub').className   = 'stars-sub';
     renderStars(0);
+    const action = detail || selectedAction || '';
+    document.getElementById('stars-title').textContent =
+      action === 'Clock IN' ? 'How did they show up?' : 'How did they perform?';
     starsWrap.style.display = 'block';
   } else {
     starsWrap.style.display = 'none';
@@ -694,6 +710,16 @@ function show(id) {
   if (id !== 'view-result') {
     document.getElementById('view-result').classList.remove('visible');
   }
+}
+
+function showOverlay(msg) {
+  const o = document.getElementById('submit-overlay');
+  document.getElementById('overlay-msg').textContent = msg;
+  o.style.display = 'flex';
+}
+
+function hideOverlay() {
+  document.getElementById('submit-overlay').style.display = 'none';
 }
 
 function showBanner(msg) {
