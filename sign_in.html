@@ -357,7 +357,7 @@
     <div class="cc-bottom">
       <div class="cc-workers">
         <div class="cc-workers-header"><span class="cc-workers-title">Workers</span><input class="cc-search" id="cc-worker-search" placeholder="Search name or room…" oninput="filterWorkers()"></div>
-        <div style="overflow-x:auto;"><table class="cc-workers-table"><thead><tr><th>Worker</th><th>Status</th><th>Room</th><th>Clock Out</th><th>Clock In</th><th>Rating</th></tr></thead><tbody id="cc-worker-rows"><tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">Load the dashboard to see workers.</td></tr></tbody></table></div>
+        <div style="overflow-x:auto;"><table class="cc-workers-table"><thead><tr><th>Worker</th><th>Status</th><th>Room</th><th>Clock In</th><th>Clock Out</th><th>Rating</th></tr></thead><tbody id="cc-worker-rows"><tr><td colspan="6" style="text-align:center;padding:2rem;color:#aaa;">Load the dashboard to see workers.</td></tr></tbody></table></div>
         <button class="cc-submit-ratings" id="submit-ratings-btn" onclick="submitAllRatings()" disabled>Submit All Ratings (0 rated)</button>
       </div>
       <div class="cc-alerts">
@@ -600,7 +600,7 @@ function renderWorkers(workers){
     const scanHtml=w.minsSince&&w.minsSince>=120?`<span class="cc-scan-late">${escHtml(w.lastScan)} (${w.minsSince}m ago)</span>`:`<span style="color:#555;">${escHtml(w.lastScan||'—')}</span>`;
     const safeId=w.name.replace(/[^a-zA-Z0-9]/g,'-'),cur=ccRatings[w.name]||0;
     const stars=[1,2,3,4,5].map(n=>`<button class="cc-star ${n<=cur?'filled':''}" onclick="setRating('${w.name.replace(/'/g,"\\'")}',${n})" onmouseover="hoverStars('${safeId}',${n})" onmouseout="unhoverStars('${safeId}',${cur})">★</button>`).join('');
-    return `<tr class="${flagged}"><td><div class="cc-name">${escHtml(w.name)}</div></td><td>${pill}</td><td style="font-size:12px;color:#555;">${escHtml(w.lastRoom==='No room scan'||!w.lastRoom?'—':w.lastRoom)}</td><td style="font-size:12px;color:#555;">${escHtml(w.clockOut||'—')}</td><td style="font-size:12px;color:#555;">${escHtml(w.clockIn||'—')}</td><td><div class="cc-stars" id="stars-${safeId}">${stars}</div></td></tr>`;
+    return `<tr class="${flagged}"><td><div class="cc-name">${escHtml(w.name)}</div></td><td>${pill}</td><td style="font-size:12px;color:#555;">${escHtml(w.lastRoom==='No room scan'||!w.lastRoom?'—':w.lastRoom)}</td><td style="font-size:12px;color:#555;">${escHtml(w.clockIn||'—')}</td><td style="font-size:12px;color:#555;">${escHtml(w.clockOut||'—')}</td><td><div class="cc-stars" id="stars-${safeId}">${stars}</div></td></tr>`;
   }).join('');
   updateSubmitButton();
 }
