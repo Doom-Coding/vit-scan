@@ -870,8 +870,8 @@ function renderRoster(workers) {
 
   tbody.innerHTML = workers.map(w => {
     const posTags = (w.positions || []).slice(0,5).map(p => {
-      const name  = p.name  || p;
-      const count = p.count || 1;
+      const name  = (typeof p === 'object') ? (p.name  || '') : String(p);
+      const count = (typeof p === 'object') ? (p.count || 1)  : 1;
       return `<span class="wr-pos-tag">${escHtml(name)}${count > 1 ? ` <span style="color:#aaa;font-weight:400;">×${count}</span>` : ''}</span>`;
     }).join('') + (w.positions.length > 5 ? `<span class="wr-pos-tag">+${w.positions.length-5}</span>` : '');
 
@@ -932,7 +932,7 @@ function filterRoster() {
     (w.phone        || '').includes(q) ||
     (w.email        || '').toLowerCase().includes(q) ||
     (w.emergencyName|| '').toLowerCase().includes(q) ||
-    (w.positions    || []).some(p => p.toLowerCase().includes(q)) ||
+    (w.positions    || []).some(p => (typeof p === 'object' ? p.name || '' : String(p)).toLowerCase().includes(q)) ||
     (w.tagId        || '').toLowerCase().includes(q)
   );
   renderRoster(filtered);
