@@ -869,9 +869,11 @@ function renderRoster(workers) {
   }
 
   tbody.innerHTML = workers.map(w => {
-    const posTags = (w.positions || []).slice(0,5).map(p =>
-      `<span class="wr-pos-tag">${escHtml(p)}</span>`).join('') +
-      (w.positions.length > 5 ? `<span class="wr-pos-tag">+${w.positions.length-5}</span>` : '');
+    const posTags = (w.positions || []).slice(0,5).map(p => {
+      const name  = p.name  || p;
+      const count = p.count || 1;
+      return `<span class="wr-pos-tag">${escHtml(name)}${count > 1 ? ` <span style="color:#aaa;font-weight:400;">×${count}</span>` : ''}</span>`;
+    }).join('') + (w.positions.length > 5 ? `<span class="wr-pos-tag">+${w.positions.length-5}</span>` : '');
 
     const profBadge = w.profileComplete === 'Yes'
       ? `<span class="wr-badge-yes">Complete</span>`
