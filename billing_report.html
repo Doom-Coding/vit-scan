@@ -521,8 +521,17 @@ function renderDayGroup(date, dg) {
 }
 
 function renderShiftRow(s) {
-  const rowClass = s.incomplete ? 'incomplete' : '';
+  const rowClass = s.unknownTag ? 'incomplete' : s.incomplete ? 'incomplete' : '';
   const initials = s.workerName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+
+  // Build warning badge for special cases
+  let warningBadge = '';
+  if (s.unknownTag) {
+    warningBadge = `<span style="display:inline-block;background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:6px;">⚠ UNKNOWN TAG</span>`;
+  } else if (s.overnightOrphan) {
+    warningBadge = `<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:6px;">⚠ ORPHAN CLOCK OUT</span>`;
+  }
+
   const clockInHtml = s.snappedIn
     ? `<div class="time-val time-actual">${escHtml(s.clockIn)}</div><div class="time-billed">→ billed ${escHtml(s.billingClockIn)}</div>`
     : `<div class="time-val">${escHtml(s.clockIn||'—')}</div>`;
@@ -533,7 +542,7 @@ function renderShiftRow(s) {
   const coDate  = s.clockOutDate && s.clockOutDate !== s.date ? `<div class="time-date">${escHtml(s.clockOutDate)}</div>` : '';
   return `
     <tr class="${rowClass}">
-      <td style="text-align:left;"><div class="worker-cell"><div class="worker-avatar">${escHtml(initials)}</div><div><div class="worker-name-val">${escHtml(s.workerName)}</div></div></div></td>
+      <td style="text-align:left;"><div class="worker-cell"><div class="worker-avatar">${escHtml(initials)}</div><div><div class="worker-name-val">${escHtml(s.workerName)}${warningBadge}</div></div></div></td>
       <td style="font-size:12px;color:#888;text-align:left;">${escHtml(s.position||'—')}</td>
       <td class="time-cell">${clockInHtml}${ciDate}</td>
       <td class="time-cell">${clockOutHtml}${coDate}</td>
