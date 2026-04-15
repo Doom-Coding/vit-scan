@@ -379,6 +379,7 @@
         <thead>
           <tr>
             <th>Name</th>
+            <th>Rating</th>
             <th>Phone</th>
             <th>Email</th>
             <th>Emergency Contact</th>
@@ -391,7 +392,7 @@
           </tr>
         </thead>
         <tbody id="wr-tbody">
-          <tr><td colspan="10" class="wr-empty"><div class="wr-empty-icon">👥</div><div>Click Refresh to load the worker roster.</div></td></tr>
+          <tr><td colspan="11" class="wr-empty"><div class="wr-empty-icon">👥</div><div>Click Refresh to load the worker roster.</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -840,15 +841,15 @@ let rosterData = [];
 
 async function loadRoster() {
   const tbody = document.getElementById('wr-tbody');
-  if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:#aaa;font-size:13px;"><span style="display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:#1a1a1a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;"></span>Loading roster…</td></tr>`;
+  if (tbody) tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:2.5rem;color:#aaa;font-size:13px;"><span style="display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:#1a1a1a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;"></span>Loading roster…</td></tr>`;
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=getWorkerRoster`);
     const data = await res.json();
-    if (data.error) { if(tbody) tbody.innerHTML=`<tr><td colspan="10" class="wr-empty"><div>Error: ${escHtml(data.error)}</div></td></tr>`; return; }
+    if (data.error) { if(tbody) tbody.innerHTML=`<tr><td colspan="11" class="wr-empty"><div>Error: ${escHtml(data.error)}</div></td></tr>`; return; }
     rosterData = data.workers || [];
     renderRoster(rosterData);
   } catch(e) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="wr-empty"><div>Connection error. Try again.</div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="11" class="wr-empty"><div>Connection error. Try again.</div></td></tr>`;
   }
 }
 
@@ -863,7 +864,7 @@ function renderRoster(workers) {
   if (compEl) compEl.textContent = complete;
 
   if (!workers.length) {
-    tbody.innerHTML = `<tr><td colspan="10" class="wr-empty"><div class="wr-empty-icon">👥</div><div>No workers in the roster yet.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="wr-empty"><div class="wr-empty-icon">👥</div><div>No workers in the roster yet.</div></td></tr>`;
     return;
   }
 
@@ -900,6 +901,13 @@ function renderRoster(workers) {
       <td>
         <div class="wr-name">${escHtml(w.name || '—')}</div>
         ${w.market ? `<div class="wr-sub">${escHtml(w.market)}</div>` : ''}
+      </td>
+      <td>
+        ${w.avgRating ? `
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="color:#f59e0b;font-size:14px;">${'★'.repeat(Math.round(w.avgRating))}${'☆'.repeat(5-Math.round(w.avgRating))}</span>
+            <span style="font-size:11px;color:#aaa;white-space:nowrap;">${w.avgRating.toFixed(1)} (${w.timesRated})</span>
+          </div>` : '<span style="color:#ddd;font-size:13px;">☆☆☆☆☆</span>'}
       </td>
       <td><span class="wr-phone">${escHtml(w.phone || '—')}</span></td>
       <td>${w.email ? `<span style="font-size:12px;color:#555">${escHtml(w.email)}</span>` : '<span style="color:#ccc">—</span>'}</td>
