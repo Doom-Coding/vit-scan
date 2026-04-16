@@ -315,167 +315,6 @@
   #billing-section { display: none; background: #f7f7f5; min-height: 60vh; }
   #billing-section.visible { display: block; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f7f7f5; min-height: 100vh; color: #1a1a1a; }
-  header { background: #1a1a1a; color: #fff; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .header-left { display: flex; align-items: center; gap: 1rem; }
-  .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.5; }
-  .header-title { font-size: 15px; font-weight: 600; }
-  .header-right { display: flex; align-items: center; gap: 0.75rem; }
-  .btn-export-all { padding: 0.4rem 1rem; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; display: none; }
-  .btn-export-all:hover { background: rgba(255,255,255,0.1); }
-  .btn-export-all.visible { display: block; }
-  .controls { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
-  .control-group { display: flex; flex-direction: column; gap: 4px; position: relative; }
-  .control-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
-  .control-group select, .control-group input[type="date"] { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; appearance: none; -webkit-appearance: none; min-width: 180px; cursor: pointer; }
-  .control-group select:focus, .control-group input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  .multiselect-btn { padding: 0.5rem 2rem 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 0.6rem center; color: #1a1a1a; min-width: 220px; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; border-right: none; border-radius: 8px 0 0 8px; }
-  .multiselect-btn:focus { outline: none; }
-  .multiselect-wrapper { display: flex; align-items: stretch; min-width: 220px; }
-  .multiselect-clear { padding: 0 0.6rem; border: 1px solid #ddd; border-left: none; border-radius: 0 8px 8px 0; background: #fafafa; color: #aaa; font-size: 16px; cursor: pointer; display: flex; align-items: center; line-height: 1; transition: color 0.15s, background 0.15s; }
-  .multiselect-clear:hover { color: #1a1a1a; background: #f0f0f0; }
-  .multiselect-dropdown { position: absolute; top: calc(100% + 4px); left: 0; min-width: 260px; background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 200; display: none; overflow: hidden; }
-  .multiselect-dropdown.open { display: block; }
-  .multiselect-search { padding: 0.6rem 0.75rem; border: none; border-bottom: 1px solid #f0f0f0; font-size: 13px; width: 100%; outline: none; background: #fafafa; color: #1a1a1a; }
-  .multiselect-actions { display: flex; gap: 0; border-bottom: 1px solid #f0f0f0; }
-  .multiselect-action-btn { flex: 1; padding: 0.4rem; font-size: 11px; font-weight: 600; color: #888; background: none; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.1s, color 0.1s; }
-  .multiselect-action-btn:hover { background: #f5f5f5; color: #1a1a1a; }
-  .multiselect-action-btn:first-child { border-right: 1px solid #f0f0f0; }
-  .multiselect-list { max-height: 220px; overflow-y: auto; }
-  .multiselect-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.75rem; font-size: 13px; cursor: pointer; transition: background 0.1s; user-select: none; }
-  .multiselect-item:hover { background: #f5f5f5; }
-  .multiselect-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: #1a1a1a; cursor: pointer; flex-shrink: 0; }
-  .multiselect-item.all-option { border-bottom: 1px solid #f0f0f0; font-weight: 600; color: #555; }
-  .ms-badge { display: inline-flex; align-items: center; justify-content: center; background: #1a1a1a; color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; margin-left: 4px; vertical-align: middle; }
-  .btn-load { padding: 0.5rem 1.25rem; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; align-self: flex-end; }
-  .btn-load:hover { opacity: 0.8; }
-  .btn-load:disabled { opacity: 0.4; cursor: default; }
-  .summary-bar { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 0.75rem 1.5rem; display: none; gap: 2rem; flex-wrap: wrap; align-items: center; }
-  .summary-bar.visible { display: flex; }
-  .summary-stat { display: flex; flex-direction: column; gap: 2px; }
-  .summary-stat .label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
-  .summary-stat .value { font-size: 18px; font-weight: 700; color: #1a1a1a; }
-  .summary-stat .value.ot { color: #c2410c; }
-  .summary-divider { width: 1px; height: 32px; background: #e5e5e5; }
-  .event-label-bar { font-size: 12px; color: #888; margin-left: auto; }
-  .event-label-bar strong { color: #1a1a1a; }
-  .policy-key { display: flex; gap: 1rem; flex-wrap: wrap; padding: 0.75rem 1.5rem; background: #fff; border-bottom: 1px solid #e5e5e5; font-size: 11px; color: #888; align-items: center; }
-  .policy-key span { display: flex; align-items: center; gap: 4px; }
-  .main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
-  .day-group { margin-bottom: 2rem; }
-  .day-header { display: flex; align-items: center; gap: 1rem; background: #1a1a1a; color: #fff; padding: 0.85rem 1rem; border-radius: 10px 10px 0 0; flex-wrap: wrap; }
-  .day-date-block { display: flex; flex-direction: column; min-width: 90px; }
-  .day-date-primary { font-size: 16px; font-weight: 700; }
-  .day-date-name { font-size: 11px; opacity: 0.5; margin-top: 2px; }
-  .day-vdivider { width: 1px; height: 36px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
-  .day-stats { display: flex; gap: 1.5rem; flex: 1; flex-wrap: wrap; }
-  .day-stat { display: flex; flex-direction: column; gap: 1px; }
-  .day-stat .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
-  .day-stat .val { font-size: 14px; font-weight: 700; }
-  .day-stat .val.ot-val { color: #fca5a5; }
-  .day-actions { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
-  .status-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-  .status-complete { background: #22c55e; color: #fff; }
-  .status-pending { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
-  .btn-day-dl { padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; white-space: nowrap; transition: opacity 0.15s; }
-  .btn-day-dl.ready { background: #fff; color: #1a1a1a; cursor: pointer; }
-  .btn-day-dl.ready:hover { opacity: 0.85; }
-  .btn-day-dl.locked { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.25); cursor: not-allowed; }
-  .shift-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
-  .shift-table th { background: #f8f8f8; padding: 0.5rem 0.85rem; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; border-bottom: 1px solid #e5e5e5; }
-  .shift-table th.left, .shift-table td.left { text-align: left; }
-  .shift-table td { padding: 0.65rem 0.85rem; font-size: 13px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; text-align: center; }
-  .shift-table tr:last-child td { border-bottom: none; }
-  .shift-table tr.incomplete { background: #fffbeb; }
-  .shift-table td.time-right { border-right: 2px solid #e5e5e5; }
-  .shift-table th.time-right { border-right: 2px solid #e5e5e5; }
-  .shift-table th.billing { background: #f0f0f0; color: #1a1a1a; border-bottom: 1px solid #d5d5d5; }
-  .shift-table th.b-first { border-left: 2px solid #1a1a1a; }
-  .shift-table td.billing { background: #fafafa; }
-  .shift-table td.b-first { border-left: 2px solid #1a1a1a; }
-  .shift-table tr.incomplete td.billing { background: #fef9e7; }
-  .shift-table tr:last-child td.billing { border-bottom: none; }
-  .billing-group-header { background: #1a1a1a; color: #fff; text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 12px; }
-  .worker-cell { display: flex; align-items: center; gap: 8px; }
-  .worker-avatar { width: 26px; height: 26px; border-radius: 50%; background: #f0f0f0; color: #555; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
-  .worker-name-val { font-weight: 600; }
-  .time-cell { white-space: nowrap; }
-  .time-val { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
-  .time-actual { font-size: 12px !important; color: #aaa !important; font-weight: 400 !important; }
-  .time-billed { font-size: 11px; color: #d97706; font-weight: 700; margin-top: 2px; }
-  .time-date { font-size: 10px; color: #aaa; margin-top: 1px; }
-  .hours-val { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .hours-val.ot { color: #c2410c; }
-  .hours-val.reg { color: #166534; }
-  .hours-val.tot { color: #1a1a1a; }
-  .hours-val.dash { color: #ccc; font-weight: 400; }
-  .flag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-right: 3px; vertical-align: middle; }
-  .flag-overnight { background: #fee2e2; color: #991b1b; }
-  .flag-minimum { background: #fef3c7; color: #92400e; }
-  .flag-bumped { background: #dbeafe; color: #1e40af; }
-  .flag-grace { background: #fef3c7; color: #92400e; }
-  /* ── Sign-off status indicators ── */
-  .so-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; white-space: nowrap; cursor: default; }
-  .so-pending   { background: #f1f5f9; color: #94a3b8; }
-  .so-confirmed { background: #f0fdf4; color: #16a34a; }
-  .so-disputed  { background: #fef2f2; color: #dc2626; cursor: pointer; }
-  .so-expired   { background: #f8fafc; color: #94a3b8; }
-  .so-resolved  { background: #eff6ff; color: #2563eb; cursor: pointer; }
-  .so-notsent   { color: #ccc; font-size: 12px; }
-  .so-disputed:hover, .so-resolved:hover { opacity: 0.8; }
-  /* ── Dispute / time-override modal ── */
-  .so-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 800; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .so-modal-overlay.open { opacity: 1; pointer-events: all; }
-  .so-modal-card { background: #fff; border-radius: 16px; width: 100%; max-width: 420px; transform: translateY(10px); transition: transform 0.2s; overflow: hidden; max-height: 90vh; overflow-y: auto; }
-  .so-modal-overlay.open .so-modal-card { transform: translateY(0); }
-  .so-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #f0f0f0; }
-  .so-modal-title { font-size: 16px; font-weight: 700; }
-  .so-modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #aaa; padding: 2px 6px; border-radius: 6px; }
-  .so-modal-close:hover { background: #f5f5f5; color: #1a1a1a; }
-  .so-modal-body { padding: 1.25rem 1.5rem; }
-  .so-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; margin-bottom: 5px; display: block; }
-  .so-info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
-  .so-info-row:last-child { border-bottom: none; }
-  .so-info-row .lbl { color: #888; }
-  .so-info-row .val { font-weight: 600; }
-  .so-dispute-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.75rem 1rem; margin: 1rem 0; }
-  .so-dispute-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #dc2626; margin-bottom: 4px; }
-  .so-dispute-note { font-size: 13px; color: #333; line-height: 1.5; }
-  .so-input { width: 100%; padding: 0.55rem 0.75rem; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; font-family: inherit; margin-bottom: 1rem; }
-  .so-input:focus { outline: none; border-color: #1a1a1a; background: #fff; }
-  .so-textarea { width: 100%; padding: 0.55rem 0.75rem; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 13px; background: #fafafa; color: #1a1a1a; font-family: inherit; resize: none; min-height: 64px; margin-bottom: 1rem; }
-  .so-textarea:focus { outline: none; border-color: #1a1a1a; }
-  .so-pin-row { display: flex; gap: 8px; margin-bottom: 1rem; }
-  .so-pin-input { flex: 1; padding: 0.55rem 0.75rem; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center; letter-spacing: 0.2em; font-family: inherit; background: #fafafa; }
-  .so-pin-input:focus { outline: none; border-color: #1a1a1a; }
-  .so-btn-row { display: flex; gap: 8px; }
-  .so-btn { flex: 1; padding: 0.7rem; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
-  .so-btn:hover { opacity: 0.8; }
-  .so-btn-primary { background: #1a1a1a; color: #fff; }
-  .so-btn-accept  { background: #16a34a; color: #fff; }
-  .so-btn-reject  { background: #dc2626; color: #fff; }
-  .so-btn-cancel  { background: #f0f0f0; color: #1a1a1a; }
-  .so-error { background: #fef2f2; color: #991b1b; border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 13px; margin-bottom: 0.75rem; display: none; }
-  .so-divider { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
-  /* ── Send sign-offs button ── */
-  .btn-send-signoffs { padding: 0.38rem 0.85rem; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); background: none; color: rgba(255,255,255,0.6); cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
-  .btn-send-signoffs:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.4); }
-  .btn-send-signoffs:disabled { opacity: 0.3; cursor: default; }
-  .empty-state { text-align: center; padding: 5rem 2rem; color: #888; }
-  .empty-state .icon { font-size: 44px; margin-bottom: 1rem; }
-  .empty-state h3 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 0.5rem; }
-  .empty-state p { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto; }
-  .loading { text-align: center; padding: 5rem; color: #888; font-size: 14px; }
-  .spinner-inline { display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1a1a1a; color: #fff; padding: 0.75rem 1.25rem; border-radius: 10px; font-size: 14px; font-weight: 500; opacity: 0; transform: translateY(10px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; max-width: 320px; }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  .toast.success { background: #166534; }
-  .toast.error { background: #991b1b; }
-  .toast.warning { background: #92400e; }
-  @media (max-width: 700px) { .controls { flex-direction: column; } .control-group select, .control-group input, .multiselect-btn { min-width: 100%; } .multiselect-wrapper { width: 100%; } .shift-table th:nth-child(2), .shift-table td:nth-child(2) { display: none; } .day-stats { gap: 0.75rem; } .day-actions { width: 100%; justify-content: flex-end; } }
-  @media print { header, .controls, .policy-key, .btn-export-all, .btn-day-dl, .day-actions { display: none !important; } .summary-bar { border: none; } body { background: #fff; } }
 
 </style>
 </head>
@@ -693,8 +532,6 @@
     </div>
   </div>
 </div>
-
-<div class="toast" id="toast"></div>
 
 
 </div>
@@ -1433,6 +1270,9 @@ let reportData = [], dayGroups = {}, allEvents = [], selectedEvents = new Set();
 let signoffStatuses = {};
 let activeTimeToken = null;
 
+// Billing-scoped event state (separate from Sign In tab brSelectedEvents)
+let brSelectedEvents = new Set(), brAllEvents = [];
+
 function initBillingTab() { if(window._brInitialized) return; window._brInitialized=true;
   const today = new Date(), prior = new Date(today);
   prior.setDate(prior.getDate() - 1);
@@ -1444,8 +1284,8 @@ function initBillingTab() { if(window._brInitialized) return; window._brInitiali
   document.addEventListener('click', e => {
     const grp = document.getElementById('br-event-control-group');
     if (!grp.contains(e.target)) closeEventDropdown();
-  }}
-});
+  });
+}
 
 function fmt(d) { return d.toISOString().split('T')[0]; }
 function parseDateStr(str) {
@@ -1460,9 +1300,9 @@ async function brLoadEvents() {
   try {
     const res = await fetch(`${SCRIPT_URL}?action=getEventList`);
     const data = await res.json();
-    allEvents = (data.events && data.events.length) ? data.events : [];
-    buildEventList(allEvents); updateEventBtn();
-  } catch(e) { allEvents = []; buildEventList([]); updateEventBtn(); }
+    brAllEvents = (data.events && data.events.length) ? data.events : [];
+    buildEventList(brAllEvents); updateEventBtn();
+  } catch(e) { brAllEvents = []; buildEventList([]); updateEventBtn(); }
 }
 
 function buildEventList(events) {
@@ -1477,8 +1317,8 @@ function buildEventList(events) {
     const item = document.createElement('label');
     item.className = 'multiselect-item'; item.dataset.value = ev;
     const chk = document.createElement('input');
-    chk.type = 'checkbox'; chk.value = ev; chk.checked = selectedEvents.has(ev);
-    chk.addEventListener('change', () => { if (chk.checked) selectedEvents.add(ev); else selectedEvents.delete(ev); updateEventBtn(); updateAllCheckbox(); });
+    chk.type = 'checkbox'; chk.value = ev; chk.checked = brSelectedEvents.has(ev);
+    chk.addEventListener('change', () => { if (chk.checked) brSelectedEvents.add(ev); else brSelectedEvents.delete(ev); updateEventBtn(); updateAllCheckbox(); });
     item.appendChild(chk); item.appendChild(document.createTextNode(ev));
     list.appendChild(item);
   });
@@ -1499,27 +1339,27 @@ function toggleEventDropdown(e) {
 }
 function closeEventDropdown() { document.getElementById('br-event-ms-dropdown').classList.remove('open'); }
 function selectAllEvents() {
-  allEvents.forEach(ev => selectedEvents.add(ev));
+  brAllEvents.forEach(ev => brSelectedEvents.add(ev));
   document.querySelectorAll('#br-event-ms-list .multiselect-item:not(.all-option) input').forEach(c => c.checked = true);
   updateEventBtn(); updateAllCheckbox();
 }
 function clearEventSelection() {
-  selectedEvents.clear();
+  brSelectedEvents.clear();
   document.querySelectorAll('#br-event-ms-list input[type="checkbox"]').forEach(c => c.checked = false);
   updateEventBtn();
 }
 function updateAllCheckbox() {
   const allChk = document.getElementById('br-ms-all-chk');
   if (!allChk) return;
-  allChk.checked = allEvents.length > 0 && selectedEvents.size === allEvents.length;
-  allChk.indeterminate = selectedEvents.size > 0 && selectedEvents.size < allEvents.length;
+  allChk.checked = brAllEvents.length > 0 && brSelectedEvents.size === brAllEvents.length;
+  allChk.indeterminate = brSelectedEvents.size > 0 && brSelectedEvents.size < brAllEvents.length;
 }
 function updateEventBtn() {
   const btn = document.getElementById('br-event-ms-btn');
-  if (selectedEvents.size === 0) btn.textContent = 'All events';
-  else if (selectedEvents.size === 1) btn.textContent = [...selectedEvents][0];
-  else if (selectedEvents.size === allEvents.length && allEvents.length > 0) btn.textContent = 'All events';
-  else btn.innerHTML = `${selectedEvents.size} events selected <span class="ms-badge">${selectedEvents.size}</span>`;
+  if (brSelectedEvents.size === 0) btn.textContent = 'All events';
+  else if (brSelectedEvents.size === 1) btn.textContent = [...brSelectedEvents][0];
+  else if (brSelectedEvents.size === brAllEvents.length && brAllEvents.length > 0) btn.textContent = 'All events';
+  else btn.innerHTML = `${brSelectedEvents.size} events selected <span class="ms-badge">${brSelectedEvents.size}</span>`;
 }
 
 async function brLoadLocations() {
@@ -1581,7 +1421,7 @@ async function loadReport() {
   const dateTo   = document.getElementById('br-date-to').value;
   const location = document.getElementById('br-location-select').value;
   if (!dateFrom || !dateTo) { alert('Please select a date range.'); return; }
-  const eventFilter = selectedEvents.size > 0 && selectedEvents.size < allEvents.length ? [...selectedEvents].join('|') : '';
+  const eventFilter = brSelectedEvents.size > 0 && brSelectedEvents.size < brAllEvents.length ? [...brSelectedEvents].join('|') : '';
   const btn = document.getElementById('br-load-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-inline"></span>Calculating...';
@@ -1751,7 +1591,7 @@ function renderShiftRow(s) {
 // ── Send sign-offs for a day ───────────────────────────────────────────────────
 async function sendSignoffs(date, e) {
   const btn = e.target; btn.disabled = true; btn.textContent = '📨 Sending...';
-  const eventFilter = selectedEvents.size>0 && selectedEvents.size<allEvents.length ? [...selectedEvents].join('|') : '';
+  const eventFilter = brSelectedEvents.size>0 && brSelectedEvents.size<brAllEvents.length ? [...brSelectedEvents].join('|') : '';
   const location    = document.getElementById('br-location-select').value;
   try {
     const res  = await fetch(`${SCRIPT_URL}?action=sendSignoffLinks&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}&locationFilter=${encodeURIComponent(location)}`);
@@ -1832,7 +1672,7 @@ async function resolveDispute(encodedToken, resolution) {
 
   showToast(`Dispute ${resolution.toLowerCase()} successfully`, 'success');
   closeSoModal();
-  const ef = selectedEvents.size>0&&selectedEvents.size<allEvents.length?[...selectedEvents].join('|'):'';
+  const ef = brSelectedEvents.size>0&&brSelectedEvents.size<brAllEvents.length?[...brSelectedEvents].join('|'):'';
   const lc = document.getElementById('br-location-select').value;
   await loadSignoffStatuses(ef, lc, '');
   renderReport(reportData, ef, lc);
@@ -1864,7 +1704,7 @@ async function submitTimeOverride() {
     const data = await res.json();
     if (data.error) { errEl.textContent=data.error; errEl.style.display='block'; return; }
     showToast('Billing times updated','success'); closeTimeModal();
-    const ef = selectedEvents.size>0&&selectedEvents.size<allEvents.length?[...selectedEvents].join('|'):'';
+    const ef = brSelectedEvents.size>0&&brSelectedEvents.size<brAllEvents.length?[...brSelectedEvents].join('|'):'';
     const lc = document.getElementById('br-location-select').value;
     await loadSignoffStatuses(ef,lc,''); renderReport(reportData,ef,lc);
   } catch(err) { errEl.textContent='Connection error.'; errEl.style.display='block'; }
@@ -1875,7 +1715,7 @@ function handleTimeOverlayClick(e) { if(e.target===document.getElementById('time
 // ── CSV exports ───────────────────────────────────────────────────────────────
 function exportDayCSV(date) {
   const dg = dayGroups[date]; if (!dg) return;
-  const eventLabel = selectedEvents.size===0||selectedEvents.size===allEvents.length?'All Events':[...selectedEvents].join(', ');
+  const eventLabel = brSelectedEvents.size===0||brSelectedEvents.size===brAllEvents.length?'All Events':[...brSelectedEvents].join(', ');
   const location   = document.getElementById('br-location-select').value||'All Locations';
   const dateObj    = parseDateStr(date);
   const dayName    = dateObj.toLocaleDateString('en-US',{weekday:'long'});
@@ -1901,7 +1741,7 @@ function exportDayCSV(date) {
 
 function exportAllCSV() {
   if (!reportData.length) return;
-  const eventLabel = selectedEvents.size===0||selectedEvents.size===allEvents.length?'All Events':[...selectedEvents].join(', ');
+  const eventLabel = brSelectedEvents.size===0||brSelectedEvents.size===brAllEvents.length?'All Events':[...brSelectedEvents].join(', ');
   const location   = document.getElementById('br-location-select').value||'All Locations';
   const dateFrom   = document.getElementById('br-date-from').value;
   const dateTo     = document.getElementById('br-date-to').value;
