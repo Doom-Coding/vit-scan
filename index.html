@@ -474,16 +474,7 @@
 const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwqD9_IIQcfsCr9X_kTtF1d5wKo06SLrcPmv314GGTIQ7VgZbLYOHpZ7bJyzpuqK5ldXQ/exec';
 const STAR_LABELS = ['','Poor','Fair','Good','Great','Excellent'];
 
-const MANAGERS = {
-  'Rob Jones':     '8608',
-  'Rejan Lufi':     '8563',
-  'Peter Meza':    '8608',
-  'Geo AVS':       '8608',
-  'Jasmine Biondi':'8608',
-  'John AVS':      '8608',
-  'Jorge Rendon':  '8608',
-  'Chad AVS':      '8608',
-};
+const MANAGERS = {};
 
 const params  = new URLSearchParams(window.location.search);
 const TAG_UID = params.get('uid')   || '';
@@ -500,17 +491,25 @@ const PIN_LEN    = 4;
 // ── Boot ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   if (!TAG_ID) { show('view-notag'); return; }
-  populateManagers();
+  // Fire both in parallel — no reason to block worker lookup on manager list
+  loadManagers();
   loadWorker();
 });
 
-function populateManagers() {
-  const sel = document.getElementById('mgr-select');
-  Object.keys(MANAGERS).forEach(name => {
-    const opt = document.createElement('option');
-    opt.value = name; opt.textContent = name;
-    sel.appendChild(opt);
-  });
+async function loadManagers() {
+  try {
+    const res  = await fetch(`${SCRIPT_URL}?action=getManagers`);
+    const data = await res.json();
+    if (data.managers && data.managers.length) {
+      const sel = document.getElementById('mgr-select');
+      data.managers.forEach(m => {
+        MANAGERS[m.name] = m.pin;
+        const opt = document.createElement('option');
+        opt.value = m.name; opt.textContent = m.name;
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) { console.error('loadManagers failed', e); }
 }
 
 // ── Load worker info then reveal UI ───────────────────────────────────────────
@@ -735,18 +734,6 @@ function handleDone() {
   ty.classList.add('visible');
 }
 
-// ── Reset → go back to scan UI ────────────────────────────────────────────────
-function reset() {
-  document.getElementById('view-result').classList.remove('visible');
-  show('view-main');
-  document.getElementById('mgr-select').value = '';
-  selectAction('');
-  pinBuffer = ''; updateDots();
-  hideBanner();
-  // Reload worker info to reflect updated status
-  loadWorker();
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function show(id) {
   if (isDone) return; // thank-you screen is final — nothing can navigate away
@@ -782,10 +769,6 @@ function showBanner(msg) {
 
 function hideBanner() {
   document.getElementById('error-banner').style.display = 'none';
-}
-
-function disableNumpad(disabled) {
-  document.querySelectorAll('.numpad button').forEach(b => b.disabled = disabled);
 }
 
 function esc(s) {
