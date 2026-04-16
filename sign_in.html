@@ -688,7 +688,7 @@ async function loadWorkers(){
   const btn=document.getElementById('load-btn');btn.disabled=true;btn.innerHTML='<span class="spinner-inline"></span>Loading…';document.getElementById('main-content').innerHTML='<div class="loading"><span class="spinner-inline"></span>Fetching worker list…</div>';
   try{const res=await fetch(`${SCRIPT_URL}?action=getWorkers&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}&eventFilter=${encodeURIComponent(eventFilter)}`);const data=await res.json();
   if(data.error){showToast(data.error,'error');document.getElementById('main-content').innerHTML=`<div class="empty-state"><div class="icon">⚠️</div><h3>Error loading workers</h3><p>${data.error}</p></div>`;return;}
-  allWorkers=data.workers||[];siAlertsFired=new Set();renderWorkers_signin(allWorkers);updateStats();siLastLocation=location;siLastDate=date;loadClockStatus(location,date);stopSiRefresh();startSiRefresh();
+  allWorkers=data.workers||[];siAlertsFired=new Set();siLastLocation=location;siLastDate=date;renderWorkers_signin(allWorkers);updateStats();loadClockStatus(location,date);stopSiRefresh();startSiRefresh();
   autoInviteNew(allWorkers, supervisor);}
   catch(e){showToast('Could not connect. Check your network.','error');document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Try again.</p></div>';}
   btn.disabled=false;btn.textContent='Load Workers';
