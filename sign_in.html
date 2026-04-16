@@ -440,7 +440,7 @@
   #billing-section .multiselect-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: #1a1a1a; cursor: pointer; flex-shrink: 0; }
   #billing-section .multiselect-item.all-option { border-bottom: 1px solid #f0f0f0; font-weight: 600; color: #555; }
   #billing-section .ms-badge { display: inline-flex; align-items: center; justify-content: center; background: #1a1a1a; color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; margin-left: 4px; vertical-align: middle; }
-  #billing-section .multiselect-btn { padding: 0.5rem 2rem 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px 0 0 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; min-width: 220px; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; border-right: none; }
+ #billing-section .multiselect-btn { padding: 0.5rem 2rem 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px 0 0 8px; font-size: 14px; background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 0.6rem center; color: #1a1a1a; min-width: 220px; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; border-right: none; }
   #billing-section .controls { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
   #billing-section .control-group select, #billing-section .control-group input[type="date"] { padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fafafa; color: #1a1a1a; appearance: none; -webkit-appearance: none; min-width: 180px; cursor: pointer; }
   @media (max-width: 700px) { #billing-section .controls { flex-direction: column; } .shift-table th:nth-child(2), .shift-table td:nth-child(2) { display: none; } .day-stats { gap: 0.75rem; } .day-actions { width: 100%; justify-content: flex-end; } }
@@ -1572,7 +1572,7 @@ async function loadReport() {
     reportData.forEach(s => {
       if (s.otHours != null) { s.otHours = roundOT(s.otHours); s.totalHours = (s.regularHours || 0) + s.otHours; }
     });
-    await loadSignoffStatuses(eventFilter, location, dateFrom);
+    await loadSignoffStatuses(eventFilter, location);
     renderReport(reportData, eventFilter, location);
   } catch(e) {
     document.getElementById('br-main-content').innerHTML = '<div class="empty-state"><div class="icon">❌</div><h3>Connection error</h3><p>Could not reach the server. Try again.</p></div>';
@@ -1580,9 +1580,9 @@ async function loadReport() {
   btn.disabled = false; btn.textContent = 'Generate Report'; closeEventDropdown();
 }
 
-async function loadSignoffStatuses(eventFilter, location, date) {
+async function loadSignoffStatuses(eventFilter, location) {
   try {
-    const url  = `${SCRIPT_URL}?action=getSignoffStatuses&date=${encodeURIComponent(date||'')}&eventFilter=${encodeURIComponent(eventFilter||'')}&locationFilter=${encodeURIComponent(location||'')}`;
+    const url  = `${SCRIPT_URL}?action=getSignoffStatuses&eventFilter=${encodeURIComponent(eventFilter||'')}&locationFilter=${encodeURIComponent(location||'')}`;
     const res  = await fetch(url);
     const data = await res.json();
     if (data.statuses) signoffStatuses = data.statuses;
@@ -1729,7 +1729,7 @@ async function sendSignoffs(date, e) {
     const data = await res.json();
     if (data.error) showToast('Error: ' + data.error, 'error');
     else showToast(`✓ ${data.sent} sent · ${data.skipped} already sent · ${data.notReady} not yet clocked out`, 'success');
-    await loadSignoffStatuses(eventFilter, location, date);
+    await loadSignoffStatuses(eventFilter, location);
     renderReport(reportData, eventFilter, location);
   } catch(err) { showToast('Connection error.', 'error'); }
   btn.disabled = false; btn.textContent = '📨 Send Sign-offs';
@@ -1805,7 +1805,7 @@ async function resolveDispute(encodedToken, resolution) {
   closeSoModal();
   const ef = brSelectedEvents.size>0&&brSelectedEvents.size<brAllEvents.length?[...brSelectedEvents].join('|'):'';
   const lc = document.getElementById('br-location-select').value;
-  await loadSignoffStatuses(ef, lc, '');
+  await loadSignoffStatuses(ef, lc);
   renderReport(reportData, ef, lc);
 }
 
@@ -1837,7 +1837,7 @@ async function submitTimeOverride() {
     showToast('Billing times updated','success'); closeTimeModal();
     const ef = brSelectedEvents.size>0&&brSelectedEvents.size<brAllEvents.length?[...brSelectedEvents].join('|'):'';
     const lc = document.getElementById('br-location-select').value;
-    await loadSignoffStatuses(ef,lc,''); renderReport(reportData,ef,lc);
+    await loadSignoffStatuses(ef,lc); renderReport(reportData,ef,lc);
   } catch(err) { errEl.textContent='Connection error.'; errEl.style.display='block'; }
 }
 function closeTimeModal() { document.getElementById('time-modal').classList.remove('open'); activeTimeToken=null; }
