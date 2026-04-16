@@ -119,6 +119,16 @@
   .worker-name { font-weight: 600; color: #1a1a1a; }
   .worker-position { font-size: 12px; color: #888; margin-top: 2px; }
   .worker-time { font-size: 13px; color: #555; white-space: nowrap; }
+  .punch-wrap { display: flex; flex-direction: column; gap: 3px; min-width: 90px; }
+  .punch-input { width: 72px; padding: 3px 6px; border: 1px solid #e5e5e5; border-radius: 5px; font-size: 12px; font-family: monospace; background: #fafafa; color: #555; text-align: center; }
+  .punch-input:focus { outline: none; border-color: #1a1a1a; background: #fff; color: #1a1a1a; }
+  .punch-input.has-value { border-color: #166534; background: #f0fdf4; color: #166534; font-weight: 600; }
+  .punch-input.dirty { border-color: #d97706; background: #fffbeb; color: #92400e; }
+  .punch-label { font-size: 10px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.05em; }
+  .btn-save-punch { padding: 2px 7px; background: #1a1a1a; color: #fff; border: none; border-radius: 4px; font-size: 10px; font-weight: 700; cursor: pointer; font-family: inherit; display: none; margin-top: 2px; }
+  .btn-save-punch:hover { opacity: 0.8; }
+  .btn-save-punch.visible { display: inline-block; }
+  .btn-save-punch.saving { opacity: 0.5; cursor: default; }
   .worker-room { font-size: 13px; color: #555; }
   .actions-wrap { display: flex; gap: 6px; align-items: flex-start; }
   .tag-input-wrap { display: flex; gap: 6px; align-items: flex-start; }
@@ -731,7 +741,7 @@ function renderWorkers_signin(workers){
   if(!workers.length){document.getElementById('main-content').innerHTML='<div class="empty-state"><div class="icon">🔍</div><h3>No workers found</h3><p>No bookings match this filter.</p></div>';document.getElementById('stats-bar').style.display='none';return;}
   const groups={};workers.forEach((w,idx)=>{const ev=w.eventName||'Unassigned';if(!groups[ev])groups[ev]=[];groups[ev].push({...w,idx});});
   Object.values(groups).forEach(g=>g.sort((a,b)=>parseTime(a.bookedTime)-parseTime(b.bookedTime)));
-  let html='';Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).forEach(([event,rows])=>{html+=`<div class="event-group"><div class="event-header"><span class="event-label">${escHtml(event)}</span><span class="event-count">${rows.length} worker${rows.length!==1?'s':''}</span></div><table class="worker-table"><thead><tr><th class="chk-col"><input type="checkbox" class="bulk-chk" onchange="toggleSelectAll(this)" title="Select all clocked-in"></th><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th style="width:240px;">Actions</th></tr></thead><tbody>${rows.map(w=>renderRow(w)).join('')}</tbody></table></div>`;});
+  let html='';Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).forEach(([event,rows])=>{html+=`<div class="event-group"><div class="event-header"><span class="event-label">${escHtml(event)}</span><span class="event-count">${rows.length} worker${rows.length!==1?'s':''}</span></div><table class="worker-table"><thead><tr><th class="chk-col"><input type="checkbox" class="bulk-chk" onchange="toggleSelectAll(this)" title="Select all clocked-in"></th><th>Name</th><th>Call Time</th><th>Room / Area</th><th>Phone</th><th>Clock IN</th><th>Clock Out</th><th style="width:240px;">Actions</th></tr></thead><tbody>${rows.map(w=>renderRow(w)).join('')}</tbody></table></div>`;});
   document.getElementById('main-content').innerHTML=html;document.getElementById('stats-bar').style.display='flex';
   workers.forEach((w,i)=>{if(w.tagId){const input=document.getElementById(`tag-${i}`);if(input){input.value=w.tagId;input.classList.add('has-value');markSaved(i);}}});
 }
@@ -742,7 +752,27 @@ function renderRow(w){const i=w.idx;
       ? `<span style="font-size:13px;font-weight:700;color:#1a1a1a;white-space:nowrap;" title="In worker roster">${escHtml(w.phone)}</span>`
       : `<span id="phone-cell-${i}" data-phone="${escHtml(w.phone)}" style="font-size:13px;color:#aaa;white-space:nowrap;" title="Not yet in roster">${escHtml(w.phone)}</span>`
     : `<span style="font-size:13px;color:#ccc;">—</span>`;
-  return `<tr id="row-${i}"><td class="chk-col"><input type="checkbox" class="bulk-chk" id="chk-${i}" onchange="onBulkChkChange()" data-idx="${i}"></td><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td>${phoneHtml}</td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
+
+  const punchDate = siLastDate || new Date().toISOString().split('T')[0];
+  // Convert YYYY-MM-DD to MM/DD/YYYY for the scan log
+  const punchDateFmt = punchDate.split('-').length===3
+    ? punchDate.split('-')[1]+'/'+punchDate.split('-')[2]+'/'+punchDate.split('-')[0]
+    : punchDate;
+
+  const inCell  = `<div class="punch-wrap">
+    <span class="punch-label">In</span>
+    <input type="text" class="punch-input" id="pin-${i}" placeholder="--:--" maxlength="5"
+      data-idx="${i}" data-type="Clock IN" data-date="${escHtml(punchDateFmt)}"
+      oninput="onPunchInput(this)" onblur="savePunch(this)">
+  </div>`;
+  const outCell = `<div class="punch-wrap">
+    <span class="punch-label">Out</span>
+    <input type="text" class="punch-input" id="pout-${i}" placeholder="--:--" maxlength="5"
+      data-idx="${i}" data-type="Clock Out" data-date="${escHtml(punchDateFmt)}"
+      oninput="onPunchInput(this)" onblur="savePunch(this)">
+  </div>`;
+
+  return `<tr id="row-${i}"><td class="chk-col"><input type="checkbox" class="bulk-chk" id="chk-${i}" onchange="onBulkChkChange()" data-idx="${i}"></td><td><div class="worker-name">${escHtml(w.name)}</div><div class="worker-position">${escHtml(w.position||'')}</div></td><td><span class="worker-time">${escHtml(w.bookedTime||'—')}</span></td><td><span class="worker-room">${escHtml(w.room||'—')}</span></td><td>${phoneHtml}</td><td>${inCell}</td><td>${outCell}</td><td><div class="actions-wrap"><div class="tag-input-wrap"><span class="status-dot unsaved" id="dot-${i}"></span><div><input type="text" class="tag-input ${w.tagId?'has-value':''}" id="tag-${i}" value="${w.tagId||''}" placeholder="001" maxlength="6" oninput="onTagInput(${i})" onkeydown="if(event.key==='Enter') saveTag(${i})"><div class="conflict-msg" id="conflict-${i}"></div></div><button class="btn-action btn-save ${w.tagId?'saved':''}" id="savebtn-${i}" onclick="saveTag(${i})">${w.tagId?'Saved':'Save Tag'}</button></div><button class="btn-action btn-scan-tag ${w.scanLogged?'logged':''}" id="scanbtn-${i}" onclick="openScanModal(${i})">📲 Scan</button></div></td></tr>`;}
 
 function onTagInput(idx){const input=document.getElementById(`tag-${idx}`),dot=document.getElementById(`dot-${idx}`),btn=document.getElementById(`savebtn-${idx}`),msg=document.getElementById(`conflict-${idx}`);input.classList.remove('has-value','conflict');input.classList.toggle('has-value',input.value.length>0);dot.className='status-dot unsaved';btn.textContent='Save Tag';btn.classList.remove('saved','conflict');btn.onclick=()=>saveTag(idx);msg.style.display='none';}
 
@@ -818,13 +848,77 @@ async function loadClockStatus(location,date){
       if(!matchingClockIn)return;
       const clockInMins=parseTime(matchingClockIn);
       const matchingClockOut=entry.clockOuts.find(t=>{const m=parseTime(t);return m!==9999&&m>clockInMins;});
+
+      // Populate punch inputs
+      const inInput  = document.getElementById(`pin-${i}`);
+      const outInput = document.getElementById(`pout-${i}`);
+      if(inInput)  { inInput.value  = matchingClockIn;   inInput.classList.add('has-value');  inInput.dataset.original  = matchingClockIn; }
+      if(outInput && matchingClockOut) { outInput.value = matchingClockOut; outInput.classList.add('has-value'); outInput.dataset.original = matchingClockOut; }
+
       if(matchingClockOut){setRowClockStatus(i,'clocked-out');setScanBtn(i,'out');}
-      else{
-        setRowClockStatus(i,'clocked-in');setScanBtn(i,'in');
-      }
+      else{setRowClockStatus(i,'clocked-in');setScanBtn(i,'in');}
     });
     resetSiCountdown();
   }catch(e){console.error('loadClockStatus error:',e);}
+}
+
+// ── Punch edit functions ──────────────────────────────────────────────────────
+function onPunchInput(input) {
+  // Format as HH:MM as user types
+  let v = input.value.replace(/[^0-9:]/g,'');
+  if(v.length===2 && !v.includes(':') && input.dataset.lastLen !=='3') v += ':';
+  input.dataset.lastLen = v.length;
+  input.value = v;
+  const isDirty = v !== (input.dataset.original || '');
+  input.classList.toggle('dirty', isDirty && v.length > 0);
+  input.classList.toggle('has-value', !isDirty && v.length > 0);
+}
+
+async function savePunch(input) {
+  const val = input.value.trim();
+  if(!val || val === (input.dataset.original || '')) return; // no change
+  if(!/^\d{1,2}:\d{2}$/.test(val)) { showToast('Enter time as HH:MM', 'error'); input.value = input.dataset.original || ''; input.classList.remove('dirty'); return; }
+
+  const idx       = parseInt(input.dataset.idx);
+  const punchType = input.dataset.type;   // 'Clock IN' or 'Clock Out'
+  const date      = input.dataset.date;   // MM/DD/YYYY
+  const worker    = allWorkers[idx];
+  if(!worker) return;
+
+  input.disabled = true;
+  const origBorder = input.style.border;
+
+  try {
+    const url = `${SCRIPT_URL}?action=updateScanPunch`
+      + `&tagId=${encodeURIComponent(worker.tagId||'')}`
+      + `&punchType=${encodeURIComponent(punchType)}`
+      + `&date=${encodeURIComponent(date)}`
+      + `&time=${encodeURIComponent(val)}`
+      + `&event=${encodeURIComponent(worker.eventName||'')}`
+      + `&workerName=${encodeURIComponent(worker.name||'')}`;
+
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if(data.success) {
+      input.dataset.original = val;
+      input.classList.remove('dirty');
+      input.classList.add('has-value');
+      showToast(`${worker.name} ${punchType} updated to ${val}`, 'success');
+      // Update row color
+      if(punchType === 'Clock IN') { setRowClockStatus(idx,'clocked-in'); setScanBtn(idx,'in'); }
+      if(punchType === 'Clock Out') { setRowClockStatus(idx,'clocked-out'); setScanBtn(idx,'out'); }
+    } else {
+      showToast('Save failed: ' + (data.error||'unknown error'), 'error');
+      input.value = input.dataset.original || '';
+      input.classList.remove('dirty');
+    }
+  } catch(e) {
+    showToast('Connection error', 'error');
+    input.value = input.dataset.original || '';
+    input.classList.remove('dirty');
+  }
+  input.disabled = false;
 }
 
 function setRowClockStatus(idx,cls){const row=document.getElementById(`row-${idx}`);if(!row)return;row.classList.remove('clocked-in','clocked-out');if(cls)row.classList.add(cls);const chk=document.getElementById(`chk-${idx}`);if(chk){if(cls==='clocked-out'){chk.checked=false;chk.disabled=true;}else{chk.disabled=false;}}onBulkChkChange();}
@@ -869,11 +963,9 @@ function renderRoster(workers) {
   }
 
   tbody.innerHTML = workers.map(w => {
-    const posTags = (w.positions || []).slice(0,5).map(p => {
-      const name  = (typeof p === 'object') ? (p.name  || '') : String(p);
-      const count = (typeof p === 'object') ? (p.count || 1)  : 1;
-      return `<span class="wr-pos-tag">${escHtml(name)}${count > 1 ? ` <span style="color:#aaa;font-weight:400;">×${count}</span>` : ''}</span>`;
-    }).join('') + (w.positions.length > 5 ? `<span class="wr-pos-tag">+${w.positions.length-5}</span>` : '');
+    const posTags = (w.positions || []).slice(0,5).map(p =>
+      `<span class="wr-pos-tag">${escHtml(p)}</span>`).join('') +
+      (w.positions.length > 5 ? `<span class="wr-pos-tag">+${w.positions.length-5}</span>` : '');
 
     const profBadge = w.profileComplete === 'Yes'
       ? `<span class="wr-badge-yes">Complete</span>`
@@ -932,7 +1024,7 @@ function filterRoster() {
     (w.phone        || '').includes(q) ||
     (w.email        || '').toLowerCase().includes(q) ||
     (w.emergencyName|| '').toLowerCase().includes(q) ||
-    (w.positions    || []).some(p => (typeof p === 'object' ? p.name || '' : String(p)).toLowerCase().includes(q)) ||
+    (w.positions    || []).some(p => p.toLowerCase().includes(q)) ||
     (w.tagId        || '').toLowerCase().includes(q)
   );
   renderRoster(filtered);
