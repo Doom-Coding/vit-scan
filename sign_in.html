@@ -915,7 +915,7 @@ function updateSubmitButton(){const btn=document.getElementById('submit-ratings-
 async function submitAllRatings(){
   const btn=document.getElementById('submit-ratings-btn'),entries=Object.entries(ccRatings).filter(([,v])=>v>0);
   if(!entries.length)return;btn.disabled=true;btn.textContent='Submitting…';let success=0;
-  for(const[wn,rating]of entries){try{const tagId=((ccData&&ccData.workers)||[]).find(w=>w.name===wn)?.tagId||'';const res=await fetch(`${SCRIPT_URL}?action=submitRating&workerName=${encodeURIComponent(wn)}&tagId=${encodeURIComponent(tagId)}&rating=${rating}`);if((await res.text())==='OK')success++;}catch(e){}}
+  for(const[wn,rating]of entries){try{const res=await fetch(`${SCRIPT_URL}?action=submitRating&workerName=${encodeURIComponent(wn)}&rating=${rating}`);if((await res.text())==='OK')success++;}catch(e){}}
   showToast(`${success} rating${success!==1?'s':''} submitted`,'success');btn.textContent=`✓ ${success} submitted`;
   setTimeout(()=>{ccRatings={};if(ccData)renderWorkers(ccData.workers);},2500);
 }
@@ -1116,8 +1116,7 @@ function showModalError(msg){const err=document.getElementById('modal-pin-error'
 
 async function submitModalScan(){
   const worker=allWorkers[modalWorkerIdx];if(!worker)return;const logBtn=document.getElementById('modal-log-btn');logBtn.textContent='Logging…';logBtn.disabled=true;
-  try{// No action= param: intentional — backend falls through router to NFC scan logging section (Code-37.gs line 43+)
-  const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(document.getElementById('modal-manager').value)}&room=${encodeURIComponent(document.getElementById('modal-room').value)}&phase=${encodeURIComponent(document.getElementById('modal-phase').value)}`;const text=await(await fetch(url)).text();
+  try{const url=`${SCRIPT_URL}?uid=${encodeURIComponent(worker.tagId)}&tagId=${encodeURIComponent(worker.tagId)}&manager=${encodeURIComponent(document.getElementById('modal-manager').value)}&room=${encodeURIComponent(document.getElementById('modal-room').value)}&phase=${encodeURIComponent(document.getElementById('modal-phase').value)}`;const text=await(await fetch(url)).text();
   document.getElementById('modal-confirm').style.display='none';document.getElementById('modal-result').style.display='block';
   if(text.includes('DUPLICATE')){document.getElementById('modal-result-icon').textContent='⚠️';document.getElementById('modal-result-title').textContent='Already scanned';document.getElementById('modal-result-msg').textContent='Scanned in the last 60 seconds.';}
   else if(text.includes('ERROR')){document.getElementById('modal-result-icon').textContent='❌';document.getElementById('modal-result-title').textContent='Could not log';document.getElementById('modal-result-msg').textContent=text;}
