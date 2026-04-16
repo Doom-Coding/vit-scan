@@ -217,12 +217,28 @@ const S = {
 function t(k) { return (S[currentLang] || S.en)[k] || S.en[k] || k; }
 
 function setLang(lang) {
+  // Preserve in-progress dispute state before re-render wipes the DOM
+  const noteEl   = document.getElementById('dispute-note');
+  const formEl   = document.getElementById('dispute-form');
+  const savedNote   = noteEl ? noteEl.value : '';
+  const formWasOpen = formEl ? formEl.classList.contains('open') : false;
+
   currentLang = lang;
   document.getElementById('btn-en').classList.toggle('active', lang === 'en');
   document.getElementById('btn-es').classList.toggle('active', lang === 'es');
   document.documentElement.lang = lang;
-  if (shiftData) renderShift(shiftData);
-  else { const el = document.getElementById('loading-text'); if (el) el.textContent = t('loading'); }
+
+  if (shiftData) {
+    renderShift(shiftData);
+    // Restore after re-render
+    if (formWasOpen) document.getElementById('dispute-form')?.classList.add('open');
+    const newNote = document.getElementById('dispute-note');
+    if (newNote && savedNote) newNote.value = savedNote;
+    if (selectedType) pickType(selectedType);
+  } else {
+    const el = document.getElementById('loading-text');
+    if (el) el.textContent = t('loading');
+  }
 }
 
 function getToken() {
@@ -395,6 +411,7 @@ async function confirmHours() {
     const res  = await fetch(`${SCRIPT_URL}?action=submitSignoff&token=${encodeURIComponent(getToken())}&status=Confirmed&disputeType=&disputeNote=`);
     const data = await res.json();
     if (data.error) { alert(data.error); if (btn) { btn.disabled = false; btn.textContent = t('confirmBtn'); } return; }
+    if (shiftData) shiftData.status = 'Confirmed';
     renderState('confirmed');
   } catch(e) {
     alert('Connection error. Please try again.');
@@ -412,6 +429,7 @@ async function submitDispute() {
     const res  = await fetch(`${SCRIPT_URL}?action=submitSignoff&token=${encodeURIComponent(getToken())}&status=Disputed&disputeType=${encodeURIComponent(selectedType)}&disputeNote=${encodeURIComponent(note.value.trim())}`);
     const data = await res.json();
     if (data.error) { alert(data.error); if (btn) { btn.disabled = false; btn.textContent = t('submitDispute'); } return; }
+    if (shiftData) shiftData.status = 'Disputed';
     renderState('disputed');
   } catch(e) {
     alert('Connection error. Please try again.');
