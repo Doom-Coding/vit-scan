@@ -1266,12 +1266,11 @@ async function runBulkClockOut(manager,phase){
 // ══ BILLING REPORT TAB
 // ══════════════════════════════════════════
 
-let reportData = [], dayGroups = {}, allEvents = [], selectedEvents = new Set();
+let reportData = [], dayGroups = {}, brAllEvents = [], brSelectedEvents = new Set();
 let signoffStatuses = {};
 let activeTimeToken = null;
 
-// Billing-scoped event state (separate from Sign In tab brSelectedEvents)
-let brSelectedEvents = new Set(), brAllEvents = [];
+// Billing-scoped event state (separate from Sign In tab selectedEvents)
 
 function initBillingTab() { if(window._brInitialized) return; window._brInitialized=true;
   const today = new Date(), prior = new Date(today);
