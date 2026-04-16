@@ -845,11 +845,11 @@ async function loadClockStatus(location,date){
       const clockInMins=parseTime(matchingClockIn);
       const matchingClockOut=entry.clockOuts.find(t=>{const m=parseTime(t);return m!==9999&&m>clockInMins;});
 
-      // Populate punch inputs
+      // Populate punch inputs — skip if user manually edited this session
       const inInput  = document.getElementById(`pin-${i}`);
       const outInput = document.getElementById(`pout-${i}`);
-      if(inInput)  { inInput.value  = matchingClockIn;   inInput.classList.add('has-value');  inInput.dataset.original  = matchingClockIn; }
-      if(outInput && matchingClockOut) { outInput.value = matchingClockOut; outInput.classList.add('has-value'); outInput.dataset.original = matchingClockOut; }
+      if(inInput  && !inInput.dataset.manuallySaved)  { inInput.value  = matchingClockIn;   inInput.classList.add('has-value');  inInput.dataset.original  = matchingClockIn; }
+      if(outInput && matchingClockOut && !outInput.dataset.manuallySaved) { outInput.value = matchingClockOut; outInput.classList.add('has-value'); outInput.dataset.original = matchingClockOut; }
 
       if(matchingClockOut){setRowClockStatus(i,'clocked-out');setScanBtn(i,'out');}
       else{setRowClockStatus(i,'clocked-in');setScanBtn(i,'in');}
@@ -898,6 +898,7 @@ async function savePunch(input) {
 
     if(data.success) {
       input.dataset.original = val;
+      input.dataset.manuallySaved = '1';
       input.classList.remove('dirty');
       input.classList.add('has-value');
       showToast(`${worker.name} ${punchType} updated to ${val}`, 'success');
