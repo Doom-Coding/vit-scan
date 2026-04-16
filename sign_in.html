@@ -210,6 +210,10 @@
   .cc-stat.amber .val { color: #d97706; }
   .cc-stat.blue { background: #eff6ff; border-color: #bfdbfe; }
   .cc-stat.blue .val { color: #2563eb; }
+  .cc-stat.red { background: #fef2f2; border-color: #fecaca; }
+  .cc-stat.red .val { color: #dc2626; }
+  .cc-stat.red.zero { background: #fff; border-color: #e5e5e5; }
+  .cc-stat.red.zero .val { color: #1a1a1a; }
   .cc-rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
   .cc-room-card { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
   .cc-room-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); transform: translateY(-1px); }
@@ -486,16 +490,19 @@
   <div class="cc-refresh-bar">
     <span id="cc-asof">Select a location and hit Refresh to load.</span>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Location</label><select id="cc-location-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:200px;appearance:none;-webkit-appearance:none;"><option value="">Select location…</option></select></div>
-      <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Date</label><input type="date" id="cc-date-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:130px;"></div>
+      <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Location</label><select id="cc-location-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:200px;appearance:none;-webkit-appearance:none;" onchange="ccLoadEventOptions()"><option value="">Select location…</option></select></div>
+      <div style="display:flex;align-items:center;gap:6px;"><label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Date</label><input type="date" id="cc-date-select" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:130px;" onchange="ccLoadEventOptions()"></div>
+      <div style="display:flex;align-items:center;gap:6px;position:relative;"><label style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;white-space:nowrap;">Event</label><button type="button" class="multiselect-btn" id="cc-event-btn" onclick="toggleCcEventPanel()" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fafafa;min-width:160px;"><span id="cc-event-btn-label">All events</span><span class="arrow">▼</span></button><div class="multiselect-panel" id="cc-event-panel"><label class="multiselect-option select-all"><input type="checkbox" id="cc-select-all-events" onchange="toggleAllCcEvents(this)"> Select all</label></div></div>
       <span id="cc-countdown" style="font-size:11px;color:#aaa;"></span>
       <button class="cc-refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
     </div>
   </div>
+  </div>
   <div class="cc-wrap">
     <div class="cc-summary">
-      <div class="cc-stat"><div class="val" id="cc-scheduled">—</div><div class="lbl">Scheduled Today</div></div>
-      <div class="cc-stat blue"><div class="val" id="cc-clockedin">—</div><div class="lbl">Clocked In</div></div>
+      <div class="cc-stat"><div class="val" id="cc-scheduled">—</div><div class="lbl">Scheduled</div></div>
+      <div class="cc-stat red zero" id="cc-notin-card"><div class="val" id="cc-notin">—</div><div class="lbl">Not In Yet</div></div>
+      <div class="cc-stat blue"><div class="val" id="cc-onsite">—</div><div class="lbl">On Site</div></div>
       <div class="cc-stat green"><div class="val" id="cc-active">—</div><div class="lbl">Active</div></div>
       <div class="cc-stat amber"><div class="val" id="cc-lunch">—</div><div class="lbl">On Lunch</div></div>
       <div class="cc-stat"><div class="val" id="cc-out">—</div><div class="lbl">Clocked Out</div></div>
@@ -769,7 +776,7 @@ let allWorkers=[],selectedEvents=new Set(),modalWorkerIdx=null,mPinBuffer='';
 const M_PIN_LENGTH=4;
 let siRefreshTimer=null,siCountdownInt=null,siCountdownSecs=60,siLastLocation='',siLastDate='',siAlertsFired=new Set();
 let alertQueue=[],alertPopupOpen=false;
-let ccData=null,ccRatings={},ccDismissed=new Set(),ccRefreshTimer=null,ccCountdownInt=null,ccCountdownSecs=60;
+let ccData=null,ccRatings={},ccDismissed=new Set(),ccRefreshTimer=null,ccCountdownInt=null,ccCountdownSecs=60; let ccSelectedEvents=new Set();  function toggleCcEventPanel(){document.getElementById('cc-event-panel').classList.toggle('open');document.getElementById('cc-event-btn').classList.toggle('active');} function toggleAllCcEvents(cb){document.querySelectorAll('#cc-event-panel input[data-event]').forEach(c=>{c.checked=cb.checked;if(cb.checked)ccSelectedEvents.add(c.dataset.event);else ccSelectedEvents.delete(c.dataset.event);});updateCcEventBtnLabel();} function onCcEventCheckbox(cb){if(cb.checked)ccSelectedEvents.add(cb.dataset.event);else ccSelectedEvents.delete(cb.dataset.event);const checkboxes=document.querySelectorAll('#cc-event-panel input[data-event]');document.getElementById('cc-select-all-events').checked=[...checkboxes].every(c=>c.checked);updateCcEventBtnLabel();} function updateCcEventBtnLabel(){const label=document.getElementById('cc-event-btn-label');if(ccSelectedEvents.size===0)label.textContent='All events';else if(ccSelectedEvents.size===1)label.textContent=[...ccSelectedEvents][0];else label.textContent=`${ccSelectedEvents.size} events`;}  async function ccLoadEventOptions(){   const location=document.getElementById('cc-location-select').value,date=document.getElementById('cc-date-select').value,panel=document.getElementById('cc-event-panel');   panel.querySelectorAll('[data-event]').forEach(el=>el.closest('.multiselect-option').remove());ccSelectedEvents.clear();updateCcEventBtnLabel();if(!location||!date)return;   try{const res=await fetch(`${SCRIPT_URL}?action=getEvents&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(location)}&date=${encodeURIComponent(date)}`);const data=await res.json();   if(data.events&&data.events.length){data.events.forEach(ev=>{const label=document.createElement('label');label.className='multiselect-option';label.innerHTML=`<input type="checkbox" data-event="${escHtml(ev)}" onchange="onCcEventCheckbox(this)"> ${escHtml(ev)}`;panel.appendChild(label);});}}catch(e){} }
 
 async function loadManagers(){
   try{
@@ -796,7 +803,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   ALL_ROOMS.forEach(r=>{const opt=document.createElement('option');opt.value=r;opt.textContent=r;roomSel.appendChild(opt);});
   await loadManagers();
   loadLocations();
-  document.addEventListener('click',e=>{const panel=document.getElementById('event-panel'),btn=document.getElementById('event-multiselect-btn');if(!panel.contains(e.target)&&!btn.contains(e.target)){panel.classList.remove('open');btn.classList.remove('active');}});
+  document.addEventListener('click',e=>{const panel=document.getElementById('event-panel'),btn=document.getElementById('event-multiselect-btn');if(!panel.contains(e.target)&&!btn.contains(e.target)){panel.classList.remove('open');btn.classList.remove('active');}});   document.addEventListener('click',e=>{const panel=document.getElementById('cc-event-panel'),btn=document.getElementById('cc-event-btn');if(!panel.contains(e.target)&&!btn.contains(e.target)){panel.classList.remove('open');btn.classList.remove('active');}});
 });
 
 function switchTab(tab){
@@ -843,13 +850,22 @@ function handleAlertPopupOverlayClick(e){if(e.target===document.getElementById('
 async function loadDashboard(){
   document.getElementById('cc-asof').innerHTML='<span class="cc-spinner"></span>Loading…';
   const dateVal=document.getElementById('cc-date-select').value,locationVal=document.getElementById('cc-location-select').value;
+  const eventFilter=ccSelectedEvents.size>0?[...ccSelectedEvents].join('|'):'';
   if(!locationVal){document.getElementById('cc-asof').textContent='Select a location first.';return;}
-  try{const res=await fetch(`${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(locationVal)}`);const data=await res.json();if(data.error){document.getElementById('cc-asof').textContent='Error: '+data.error;return;}ccData=data;renderDashboard(data);}
+  try{const res=await fetch(`${SCRIPT_URL}?action=getDashboardData&date=${encodeURIComponent(dateVal)}&sheetId=${encodeURIComponent(LABOR_SHEET_ID)}&location=${encodeURIComponent(locationVal)}&eventFilter=${encodeURIComponent(eventFilter)}`);const data=await res.json();if(data.error){document.getElementById('cc-asof').textContent='Error: '+data.error;return;}ccData=data;renderDashboard(data);}
   catch(err){document.getElementById('cc-asof').textContent='Connection error — '+err.message;}
 }
 
 function renderDashboard(data){
-  document.getElementById('cc-scheduled').textContent=data.summary.scheduled;document.getElementById('cc-clockedin').textContent=data.summary.clockedIn;document.getElementById('cc-active').textContent=data.summary.active;document.getElementById('cc-lunch').textContent=data.summary.onLunch;document.getElementById('cc-out').textContent=data.summary.clockedOut;document.getElementById('cc-asof').textContent='As of '+(data.asOf||'—');
+  document.getElementById('cc-scheduled').textContent=data.summary.scheduled;
+  document.getElementById('cc-notin').textContent=data.summary.notInYet;
+  document.getElementById('cc-onsite').textContent=data.summary.onSite;
+  document.getElementById('cc-active').textContent=data.summary.active;
+  document.getElementById('cc-lunch').textContent=data.summary.onLunch;
+  document.getElementById('cc-out').textContent=data.summary.clockedOut;
+  // Not In Yet card: neutral when 0, red when anyone is missing
+  document.getElementById('cc-notin-card').classList.toggle('zero',data.summary.notInYet===0);
+  document.getElementById('cc-asof').textContent='As of '+(data.asOf||'—');
   renderRooms(data.rooms);renderWorkers(data.workers);renderAlerts(data.alerts);resetCountdown();
 }
 
