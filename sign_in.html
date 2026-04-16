@@ -218,10 +218,38 @@
   .cc-room-card { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
   .cc-room-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); transform: translateY(-1px); }
   .cc-room-card:active { transform: scale(0.98); }
-  .cc-room-name { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
-  .cc-room-count { display: flex; align-items: baseline; gap: 3px; margin-bottom: 8px; }
-  .cc-room-count .big { font-size: 28px; font-weight: 800; color: #1a1a1a; line-height: 1; }
-  .cc-room-count .of { font-size: 13px; color: #aaa; }
+  .cc-room-card.under       { background: #fef2f2; border-color: #fecaca; }
+  .cc-room-card.partial     { background: #fffbeb; border-color: #fde68a; }
+  .cc-room-card.full        { background: #f0fdf4; border-color: #bbf7d0; }
+  .cc-room-card.not_started { background: #fff;    border-color: #e5e5e5; }
+  .cc-room-card.unassigned  { background: #f8fafc; border-color: #e2e8f0; }
+  .cc-room-name { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; }
+  .cc-room-count { display: flex; align-items: baseline; gap: 4px; margin-bottom: 10px; }
+  .cc-room-count .big { font-size: 26px; font-weight: 800; line-height: 1; }
+  .cc-room-count .of  { font-size: 14px; color: #aaa; }
+  .cc-room-card.under   .cc-room-count .big { color: #dc2626; }
+  .cc-room-card.partial .cc-room-count .big { color: #d97706; }
+  .cc-room-card.full    .cc-room-count .big { color: #16a34a; }
+  .cc-room-card.not_started .cc-room-count .big,
+  .cc-room-card.unassigned  .cc-room-count .big { color: #1a1a1a; }
+  .cc-room-bar      { height: 4px; border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+  .cc-room-bar-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+  .cc-room-card.under       .cc-room-bar      { background: #fee2e2; }
+  .cc-room-card.under       .cc-room-bar-fill { background: #dc2626; }
+  .cc-room-card.partial     .cc-room-bar      { background: #fef3c7; }
+  .cc-room-card.partial     .cc-room-bar-fill { background: #d97706; }
+  .cc-room-card.full        .cc-room-bar      { background: #dcfce7; }
+  .cc-room-card.full        .cc-room-bar-fill { background: #16a34a; }
+  .cc-room-card.not_started .cc-room-bar      { background: #f0f0f0; }
+  .cc-room-card.not_started .cc-room-bar-fill { background: #ccc; }
+  .cc-room-card.unassigned  .cc-room-bar      { background: #e2e8f0; }
+  .cc-room-card.unassigned  .cc-room-bar-fill { background: #94a3b8; }
+  .cc-room-footer { font-size: 11px; font-weight: 600; }
+  .cc-room-card.under       .cc-room-footer { color: #991b1b; }
+  .cc-room-card.partial     .cc-room-footer { color: #92400e; }
+  .cc-room-card.full        .cc-room-footer { color: #15803d; }
+  .cc-room-card.not_started .cc-room-footer,
+  .cc-room-card.unassigned  .cc-room-footer { color: #888; }
   .cc-bottom { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
   .cc-workers { background: #fff; border: 1.5px solid #e5e5e5; border-radius: 14px; overflow: hidden; }
   .cc-workers-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #e5e5e5; gap: 10px; flex-wrap: wrap; }
@@ -871,8 +899,26 @@ function renderDashboard(data){
 
 function renderRooms(rooms){
   const grid=document.getElementById('cc-rooms');
-  if(!rooms||!rooms.length){grid.innerHTML='<div style="color:#aaa;font-size:13px;padding:1rem 0;">No active room scans yet for this date.</div>';return;}
-  grid.innerHTML=rooms.map((room,idx)=>{const count=room.present||0,dot=count>0?'#16a34a':'#e5e5e5';return `<div class="cc-room-card" onclick="openRoomModal(${idx})"><div class="cc-room-name">${escHtml(room.name)}</div><div class="cc-room-count"><span class="big" style="color:${count>0?'#1a1a1a':'#ccc'}">${count}</span><span class="of">active</span></div><div style="display:flex;align-items:center;gap:6px;margin-top:4px;"><div style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0;"></div><span style="font-size:11px;color:#aaa;">${count>0?count+' worker'+(count!==1?'s':'')+' in room':'No active workers'}</span></div></div>`;}).join('');
+  if(!rooms||!rooms.length){grid.innerHTML='<div style="color:#aaa;font-size:13px;padding:1rem 0;">No rooms booked for this selection.</div>';return;}
+  grid.innerHTML=rooms.map((room,idx)=>{
+    const pct=Math.min(100,Math.round((room.coverage||0)*100));
+    let footer='';
+    if(room.status==='under'||room.status==='partial'){
+      footer=room.notInYet+' not in yet';
+    } else if(room.status==='full'){
+      footer='Fully covered';
+    } else if(room.status==='not_started'){
+      footer=room.earliestCall?'Starts at '+room.earliestCall:'Not started yet';
+    } else if(room.status==='unassigned'){
+      footer='Unassigned bookings';
+    }
+    return `<div class="cc-room-card ${room.status}" onclick="openRoomModal(${idx})">
+      <div class="cc-room-name">${escHtml(room.name)}</div>
+      <div class="cc-room-count"><span class="big">${room.onSite}</span><span class="of">/ ${room.booked}</span></div>
+      <div class="cc-room-bar"><div class="cc-room-bar-fill" style="width:${pct}%;"></div></div>
+      <div class="cc-room-footer">${footer}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderWorkers(workers){
@@ -925,12 +971,49 @@ function alertKey(a){return a.type+'|'+a.name;}
 function dismissAlert(key){ccDismissed.add(key);if(ccData)renderAlerts(ccData.alerts);}
 
 function openRoomModal(idx){
-  if(!ccData||!ccData.rooms)return;const room=ccData.rooms[idx];if(!room)return;
-  document.getElementById('modal-room-name').textContent=room.name;document.getElementById('modal-room-sub').textContent=room.present+' active worker'+(room.present!==1?'s':'');
-  document.getElementById('modal-room-stats').innerHTML=`<div class="cc-modal-stat"><div class="val" style="color:#16a34a">${room.present}</div><div class="lbl">Active</div></div><div class="cc-modal-stat"><div class="val">${room.workers?room.workers.filter(w=>w.minsSince>=120).length:0}</div><div class="lbl">Overdue Scan</div></div><div class="cc-modal-stat"><div class="val">${room.workers?Math.max(...room.workers.map(w=>w.minsSince||0),0):0}m</div><div class="lbl">Longest Since Scan</div></div>`;
+  if(!ccData||!ccData.rooms)return;
+  const room=ccData.rooms[idx];if(!room)return;
+
+  document.getElementById('modal-room-name').textContent=room.name;
+  document.getElementById('modal-room-sub').textContent=
+    room.onSite+' of '+room.booked+' on site · '+room.notInYet+' not in yet · '+room.clockedOut+' clocked out';
+
+  document.getElementById('modal-room-stats').innerHTML=`
+    <div class="cc-modal-stat"><div class="val" style="color:#2563eb">${room.onSite}</div><div class="lbl">On Site</div></div>
+    <div class="cc-modal-stat"><div class="val" style="color:${room.notInYet>0?'#dc2626':'#1a1a1a'}">${room.notInYet}</div><div class="lbl">Not In Yet</div></div>
+    <div class="cc-modal-stat"><div class="val">${room.clockedOut}</div><div class="lbl">Clocked Out</div></div>`;
+
   const body=document.getElementById('modal-room-body');
-  if(!room.workers||!room.workers.length){body.innerHTML='<div style="padding:30px;text-align:center;color:#aaa;font-size:13px;">No workers currently active in this room.</div>';}
-  else{body.innerHTML=room.workers.map(w=>`<div class="cc-modal-worker-row"><div><div class="cc-modal-worker-name">${escHtml(w.name)}</div><div class="cc-modal-worker-meta">In at ${escHtml(w.clockIn||'—')} · Last scan ${escHtml(w.lastScan||'—')}${w.minsSince>=120?` <span style="color:#dc2626;font-weight:600;">(${w.minsSince}m ago)</span>`:''}</div></div>${statusPill(w.status)}</div>`).join('');}
+  if(!room.workers||!room.workers.length){
+    body.innerHTML='<div style="padding:30px;text-align:center;color:#aaa;font-size:13px;">No workers booked for this room.</div>';
+  } else {
+    // Sort by urgency: not_in first, then active, on_lunch, clocked_out
+    const sortOrder={not_in:0,active:1,on_lunch:2,clocked_out:3};
+    const sorted=[...room.workers].sort((a,b)=>{
+      const so=(sortOrder[a.status]||9)-(sortOrder[b.status]||9);
+      if(so!==0)return so;
+      return a.name.localeCompare(b.name);
+    });
+
+    body.innerHTML=sorted.map(w=>{
+      let metaLine='';
+      if(w.status==='active'||w.status==='on_lunch'){
+        metaLine='Call '+escHtml(w.callTime||'—')+' · In at '+escHtml(w.clockIn||'—');
+      } else if(w.status==='clocked_out'){
+        metaLine='In '+escHtml(w.clockIn||'—')+' · Out '+escHtml(w.clockOut||'—');
+      } else {
+        metaLine='Call time '+escHtml(w.callTime||'—');
+      }
+      const posLine=w.position?' · '+escHtml(w.position):'';
+      return `<div class="cc-modal-worker-row">
+        <div>
+          <div class="cc-modal-worker-name">${escHtml(w.name)}${posLine}</div>
+          <div class="cc-modal-worker-meta">${metaLine}</div>
+        </div>
+        ${statusPill(w.status)}
+      </div>`;
+    }).join('');
+  }
   document.getElementById('cc-room-modal').classList.add('open');
 }
 
