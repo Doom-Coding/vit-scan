@@ -159,6 +159,11 @@
   .loading { text-align: center; padding: 5rem; color: #888; font-size: 14px; }
   .spinner-inline { display: inline-block; width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1a1a1a; color: #fff; padding: 0.75rem 1.25rem; border-radius: 10px; font-size: 14px; font-weight: 500; opacity: 0; transform: translateY(10px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; max-width: 320px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: #166534; }
+  .toast.error { background: #991b1b; }
+  .toast.warning { background: #92400e; }
   @media (max-width: 700px) { .controls { flex-direction: column; } .control-group select, .control-group input, .multiselect-btn { min-width: 100%; } .multiselect-wrapper { width: 100%; } .shift-table th:nth-child(2), .shift-table td:nth-child(2) { display: none; } .day-stats { gap: 0.75rem; } .day-actions { width: 100%; justify-content: flex-end; } }
   @media print { header, .controls, .policy-key, .btn-export-all, .btn-day-dl, .day-actions { display: none !important; } .summary-bar { border: none; } body { background: #fff; } }
 </style>
@@ -426,7 +431,7 @@ function viewRawScans(scans, workerName, date) {
   overlay.classList.add('open');
 }
 
-
+async function loadReport() {
   const dateFrom = document.getElementById('date-from').value;
   const dateTo   = document.getElementById('date-to').value;
   const location = document.getElementById('location-select').value;
