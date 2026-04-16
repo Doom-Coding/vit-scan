@@ -1102,8 +1102,8 @@ async function loadClockStatus(location,date){
     const now=new Date(),nowMins=now.getHours()*60+now.getMinutes();
     allWorkers.forEach((w,i)=>{
       if(!w.tagId)return;const tag=String(w.tagId).padStart(3,'0'),entry=data.tags[tag];if(!entry)return;
-      const bookedStart=parseTime(w.bookedTime),bookedEnd=parseEndTime(w.bookedTime);
-      const matchingClockIn=entry.clockIns.find(t=>{const m=parseTime(t);return m!==9999&&m>=bookedStart-180&&m<=bookedStart+180;});
+      const bookedStart=parseTime(w.bookedTime);
+      const matchingClockIn=entry.clockIns.find(t=>{const m=parseTime(t);return m!==9999&&m>=bookedStart-240&&m<=bookedStart+180;});
       if(!matchingClockIn)return;
       const clockInMins=parseTime(matchingClockIn);
       const matchingClockOut=entry.clockOuts.find(t=>{const m=parseTime(t);return m!==9999&&m>clockInMins;});
