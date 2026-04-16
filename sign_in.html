@@ -1214,7 +1214,7 @@ async function loadClockStatus(location,date){
       const matchingClockIn=entry.clockIns.find(t=>{const m=parseTime(t);return m!==9999&&m>=bookedStart-240&&m<=bookedStart+180;});
       if(!matchingClockIn)return;
       const clockInMins=parseTime(matchingClockIn);
-      const matchingClockOut=entry.clockOuts.find(t=>{const m=parseTime(t);if(m===9999)return false;const adj=m<clockInMins?m+1440:m;return adj>clockInMins;});
+      const matchingClockOut=entry.clockOuts.find(t=>{const m=parseTime(t);if(m===9999)return false;const adj=(m<clockInMins&&m<420)?m+1440:m;return adj>clockInMins;});
 
       // Populate punch inputs — skip if user manually edited this session
       const inInput  = document.getElementById(`pin-${i}`);
