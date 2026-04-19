@@ -13,7 +13,7 @@
   .header-title { font-size: 15px; font-weight: 600; }
   .header-meta { font-size: 12px; opacity: 0.5; }
   .tab-bar { display: flex; background: #fff; border-bottom: 1px solid #e5e5e5; position: sticky; top: 57px; z-index: 200; }
-  .tab-btn { padding: 0.85rem 1.5rem; font-size: 13px; font-weight: 600; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; color: #888; transition: all 0.15s; font-family: inherit; display: flex; align-items: center; gap: 6px; }
+  .tab-btn { padding: 0.85rem 1.5rem; font-size: 13px; font-weight: 600; background: none; border: none; border-bottom: 3px solid #1a1a1a; cursor: pointer; color: #888; transition: all 0.15s; font-family: inherit; display: flex; align-items: center; gap: 6px; }
   .tab-btn.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
   .tab-btn:hover:not(.active) { color: #555; }
   .tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 99px; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; }
@@ -172,7 +172,7 @@
   .modal-divider { border: none; border-top: 1px solid #f0f0f0; margin: 1rem 0; }
   .pin-label { font-size: 13px; color: #555; text-align: center; margin-bottom: 0.75rem; }
   .pin-dots { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
-  .pin-dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid #ccc; background: transparent; transition: background 0.15s, border-color 0.15s; }
+  .pin-dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid #ccc; background: #1a1a1a; transition: background 0.15s, border-color 0.15s; }
   .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; }
   .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .numpad button { padding: 0.85rem 0; border: 1px solid #e5e5e5; border-radius: 10px; font-size: 18px; font-weight: 500; background: #fafafa; cursor: pointer; color: #1a1a1a; transition: background 0.1s; }
@@ -458,7 +458,7 @@
   .btn-send-signoffs { padding: 0.38rem 0.85rem; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,0.2); background: none; color: rgba(255,255,255,0.6); cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
   .btn-send-signoffs:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.4); }
   .btn-send-signoffs:disabled { opacity: 0.3; cursor: default; }
-  .btn-export-all { padding: 0.4rem 1rem; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; display: none; }
+  .btn-export-all { padding: 0.4rem 1rem; background: #1a1a1a; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; display: none; }
   .btn-export-all:hover { background: rgba(255,255,255,0.1); }
   .btn-export-all.visible { display: block; }
   #billing-section .multiselect-wrapper { display: flex; align-items: stretch; min-width: 220px; }
